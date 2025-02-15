@@ -13,4 +13,5 @@ sistema_chamados/
 ```
 
 
-Recomendado rodar o server (app.py) no Visual Studio Code.
+
+# **Recomendado rodar o server (app.py) no Visual Studio Code.**
