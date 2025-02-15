@@ -11,3 +11,6 @@ sistema_chamados/
 │
 └── README.md           # Instruções do projeto
 ```
+
+
+Recomendado rodar o server (app.py) no Visual Studio Code.
