@@ -1,0 +1,356 @@
+body {
+    padding: 20px;
+    background-color: #f8f9fa;
+}
+.card {
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.navbar {
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+.list-group-item {
+    transition: all 0.3s ease;
+}
+.list-group-item:hover {
+    transform: translateX(5px);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+footer {
+    margin-top: 20px;
+    padding: 10px 0;
+    text-align: center;
+    background-color: #343a40;
+    color: white;
+}
+#mensagem {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+}
+.loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+body.dark-mode {
+    background-color: #343a40 !important;
+    color: #f8f9fa !important;
+}
+body.dark-mode .card {
+    background-color: #495057;
+    border-color: #6c757d;
+}
+body.dark-mode .navbar {
+    background-color: #212529;
+}
+body.dark-mode footer {
+    background-color: #212529;
+}
+/* Estilos para o novo sistema visual de abas na subpágina de chamados */
+.nav-tabs .nav-link {
+    background: transparent;
+    color: #0d6efd;
+    padding: 10px 15px;
+    font-weight: normal;
+    transition: all 0.3s ease;
+}
+.nav-tabs .nav-link:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+}
+.nav-tabs .nav-link.active {
+    background-color: #0d6efd;
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    font-size: 1.1em;
+    font-weight: bold;
+}
+body.dark-mode .nav-tabs .nav-link {
+    color: #bbb;
+}
+body.dark-mode .nav-tabs .nav-link.active {
+    background-color: #375a7f;
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+/* Estilos para destacar os itens da barra superior (Home, Clientes, Chamados) */
+.navbar-nav .nav-link {
+    color: #fff;
+    padding: 10px 15px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.navbar-nav .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+}
+.navbar-nav .nav-link.active {
+    background-color: #007bff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    border-radius: 5px;
+    font-size: 1.1em;
+    font-weight: bold;
+}
+body.dark-mode .navbar-nav .nav-link {
+    color: #ddd;
+}
+body.dark-mode .navbar-nav .nav-link.active {
+    background-color: #0056b3;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+/* Estilo para a linha selecionada na tabela */
+.table-warning {
+    background-color: #ffc107 !important;
+}
+
+/* Estilos para a animação deslizante e o carrossel */
+#description-and-andamentos-container {
+    display: flex;
+    overflow: hidden;
+    position: relative; /* Necessário para o posicionamento absoluto dos andamentos */
+    width: 100%; /* Garante que ocupe toda a largura */
+}
+
+#description-section, #andamentos-section {
+    flex: 1;
+    transition: transform 0.5s ease;
+    padding: 20px;
+    box-sizing: border-box; /* Inclui o preenchimento no cálculo da largura */
+    width: 100%; /* Cada seção deve ocupar toda a largura */
+}
+
+#andamentos-section {
+    transform: translateX(100%); /* Inicialmente escondida */
+    position: absolute; /* Posicionada sobre a seção de descrição */
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin-left: -20px; /* Ajuste o valor conforme necessário */
+    overflow-x: hidden;
+}
+
+#andamentos-section h2 {
+    display: none; /* Oculta o título da seção de andamentos */
+}
+
+#andamentos-carousel {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 10px; /* Adiciona espaço para a barra de rolagem */
+    width: 100%;
+    /* Esconde a barra de rolagem, mas mantém a funcionalidade */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE e Edge */
+}
+
+/* Esconde a barra de rolagem no Chrome, Safari e Opera */
+#andamentos-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+#andamentos-carousel > div {
+    flex: 0 0 auto;
+    width: 1250px;
+    min-width: 1250px; /* Garante a largura mínima */
+    max-width: 1250px; /* Garante a largura máxima */
+    padding: 10px;
+    margin-right: 10px;
+    scroll-snap-align: start;
+    box-sizing: border-box;
+}
+
+#andamentos-carousel textarea,
+#andamentos-section .form-control {
+    width: calc(100% - 50px) !important; /* Reduz a largura para dar espaço aos botões */
+    margin: 0 25px !important; /* Adiciona margem nas laterais */
+    padding: 8px !important;
+    box-sizing: border-box !important;
+    border: 1px solid #ccc !important;
+}
+
+/* Estilos para os botões dos andamentos */
+#andamentos-carousel > div .btn {
+    margin-left: 25px;  /* Mesma margem das textareas */
+    margin-right: 5px;  /* Pequeno espaçamento entre os botões */
+}
+
+/* Garante que os botões fiquem agrupados */
+#andamentos-carousel > div .btn + .btn {
+    margin-left: 5px;  /* Espaçamento menor entre botões consecutivos */
+}
+
+/* Diminui o espaçamento nos grupos de formulário do detalhe do chamado */
+#detalhes-chamado-form .mb-3 {
+    margin-bottom: 8px !important; /* Ajuste conforme necessário */
+}
+
+/* Estilos para os botões de navegação do carrossel */
+.nav-button {
+    position: absolute;
+    top: 0;
+    height: calc(100% - 40px); /* Ajusta à altura da textarea */
+    background: rgba(0, 0, 0, 0.1);
+    border: none;
+    color: #495057;
+    font-size: 24px;
+    padding: 0 4px; /* Diminuído de 12px para 8px */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-button:hover {
+    background: rgba(0, 0, 0, 0.2);
+    color: #212529;
+}
+
+.nav-button.left {
+    left: 25px; /* Alinha com a margem da textarea */
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+.nav-button.right {
+    right: 25px; /* Alinha com a margem da textarea */
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+/* Ajustes para o modo escuro */
+body.dark-mode .nav-button {
+    background: rgba(255, 255, 255, 0.1);
+    color: #dee2e6;
+}
+
+body.dark-mode .nav-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+/* Estilos para o contador de andamentos */
+.andamento-counter {
+    position: absolute;
+    bottom: 20px; /* Ajustado para ficar mais para cima */
+    right: 45px; /* Ajustado para alinhar com o final da caixa de texto */
+    font-size: 14px;
+    color: #495057;
+}
+
+body.dark-mode .andamento-counter {
+    color: #f8f9fa; /* Ajustado para melhorar a visibilidade no modo escuro */
+}
+
+/* Estilos para os resultados da busca de clientes */
+#resultados_cliente {
+    position: relative;
+    z-index: 1000;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#resultados_cliente .list-group-item {
+    cursor: pointer;
+}
+
+#resultados_cliente .list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+body.dark-mode #resultados_cliente {
+    background-color: #343a40;
+    border-color: #495057;
+}
+
+body.dark-mode #resultados_cliente .list-group-item {
+    background-color: #343a40;
+    color: #f8f9fa;
+    border-color: #495057;
+}
+
+body.dark-mode #resultados_cliente .list-group-item:hover {
+    background-color: #495057;
+}
+
+/* Ajuste de cores para texto no modo noturno */
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select,
+body.dark-mode .form-control {
+    background-color: #2c3034;
+    color: #f8f9fa;
+    border-color: #495057;
+}
+
+body.dark-mode .form-label {
+    color: #f8f9fa;
+}
+
+body.dark-mode .modal-content {
+    background-color: #343a40;
+    color: #f8f9fa;
+}
+
+body.dark-mode .table {
+    color: #f8f9fa;
+}
+
+body.dark-mode .card {
+    color: #f8f9fa;
+}
+
+body.dark-mode .list-group-item {
+    background-color: #343a40;
+    color: #f8f9fa;
+    border-color: #495057;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+    color: #adb5bd;
+}
+
+body.dark-mode input:disabled,
+body.dark-mode textarea:disabled,
+body.dark-mode select:disabled,
+body.dark-mode .form-control:disabled {
+    background-color: #1a1d20;
+    color: #adb5bd;
+}
+
+body.dark-mode .modal-header,
+body.dark-mode .modal-footer {
+    border-color: #495057;
+}
+
+body.dark-mode .table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #f8f9fa;
+}
+
+body.dark-mode .table-striped > tbody > tr:nth-of-type(even) {
+    background-color: transparent;
+    color: #f8f9fa;
+}
+
+body.dark-mode .table-warning {
+    background-color: #664d03 !important;
+    color: #fff !important;
+}
