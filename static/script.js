@@ -2,11 +2,12 @@
 let paginaAtualClientes = 1; // Página atual da listagem de clientes
 const limitePorPagina = 10; // Limite de clientes por página
 let graficoChamados; // Para armazenar a instância do gráfico de chamados
-let paginaAtualChamados = 1; // Página atual da listagem de chamados
+let paginaAtualChamadosAbertos = 1; // Página atual da listagem de chamados abertos
+let paginaAtualChamadosFinalizados = 1; // Página atual da listagem de chamados finalizados
 const limiteChamados = 10; // Limite de chamados por página
 
 // Variáveis globais para ordenação
-let currentSortField = 'nome'; // Campo de ordenação atual (padrão: nome)
+let currentSortField = 'id'; // Campo de ordenação atual (padrão: id)
 let currentSortOrder = 'asc'; // Ordem de ordenação atual (padrão: ascendente)
 
 let selectedChamadoId = null; // ID do chamado selecionado
@@ -14,6 +15,76 @@ let selectedChamadoId = null; // ID do chamado selecionado
 // Variáveis globais para ordenação de chamados
 let currentChamadoSortField = ''; // Campo de ordenação atual dos chamados ("protocolo", "cliente", "data" ou "assunto")
 let currentChamadoSortOrder = 'asc'; // Ordem de ordenação atual dos chamados (padrão: ascendente)
+
+let totalPaginasClientes = 1; // Nova variável global para total de páginas
+
+// Adicione esta função no início do arquivo
+let sessionCheckInterval;
+let lastUserActivity = Date.now();
+const SESSION_WARNING_TIME = 30;  // 30 minutos
+const SESSION_TIMEOUT = 480;   // 8 horas em minutos
+
+// Monitora atividade do usuário
+document.addEventListener('mousemove', updateUserActivity);
+document.addEventListener('keypress', updateUserActivity);
+document.addEventListener('click', updateUserActivity);
+
+function updateUserActivity() {
+    lastUserActivity = Date.now();
+}
+
+function startSessionMonitor() {
+    sessionCheckInterval = setInterval(checkSession, 60000); // Verifica a cada minuto
+}
+
+function checkSession() {
+    const timeSinceLastActivity = (Date.now() - lastUserActivity) / (60 * 1000); // Em minutos
+
+    // Avisa quando faltar 30 minutos para expirar
+    if (timeSinceLastActivity >= (SESSION_TIMEOUT - SESSION_WARNING_TIME)) {
+        const timeLeft = SESSION_TIMEOUT - timeSinceLastActivity;
+        if (timeLeft > 0) {
+            const warningModal = new bootstrap.Modal(document.getElementById('sessionWarningModal'));
+            document.getElementById('timeLeft').textContent = Math.ceil(timeLeft);
+            warningModal.show();
+        } else {
+            // Se o tempo acabou, força o logout
+            window.location.href = '/auth/logout';
+        }
+    }
+
+    // Se passou do tempo limite, força logout
+    if (timeSinceLastActivity >= SESSION_TIMEOUT) {
+        window.location.href = '/auth/logout';
+    }
+}
+
+// Função para renovar a sessão
+async function renewSession() {
+    try {
+        const response = await fetch('/auth/renew-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (response.ok) {
+            lastUserActivity = Date.now(); // Atualiza o timestamp da última atividade
+            const warningModal = bootstrap.Modal.getInstance(document.getElementById('sessionWarningModal'));
+            warningModal.hide();
+        } else {
+            // Se a renovação falhar, redireciona para o logout
+            window.location.href = '/auth/logout';
+        }
+    } catch (error) {
+        console.error('Erro ao renovar sessão:', error);
+        window.location.href = '/auth/logout';
+    }
+}
+
+// Atualiza o modal para forçar logout ao clicar em "Sair"
+document.querySelector('#sessionWarningModal .btn-secondary').onclick = function() {
+    window.location.href = '/auth/logout';
+};
 
 // Função para exibir mensagens de feedback ao usuário
 function exibirMensagem(mensagem, tipo = 'sucesso') {
@@ -30,11 +101,17 @@ function exibirMensagem(mensagem, tipo = 'sucesso') {
 // Funções de navegação
 // Atualiza o menu ativo, destacando a página atual
 function updateActiveMenu(selected) {
-    const menus = ['menu-home', 'menu-clientes', 'menu-chamados']; // Lista de IDs dos menus
+    const menus = ['menu-home', 'menu-clientes', 'menu-chamados', 'menu-usuarios'];
     menus.forEach(function(id) {
-        document.getElementById(id).classList.remove('active'); // Remove a classe 'active' de todos os menus
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.remove('active');
+        }
     });
-    document.getElementById('menu-' + selected).classList.add('active'); // Adiciona a classe 'active' ao menu selecionado
+    const selectedMenu = document.getElementById('menu-' + selected);
+    if (selectedMenu) {
+        selectedMenu.classList.add('active');
+    }
 }
 
 // Carrega a página inicial
@@ -107,21 +184,32 @@ function carregarClientesPage() {
     document.getElementById('conteudo').innerHTML = `
         <div class="row">
             <div class="col-md-12">
-                <h2>Clientes Cadastrados</h2>
-                <!-- Barra de pesquisa -->
-                <div class="input-group mb-3">
-                    <input type="text" id="pesquisa-cliente" class="form-control" placeholder="Pesquisar cliente...">
-                    <button class="btn btn-primary" onclick="pesquisarClientes()">Pesquisar</button>
+                <h2 class="mb-4">Clientes Cadastrados</h2>
+                
+                <!-- Barra de pesquisa moderna -->
+                <div class="modern-search">
+                    <input type="text" id="pesquisa-cliente" class="form-control" 
+                           placeholder="Pesquisar por nome, ID ou e-mail...">
                 </div>
-                <!-- Toolbar de gerenciamento -->
-                <div id="clientes-toolbar" class="mb-2">
-                    <button id="btn-editar-cliente" class="btn btn-info btn-sm me-2" onclick="editarClienteSelecionado()" disabled>Editar</button>
-                    <button id="btn-excluir-cliente" class="btn btn-danger btn-sm" onclick="excluirClienteSelecionado()" disabled>Excluir</button>
+                
+                <!-- Toolbar moderna -->
+                <div class="modern-toolbar">
+                    <button id="btn-novo-cliente" class="btn btn-success" onclick="carregarNovoClientePage()">
+                        <i class="bi bi-plus-lg"></i> Novo Cliente
+                    </button>
+                    <button id="btn-editar-cliente" class="btn btn-info" onclick="editarClienteSelecionado()" disabled>
+                        <i class="bi bi-pencil"></i> Visualizar
+                    </button>
+                    <button id="btn-excluir-cliente" class="btn btn-danger" onclick="excluirClienteSelecionado()" disabled>
+                        <i class="bi bi-trash"></i> Excluir
+                    </button>
                 </div>
-                <table class="table table-striped">
+
+                <!-- Tabela moderna -->
+                <table class="modern-table">
                     <thead>
                         <tr>
-                            <th>ID - Nome</th>
+                            <th onclick="ordenarClientes('id')">ID - Nome</th>
                             <th>Nome Fantasia</th>
                             <th>E-mail</th>
                             <th>Telefone</th>
@@ -131,10 +219,18 @@ function carregarClientesPage() {
                         <!-- Dados serão renderizados aqui -->
                     </tbody>
                 </table>
-                <div class="d-flex justify-content-between">
-                    <button id="btn-anterior" class="btn btn-secondary" onclick="paginaAnteriorClientes()">Anterior</button>
-                    <span id="pagina-atual">Página ${paginaAtualClientes}</span>
-                    <button id="btn-proximo" class="btn btn-secondary" onclick="proximaPaginaClientes()">Próxima</button>
+
+                <!-- Paginação moderna -->
+                <div class="modern-pagination">
+                    <button id="btn-anterior" onclick="paginaAnteriorClientes()">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </button>
+                    <span class="page-info" id="pagina-atual">
+                        Página ${paginaAtualClientes}/${totalPaginasClientes}
+                    </span>
+                    <button id="btn-proximo" onclick="proximaPaginaClientes()">
+                        Próxima <i class="bi bi-chevron-right"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -208,7 +304,7 @@ async function buscarClientes(termo) {
         const clientes = await resposta.json(); // Converte a resposta para JSON
 
         const resultadoHTML = clientes.map(cliente => `
-            <tr data-id="${cliente[0]}" data-cliente='${JSON.stringify(cliente).replace(/"/g,'&quot;')}' style="cursor:pointer;">
+            <tr data-id="${cliente[0]}" data-telefone="${cliente[4] || ''}" data-cliente='${JSON.stringify(cliente).replace(/"/g,'&quot;')}' style="cursor:pointer;">
                 <td>${cliente[1]}</td>
                 <td>${cliente[2] || ''}</td>
                 <td>${cliente[3] || ''}</td>
@@ -249,7 +345,7 @@ async function carregarChamadosPage() {
                     <li class="nav-item">
                         <a id="tab-abrir" class="nav-link active" href="#" 
                            onclick="event.preventDefault(); selecionarAbaChamados('abrir'); carregarAbrirChamado();">
-                           Abrir Chamado
+                           Novo Chamado
                         </a>
                     </li>
                     <li class="nav-item">
@@ -318,10 +414,6 @@ function carregarAbrirChamado() {
                                     <input type="text" id="telefone_chamado" class="form-control" placeholder="Telefone automatizado">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="endereco_chamado" class="form-label">Endereço:</label>
-                                    <input type="text" id="endereco_chamado" class="form-control" placeholder="Endereço automatizado">
-                                </div>
-                                <div class="mb-3">
                                     <label for="descricao" class="form-label">Descrição:</label>
                                     <textarea id="descricao" class="form-control" rows="3" required></textarea>
                                 </div>
@@ -370,8 +462,7 @@ function configurarBuscaClienteChamado() {
                 resultadosDiv.innerHTML = clientes.map(cliente => `
                     <a href="#" class="list-group-item list-group-item-action" 
                        data-id="${cliente[0]}"
-                       data-telefone="${cliente[3] || ''}"
-                       data-endereco="${cliente[4] || ''}"
+                       data-telefone="${cliente[4] || ''}"
                        onclick="selecionarClienteChamado(event, this)">
                         #${cliente[0]} - ${cliente[1]} ${cliente[2] ? `(${cliente[2]})` : ''}
                     </a>
@@ -390,15 +481,13 @@ function selecionarClienteChamado(event, element) {
     const clienteId = element.dataset.id; // Obtém o ID do cliente
     const clienteNome = element.textContent.trim(); // Obtém o nome do cliente
     const telefone = element.dataset.telefone; // Obtém o telefone do cliente
-    const endereco = element.dataset.endereco; // Obtém o endereço do cliente
     
     // Atualiza os campos hidden e de busca
     document.getElementById('cliente_id').value = clienteId;
     document.getElementById('cliente_busca').value = clienteNome;
     
-    // Atualiza os campos de telefone e endereço
+    // Atualiza os campos de telefone
     document.getElementById('telefone_chamado').value = telefone;
-    document.getElementById('endereco_chamado').value = endereco;
     
     // Limpa os resultados
     document.getElementById('resultados_cliente').innerHTML = '';
@@ -411,7 +500,6 @@ function configurarFormularioChamado() {
         const assunto = document.getElementById('assunto').value; // Obtém o assunto
         const cliente_id = document.getElementById('cliente_id').value; // Obtém o ID do cliente
         const telefone = document.getElementById('telefone_chamado').value; // Obtém o telefone
-        const endereco = document.getElementById('endereco_chamado').value; // Obtém o endereço
         const descricao = document.getElementById('descricao').value; // Obtém a descrição
         
         if (!cliente_id) {
@@ -424,7 +512,6 @@ function configurarFormularioChamado() {
             assunto,
             cliente_id: parseInt(cliente_id),
             telefone,
-            endereco,
             descricao
         };
 
@@ -437,8 +524,9 @@ function configurarFormularioChamado() {
             if (resposta.ok) {
                 const data = await resposta.json(); // Converte a resposta para JSON
                 exibirMensagem(`Chamado aberto com sucesso! Protocolo: ${data.protocolo}`); // Exibe a mensagem de sucesso
-                carregarChamados(); // Carrega os chamados
                 document.getElementById('chamado-form').reset(); // Limpa o formulário
+                // Garante que carregarChamados seja chamado após a mensagem e o reset
+                carregarChamados();
             } else {
                 const erro = await resposta.json(); // Converte a resposta para JSON
                 exibirMensagem(`Erro: ${erro.erro}`, 'erro'); // Exibe a mensagem de erro
@@ -455,29 +543,49 @@ function carregarChamadosAbertos() {
     document.getElementById('chamados-content').innerHTML = `
         <div class="row">
             <div class="col-md-12">
-                <h2>Chamados Abertos</h2>
-                <!-- Toolbar de gerenciamento -->
-                <div id="chamados-toolbar" class="mb-2">
-                    <button id="btn-abrir" class="btn btn-info btn-sm me-2" onclick="abrirDetalhesChamado(selectedChamadoId)" disabled>Abrir</button>
-                    <button id="btn-finalizar" class="btn btn-success btn-sm me-2" onclick="finalizarChamado(selectedChamadoId)" disabled>Finalizar</button>
-                    <button id="btn-excluir" class="btn btn-danger btn-sm" onclick="excluirChamado(selectedChamadoId)" disabled>Excluir</button>
+                <h2 class="mb-4">Chamados Abertos</h2>
+                
+                <!-- Toolbar moderna -->
+                <div class="modern-toolbar">
+                    <button id="btn-abrir" class="btn btn-info" onclick="abrirDetalhesChamado(selectedChamadoId)" disabled>
+                        <i class="bi bi-folder2-open"></i> Visualizar
+                    </button>
+                    <button id="btn-finalizar" class="btn btn-success" onclick="finalizarChamado(selectedChamadoId)" disabled>
+                        <i class="bi bi-check-lg"></i> Finalizar
+                    </button>
+                    <button id="btn-excluir" class="btn btn-danger" onclick="excluirChamado(selectedChamadoId)" disabled>
+                        <i class="bi bi-trash"></i> Excluir
+                    </button>
                 </div>
-                <table class="table table-bordered">
+
+                <!-- Tabela moderna -->
+                <table class="modern-table">
                     <thead>
                         <tr>
-                            <th onclick="sortChamados('protocolo')">Protocolo</th>
+                            <th>Protocolo</th>
                             <th>ID</th>
-                            <th onclick="sortChamados('cliente')">Nome</th>
+                            <th>Cliente</th>
                             <th onclick="sortChamados('data')">Data</th>
-                            <th onclick="sortChamados('assunto')">Assunto</th>
+                            <th>Assunto</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody id="chamados-list"></tbody>
+                    <tbody id="chamados-list">
+                        <!-- Dados serão renderizados aqui -->
+                    </tbody>
                 </table>
-                <div class="d-flex justify-content-between mt-3">
-                    <button id="btn-anterior-chamados" class="btn btn-secondary" onclick="paginaAnteriorChamados()">Anterior</button>
-                    <span id="pagina-atual-chamados">Página ${paginaAtualChamados}</span>
-                    <button id="btn-proximo-chamados" class="btn btn-secondary" onclick="proximaPaginaChamados()">Próxima</button>
+
+                <!-- Paginação moderna -->
+                <div class="modern-pagination">
+                    <button id="btn-anterior-chamados-aberto" onclick="paginaAnteriorChamados('Aberto')">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </button>
+                    <span class="page-info" id="pagina-atual-chamados-aberto">
+                        Página ${paginaAtualChamadosAbertos}
+                    </span>
+                    <button id="btn-proximo-chamados-aberto" onclick="proximaPaginaChamados('Aberto')">
+                        Próxima <i class="bi bi-chevron-right"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -490,28 +598,49 @@ function carregarChamadosFinalizados() {
     document.getElementById('chamados-content').innerHTML = `
         <div class="row">
             <div class="col-md-12">
-                <h2>Chamados Finalizados</h2>
-                <!-- Toolbar de gerenciamento -->
-                <div id="chamados-toolbar" class="mb-2">
-                    <button id="btn-abrir" class="btn btn-info btn-sm me-2" onclick="abrirDetalhesChamado(selectedChamadoId)" disabled>Abrir</button>
-                    <button id="btn-excluir" class="btn btn-danger btn-sm" onclick="excluirChamadoSelecionado()" disabled>Excluir</button>
+                <h2 class="mb-4">Chamados Finalizados</h2>
+                
+                <!-- Toolbar moderna -->
+                <div class="modern-toolbar">
+                    <button id="btn-abrir" class="btn btn-info" onclick="abrirDetalhesChamado(selectedChamadoId)" disabled>
+                        <i class="bi bi-folder2-open"></i> Visualizar
+                    </button>
+                    <button id="btn-reabrir" class="btn btn-warning" onclick="reabrirChamado(selectedChamadoId)" disabled>
+                        <i class="bi bi-arrow-clockwise"></i> Reabrir
+                    </button>
+                    <button id="btn-excluir" class="btn btn-danger" onclick="excluirChamado(selectedChamadoId)" disabled>
+                        <i class="bi bi-trash"></i> Excluir
+                    </button>
                 </div>
-                <table class="table table-bordered">
+
+                <!-- Tabela moderna -->
+                <table class="modern-table">
                     <thead>
                         <tr>
-                            <th onclick="sortChamados('protocolo')">Protocolo</th>
-                            <th onclick="sortChamados('cliente')">Nome</th>
+                            <th>Protocolo</th>
+                            <th>Cliente</th>
                             <th onclick="sortChamados('data')">Data</th>
-                            <th onclick="sortChamados('assunto')">Assunto</th>
+                            <th>Assunto</th>
                             <th>Data Fechamento</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody id="chamados-finalizados"></tbody>
+                    <tbody id="chamados-finalizados">
+                        <!-- Dados serão renderizados aqui -->
+                    </tbody>
                 </table>
-                <div class="d-flex justify-content-between mt-3">
-                    <button id="btn-anterior-chamados-finalizados" class="btn btn-secondary" onclick="paginaAnteriorChamados('Finalizado')">Anterior</button>
-                    <span id="pagina-atual-chamados-finalizados">Página ${paginaAtualChamados}</span>
-                    <button id="btn-proximo-chamados-finalizados" class="btn btn-secondary" onclick="proximaPaginaChamados('Finalizado')">Próxima</button>
+
+                <!-- Paginação moderna -->
+                <div class="modern-pagination">
+                    <button id="btn-anterior-chamados-finalizado" onclick="paginaAnteriorChamados('Finalizado')">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </button>
+                    <span class="page-info" id="pagina-atual-chamados-finalizado">
+                        Página ${paginaAtualChamadosFinalizados}
+                    </span>
+                    <button id="btn-proximo-chamados-finalizado" onclick="proximaPaginaChamados('Finalizado')">
+                        Próxima <i class="bi bi-chevron-right"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -538,22 +667,9 @@ function paginaAnteriorClientes() {
 // Carrega a lista de clientes
 async function carregarClientes() {
     try {
-        const data = await fetchWithLoading( // Envia a requisição para a API com tela de carregamento
-            `http://localhost:5000/clientes?pagina=${paginaAtualClientes}&limite=${limitePorPagina}` // Define a URL da API
-        );
+        const url = `http://localhost:5000/clientes?pagina=${paginaAtualClientes}&limite=${limitePorPagina}&order_field=${currentSortField}&order_order=${currentSortOrder}`;
+        const data = await fetchWithLoading(url); // Envia a requisição para a API com tela de carregamento
         
-        // data.clientes é um array de arrays no formato [id, nome, email, telefone, endereco]
-
-        // Ordena com base no currentSortField
-        const sortIndex = { nome:1, email:2, telefone:3, endereco:4 }[currentSortField]; // Define o índice para ordenação
-        data.clientes.sort((a, b) => { // Ordena os clientes
-            let A = a[sortIndex] ? a[sortIndex].toUpperCase() : ''; // Obtém o valor para ordenação
-            let B = b[sortIndex] ? b[sortIndex].toUpperCase() : ''; // Obtém o valor para ordenação
-            if (A < B) return currentSortOrder === 'asc' ? -1 : 1; // Compara os valores
-            if (A > B) return currentSortOrder === 'asc' ? 1 : -1; // Compara os valores
-            return 0; // Retorna 0 se forem iguais
-        });
-
         const tbody = document.getElementById('clientes'); // Obtém o corpo da tabela
         tbody.innerHTML = data.clientes.map(cliente => `
             <tr data-id="${cliente[0]}" data-cliente='${JSON.stringify(cliente).replace(/"/g,'&quot;')}' style="cursor:pointer;">
@@ -583,6 +699,10 @@ async function carregarClientes() {
         // Atualiza controles de paginação
         document.getElementById('btn-anterior').disabled = paginaAtualClientes === 1; // Desabilita o botão "Anterior" se estiver na primeira página
         document.getElementById('btn-proximo').disabled = paginaAtualClientes >= data.total_paginas; // Desabilita o botão "Próximo" se estiver na última página
+
+        totalPaginasClientes = data.totalPages || 1;
+        document.getElementById('pagina-atual').textContent =
+            `Página ${paginaAtualClientes}/${totalPaginasClientes}`;
     } catch (erro) {
         console.error('Erro ao carregar clientes:', erro); // Exibe o erro no console
     }
@@ -602,113 +722,143 @@ function ordenarClientes(field) {
 
 // Altere o processamento em carregarChamados para detectar se o container é uma tabela (tbody)
 function carregarChamados(status = 'Aberto') {
-    const url = `http://localhost:5000/chamados?pagina=${paginaAtualChamados}&limite=${limiteChamados}&status=${status}`; // Define a URL da API
-    fetchWithLoading(url) // Envia a requisição para a API com tela de carregamento
-        .then(data => {
-            if (!data.chamados) {
-                throw new Error('Formato de resposta inválido'); // Lança um erro se o formato da resposta for inválido
-            }
-            let chamadosArray = data.chamados.slice(); // Clona o array de chamados
+    try {
+        const paginaAtual = status === 'Aberto' ? paginaAtualChamadosAbertos : paginaAtualChamadosFinalizados;
+        const url = `http://localhost:5000/chamados?pagina=${paginaAtual}&limite=${limiteChamados}&status=${status}`; // Define a URL da API
+        console.log('Carregando chamados da URL:', url); // Adicionado log
+        fetchWithLoading(url) // Envia a requisição para a API com tela de carregamento
+            .then(data => {
+                console.log('Resposta da API:', data); // Adicionado log
+                // Alterado para verificar explicitamente undefined
+                if (data.chamados === undefined) {
+                    throw new Error('Formato de resposta inválido'); // Lança um erro se o formato da resposta for inválido
+                }
+                let chamadosArray = data.chamados.slice(); // Clona o array de chamados
 
-            // Ordenação client-side se aplicável:
-            if (currentChamadoSortField) {
-                chamadosArray.sort((a, b) => { // Ordena os chamados
-                    // Considerando que:
-                    // a[6] = protocolo, a[1] = cliente (id, idealmente nome), a[4] = data, a[7] = assunto
-                    let fieldIndex; // Define o índice do campo para ordenação
-                    if (currentChamadoSortField === 'protocolo') fieldIndex = 6; // Define o índice do protocolo
-                    else if (currentChamadoSortField === 'cliente') fieldIndex = 1; // Define o índice do cliente
-                    else if (currentChamadoSortField === 'data') fieldIndex = 4; // Define o índice da data
-                    else if (currentChamadoSortField === 'assunto') fieldIndex = 7; // Define o índice do assunto
-                    let A = a[fieldIndex] ? a[fieldIndex].toString().toUpperCase() : ''; // Obtém o valor para ordenação
-                    let B = b[fieldIndex] ? b[fieldIndex].toString().toUpperCase() : ''; // Obtém o valor para ordenação
-                    if (currentChamadoSortField === 'data') {
-                        // Tente converter para data
-                        A = new Date(a[fieldIndex]); // Converte para data
-                        B = new Date(b[fieldIndex]); // Converte para data
+                // Ordenação client-side se aplicável:
+                if (currentChamadoSortField) {
+                    chamadosArray.sort((a, b) => { // Ordena os chamados
+                        // Considerando que:
+                        // a[6] = protocolo, a[1] = cliente (id, idealmente nome), a[4] = data, a[7] = assunto
+                        let fieldIndex; // Define o índice do campo para ordenação
+                        if (currentChamadoSortField === 'protocolo') fieldIndex = 6; // Define o índice do protocolo
+                        else if (currentChamadoSortField === 'cliente') fieldIndex = 1; // Define o índice do cliente
+                        else if (currentChamadoSortField === 'data') fieldIndex = 4; // Define o índice da data
+                        else if (currentChamadoSortField === 'assunto') fieldIndex = 7; // Define o índice do assunto
+                        let A = a[fieldIndex] ? a[fieldIndex].toString().toUpperCase() : ''; // Obtém o valor para ordenação
+                        let B = b[fieldIndex] ? b[fieldIndex].toString().toUpperCase() : ''; // Obtém o valor para ordenação
+                        if (currentChamadoSortField === 'data') {
+                            // Tente converter para data
+                            A = new Date(a[fieldIndex]); // Converte para data
+                            B = new Date(b[fieldIndex]); // Converte para data
+                        }
+                        if (A < B) return currentChamadoSortOrder === 'asc' ? -1 : 1; // Compara os valores
+                        if (A > B) return currentChamadoSortOrder === 'asc' ? 1 : -1; // Compara os valores
+                        return 0; // Retorna 0 se forem iguais
+                    });
+                }
+
+                if (status === 'Aberto') {
+                    const container = document.getElementById('chamados-list'); // Obtém o elemento para exibir a lista de chamados
+                    // Adicionado verificação para garantir que o elemento exista
+                    if (container) {
+                        container.innerHTML = chamadosArray.map(chamado => { // Renderiza os chamados na tabela
+                            const protocolo = chamado[6] ? chamado[6].replace(/\D/g, '') : 'N/A'; // Obtém o protocolo
+                            const clienteId = chamado[1] || 'N/A'; // Obtém o ID do cliente
+                            const clienteNome = chamado[9] || 'Cliente removido'; // Obtém o nome do cliente (vindo do JOIN)
+                            const dataAbertura = chamado[4]; // Obtém a data de abertura
+                            const assunto = chamado[7] || ''; // Obtém o assunto
+                            return `<tr data-id="${chamado[0]}" style="cursor:pointer;">
+                                        <td>${protocolo}</td>
+                                        <td>#${clienteId}</td>
+                                        <td>${clienteNome}</td>
+                                        <td>${dataAbertura}</td>
+                                        <td>${assunto}</td>
+                                        <td>
+                                            <span class="status-badge status-${chamado[3].toLowerCase()}">
+                                                ${chamado[3]}
+                                            </span>
+                                        </td>
+                                    </tr>`;
+                        }).join('');
+                        
+                        // Vincula eventos para seleção das linhas
+                        document.querySelectorAll("#chamados-list tr").forEach(row => {
+                            row.addEventListener('click', function() {
+                                document.querySelectorAll("#chamados-list tr").forEach(r => r.classList.remove('table-warning')); // Remove a classe de seleção de todas as linhas
+                                this.classList.add('table-warning'); // Adiciona a classe de seleção à linha clicada
+                                selectedChamadoId = this.getAttribute('data-id'); // Define o ID do chamado selecionado
+                                
+                                // Habilita os botões quando um chamado é selecionado
+                                document.getElementById('btn-abrir').disabled = false;
+                                document.getElementById('btn-finalizar').disabled = false;
+                                document.getElementById('btn-excluir').disabled = false;
+                            });
+                        });
+                    } else {
+                        console.error('Elemento #chamados-list não encontrado!');
                     }
-                    if (A < B) return currentChamadoSortOrder === 'asc' ? -1 : 1; // Compara os valores
-                    if (A > B) return currentChamadoSortOrder === 'asc' ? 1 : -1; // Compara os valores
-                    return 0; // Retorna 0 se forem iguais
-                });
-            }
-
-            if (status === 'Aberto') {
-                const container = document.getElementById('chamados-list'); // Obtém o elemento para exibir a lista de chamados
-                container.innerHTML = chamadosArray.map(chamado => { // Renderiza os chamados na tabela
-                    const protocolo = chamado[6] ? chamado[6].replace(/\D/g, '') : 'N/A'; // Obtém o protocolo
-                    const clienteId = chamado[1] || 'N/A'; // Obtém o ID do cliente
-                    const clienteNome = chamado[10] || 'N/A'; // Obtém o nome do cliente (vindo do JOIN)
-                    const dataAbertura = chamado[4]; // Obtém a data de abertura
-                    const assunto = chamado[7] || ''; // Obtém o assunto
-                    return `<tr data-id="${chamado[0]}" style="cursor:pointer;">
-                                <td>${protocolo}</td>
-                                <td>#${clienteId}</td>
-                                <td>${clienteNome}</td>
-                                <td>${dataAbertura}</td>
-                                <td>${assunto}</td>
-                            </tr>`;
-                }).join('');
-                
-                // Vincula eventos para seleção das linhas
-                document.querySelectorAll("#chamados-list tr").forEach(row => {
-                    row.addEventListener('click', function() {
-                        document.querySelectorAll("#chamados-list tr").forEach(r => r.classList.remove('table-warning')); // Remove a classe de seleção de todas as linhas
-                        this.classList.add('table-warning'); // Adiciona a classe de seleção à linha clicada
-                        selectedChamadoId = this.getAttribute('data-id'); // Define o ID do chamado selecionado
+                } else {
+                    const container = document.getElementById('chamados-finalizados'); // Obtém o elemento para exibir a lista de chamados finalizados
+                    // Adicionado verificação para garantir que o elemento exista
+                    if (container) {
+                        container.innerHTML = chamadosArray.map(chamado => { // Renderiza os chamados na tabela
+                            const protocolo = chamado[6] ? chamado[6].replace(/\D/g, '') : 'N/A'; // Obtém o protocolo
+                            const clienteNome = chamado[9] || 'Cliente removido'; // Obtém o nome do cliente (vindo do JOIN)
+                            const dataAbertura = chamado[4]; // Obtém a data de abertura
+                            const dataFechamento = chamado[5] || ''; // Obtém a data de fechamento
+                            const assunto = chamado[7] || ''; // Obtém o assunto
+                            return `<tr data-id="${chamado[0]}" style="cursor:pointer;">
+                                        <td>${protocolo}</td>
+                                        <td>${clienteNome}</td>
+                                        <td>${dataAbertura}</td>
+                                        <td>${assunto}</td>
+                                        <td>${dataFechamento}</td>
+                                        <td>
+                                            <span class="status-badge status-${chamado[3].toLowerCase()}">
+                                                ${chamado[3]}
+                                            </span>
+                                        </td>
+                                    </tr>`;
+                        }).join('');
                         
-                        // Habilita os botões quando um chamado é selecionado
-                        document.getElementById('btn-abrir').disabled = false;
-                        document.getElementById('btn-finalizar').disabled = false;
-                        document.getElementById('btn-excluir').disabled = false;
-                    });
-                });
-            } else {
-                const container = document.getElementById('chamados-finalizados'); // Obtém o elemento para exibir a lista de chamados finalizados
-                container.innerHTML = chamadosArray.map(chamado => { // Renderiza os chamados na tabela
-                    const protocolo = chamado[6] ? chamado[6].replace(/\D/g, '') : 'N/A'; // Obtém o protocolo
-                    const clienteNome = chamado[10] || 'N/A'; // Obtém o nome do cliente (vindo do JOIN)
-                    const dataAbertura = chamado[4]; // Obtém a data de abertura
-                    const dataFechamento = chamado[5] || ''; // Obtém a data de fechamento
-                    const assunto = chamado[7] || ''; // Obtém o assunto
-                    return `<tr data-id="${chamado[0]}" style="cursor:pointer;">
-                                <td>${protocolo}</td>
-                                <td>${clienteNome}</td>
-                                <td>${dataAbertura}</td>
-                                <td>${assunto}</td>
-                                <td>${dataFechamento}</td>
-                            </tr>`;
-                }).join('');
-                
-                // Vincula eventos para seleção das linhas
-                document.querySelectorAll("#chamados-finalizados tr").forEach(row => {
-                    row.addEventListener('click', function() {
-                        document.querySelectorAll("#chamados-finalizados tr").forEach(r => r.classList.remove('table-warning')); // Remove a classe de seleção de todas as linhas
-                        this.classList.add('table-warning'); // Adiciona a classe de seleção à linha clicada
-                        selectedChamadoId = this.getAttribute('data-id'); // Define o ID do chamado selecionado
-                        
-                        // Habilita os botões quando um chamado é selecionado
-                        document.getElementById('btn-abrir').disabled = false;
-                        document.getElementById('btn-excluir').disabled = false;
-                    });
-                });
-            }
+                        // Vincula eventos para seleção das linhas
+                        document.querySelectorAll("#chamados-finalizados tr").forEach(row => {
+                            row.addEventListener('click', function() {
+                                document.querySelectorAll("#chamados-finalizados tr").forEach(r => r.classList.remove('table-warning')); // Remove a classe de seleção de todas as linhas
+                                this.classList.add('table-warning'); // Adiciona a classe de seleção à linha clicada
+                                selectedChamadoId = this.getAttribute('data-id'); // Define o ID do chamado selecionado
+                                
+                                // Habilita os botões quando um chamado é selecionado
+                                document.getElementById('btn-abrir').disabled = false;
+                                document.getElementById('btn-reabrir').disabled = false;
+                                document.getElementById('btn-excluir').disabled = false;
+                            });
+                        });
+                    } else {
+                        console.error('Elemento #chamados-finalizados não encontrado!');
+                    }
+                }
 
-            // Atualiza controles de paginação para ambos os status
-            const btnAnterior = document.getElementById(status === 'Aberto' ? 'btn-anterior-chamados' : 'btn-anterior-chamados-finalizados');
-            const btnProximo = document.getElementById(status === 'Aberto' ? 'btn-proximo-chamados' : 'btn-proximo-chamados-finalizados');
-            const paginaAtual = document.getElementById(status === 'Aberto' ? 'pagina-atual-chamados' : 'pagina-atual-chamados-finalizados');
-            
-            if (btnAnterior && btnProximo && paginaAtual) {
-                btnAnterior.disabled = paginaAtualChamados === 1;
-                btnProximo.disabled = paginaAtualChamados >= data.total_paginas;
-                paginaAtual.textContent = `Página ${paginaAtualChamados}`;
-            }
-        })
-        .catch(erro => {
-            console.error('Erro ao carregar chamados:', erro);
-            exibirMensagem('Erro ao carregar chamados', 'erro');
-        });
+                // Atualiza controles de paginação para ambos os status
+                const btnAnterior = document.getElementById(status === 'Aberto' ? 'btn-anterior-chamados-aberto' : 'btn-anterior-chamados-finalizado');
+                const btnProximo = document.getElementById(status === 'Aberto' ? 'btn-proximo-chamados-aberto' : 'btn-proximo-chamados-finalizado');
+                const paginaAtualElement = document.getElementById(status === 'Aberto' ? 'pagina-atual-chamados-aberto' : 'pagina-atual-chamados-finalizado');
+                
+                if (btnAnterior && btnProximo && paginaAtualElement) {
+                    btnAnterior.disabled = paginaAtual === 1;
+                    btnProximo.disabled = paginaAtual >= data.total_paginas;
+                    paginaAtualElement.textContent = `Página ${paginaAtual}`;
+                }
+            })
+            .catch(erro => {
+                console.error('Erro ao carregar chamados:', erro);
+                exibirMensagem('Erro ao carregar chamados', 'erro');
+            });
+    } catch (e) {
+        console.error('Erro ao chamar carregarChamados:', e);
+        exibirMensagem('Erro ao carregar chamados', 'erro');
+    }
 }
 
 // Funções de formulário
@@ -754,102 +904,147 @@ function carregarEditarClientePage(cliente) {
         <div class="row">
             <div class="col-md-8 offset-md-2">
                 <h2>Editar Cliente</h2>
-                <form id="editar-cliente-form">
-                    <div class="mb-3">
-                        <label for="id" class="form-label">ID:</label>
-                        <input type="text" id="id" class="form-control" value="#${cliente[0]}" readonly>
+                <ul class="nav nav-tabs" id="clienteTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="dados-tab" data-bs-toggle="tab" href="#dados" role="tab">Dados do Cliente</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="endereco-tab" data-bs-toggle="tab" href="#endereco" role="tab">Endereço</a>
+                    </li>
+                </ul>
+                <div class="tab-content" id="clienteTabsContent">
+                    <div class="tab-pane fade show active" id="dados" role="tabpanel">
+                        <form id="editar-cliente-form">
+                            <div class="mb-3">
+                                <label for="id" class="form-label">ID:</label>
+                                <input type="text" id="id" class="form-control" value="#${cliente[0]}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="nome" class="form-label">Razão Social/Nome:</label>
+                                <input type="text" id="nome" class="form-control" value="${cliente[1] || ''}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="nome_fantasia" class="form-label">Nome Fantasia:</label>
+                                <input type="text" id="nome_fantasia" class="form-control" value="${cliente[2] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">E-mail:</label>
+                                <input type="email" id="email" class="form-control" value="${cliente[3] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="telefone" class="form-label">Telefone:</label>
+                                <input type="text" id="telefone" class="form-control" value="${cliente[4] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="ativo" class="form-label">Ativo:</label>
+                                <select id="ativo" class="form-select">
+                                    <option value="Sim" ${cliente[5]==='Sim'?'selected':''}>Sim</option>
+                                    <option value="Não" ${cliente[5]==='Não'?'selected':''}>Não</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tipo_cliente" class="form-label">Tipo Cliente:</label>
+                                <select id="tipo_cliente" class="form-select">
+                                    <option value="Comercial" ${cliente[6]==='Comercial'?'selected':''}>Comercial</option>
+                                    <option value="Pessoa Física" ${cliente[6]==='Pessoa Física'?'selected':''}>Pessoa Física</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="cnpj_cpf" class="form-label">CNPJ/CPF:</label>
+                                <input type="text" id="cnpj_cpf" class="form-control" value="${cliente[7] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="ie_rg" class="form-label">IE/RG:</label>
+                                <input type="text" id="ie_rg" class="form-control" value="${cliente[8] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="contribuinte_icms" class="form-label">Contribuinte ICMS:</label>
+                                <select id="contribuinte_icms" class="form-select">
+                                    <option value="Sim" ${cliente[9]==='Sim'?'selected':''}>Sim</option>
+                                    <option value="Não" ${cliente[9]==='Não'?'selected':''}>Não</option>
+                                    <option value="Isento" ${cliente[9]==='Isento'?'selected':''}>Isento</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="rg_orgao_emissor" class="form-label">RG Órgão Emissor:</label>
+                                <input type="text" id="rg_orgao_emissor" class="form-control" value="${cliente[10] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="nacionalidade" class="form-label">Nacionalidade:</label>
+                                <input type="text" id="nacionalidade" class="form-control" value="${cliente[11] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="naturalidade" class="form-label">Naturalidade:</label>
+                                <input type="text" id="naturalidade" class="form-control" value="${cliente[12] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="estado_nascimento" class="form-label">Estado de Nascimento:</label>
+                                <input type="text" id="estado_nascimento" class="form-control" value="${cliente[13] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="data_nascimento" class="form-label">Data de Nascimento:</label>
+                                <input type="date" id="data_nascimento" class="form-control" value="${cliente[14] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="sexo" class="form-label">Sexo:</label>
+                                <select id="sexo" class="form-select">
+                                    <option value="Feminino" ${cliente[15]==='Feminino'?'selected':''}>Feminino</option>
+                                    <option value="Masculino" ${cliente[15]==='Masculino'?'selected':''}>Masculino</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="profissao" class="form-label">Profissão:</label>
+                                <input type="text" id="profissao" class="form-control" value="${cliente[16] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="estado_civil" class="form-label">Estado Civil:</label>
+                                <input type="text" id="estado_civil" class="form-control" value="${cliente[17] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="inscricao_municipal" class="form-label">Inscrição Municipal:</label>
+                                <input type="text" id="inscricao_municipal" class="form-control" value="${cliente[18] || ''}">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Atualizar Cliente</button>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label for="nome" class="form-label">Razão Social/Nome:</label>
-                        <input type="text" id="nome" class="form-control" value="${cliente[1] || ''}" required>
+                    <div class="tab-pane fade" id="endereco" role="tabpanel">
+                        <form id="editar-endereco-form">
+                            <div class="mb-3">
+                                <label for="cep" class="form-label">CEP:</label>
+                                <input type="text" id="cep" class="form-control" value="${cliente[19] || ''}" placeholder="Digite o CEP">
+                            </div>
+                            <div class="mb-3">
+                                <label for="rua" class="form-label">Rua:</label>
+                                <input type="text" id="rua" class="form-control" value="${cliente[20] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="numero" class="form-label">Número:</label>
+                                <input type="text" id="numero" class="form-control" value="${cliente[21] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="complemento" class="form-label">Complemento:</label>
+                                <input type="text" id="complemento" class="form-control" value="${cliente[22] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="bairro" class="form-label">Bairro:</label>
+                                <input type="text" id="bairro" class="form-control" value="${cliente[23] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="cidade" class="form-label">Cidade:</label>
+                                <input type="text" id="cidade" class="form-control" value="${cliente[24] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="estado" class="form-label">Estado:</label>
+                                <input type="text" id="estado" class="form-control" value="${cliente[25] || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="pais" class="form-label">País:</label>
+                                <input type="text" id="pais" class="form-control" value="${cliente[26] || ''}">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Atualizar Endereço</button>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label for="nome_fantasia" class="form-label">Nome Fantasia:</label>
-                        <input type="text" id="nome_fantasia" class="form-control" value="${cliente[2] || ''}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">E-mail:</label>
-                        <input type="email" id="email" class="form-control" value="${cliente[3] || ''}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="telefone" class="form-label">Telefone:</label>
-                        <input type="text" id="telefone" class="form-control" value="${cliente[4] || ''}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="endereco" class="form-label">Endereço:</label>
-                        <input type="text" id="endereco" class="form-control" value="${cliente[5] || ''}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="ativo" class="form-label">Ativo:</label>
-                        <select id="ativo" class="form-select">
-                            <option value="Sim" ${cliente[6]==='Sim'?'selected':''}>Sim</option>
-                            <option value="Não" ${cliente[6]==='Não'?'selected':''}>Não</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="tipo_cliente" class="form-label">Tipo Cliente:</label>
-                        <select id="tipo_cliente" class="form-select">
-                            <option value="Comercial" ${cliente[7]==='Comercial'?'selected':''}>Comercial</option>
-                            <option value="Pessoa Física" ${cliente[7]==='Pessoa Física'?'selected':''}>Pessoa Física</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="cnpj_cpf" class="form-label">CNPJ/CPF:</label>
-                        <input type="text" id="cnpj_cpf" class="form-control" value="${cliente[8] || ''}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="ie_rg" class="form-label">IE/RG:</label>
-                        <input type="text" id="ie_rg" class="form-control" value="${cliente[9] || ''}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="contribuinte_icms" class="form-label">Contribuinte ICMS:</label>
-                        <select id="contribuinte_icms" class="form-select">
-                            <option value="Sim" ${cliente[10]==='Sim'?'selected':''}>Sim</option>
-                            <option value="Não" ${cliente[10]==='Não'?'selected':''}>Não</option>
-                            <option value="Isento" ${cliente[10]==='Isento'?'selected':''}>Isento</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="rg_orgao_emissor" class="form-label">RG Órgão Emissor:</label>
-                        <input type="text" id="rg_orgao_emissor" class="form-control" value="${cliente[11] || ''}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="nacionalidade" class="form-label">Nacionalidade:</label>
-                        <input type="text" id="nacionalidade" class="form-control" value="${cliente[12] || ''}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="naturalidade" class="form-label">Naturalidade:</label>
-                        <input type="text" id="naturalidade" class="form-control" value="${cliente[13] || ''}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="estado_nascimento" class="form-label">Estado de Nascimento:</label>
-                        <input type="text" id="estado_nascimento" class="form-control" value="${cliente[14] || ''}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="data_nascimento" class="form-label">Data de Nascimento:</label>
-                        <input type="date" id="data_nascimento" class="form-control" value="${cliente[15] || ''}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="sexo" class="form-label">Sexo:</label>
-                        <select id="sexo" class="form-select">
-                            <option value="Feminino" ${cliente[16]==='Feminino'?'selected':''}>Feminino</option>
-                            <option value="Masculino" ${cliente[16]==='Masculino'?'selected':''}>Masculino</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="profissao" class="form-label">Profissão:</label>
-                        <input type="text" id="profissao" class="form-control" value="${cliente[17] || ''}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="estado_civil" class="form-label">Estado Civil:</label>
-                        <input type="text" id="estado_civil" class="form-control" value="${cliente[18] || ''}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="inscricao_municipal" class="form-label">Inscrição Municipal:</label>
-                        <input type="text" id="inscricao_municipal" class="form-control" value="${cliente[19] || ''}">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Atualizar Cliente</button>
-                </form>
+                </div>
             </div>
         </div>
     `;
@@ -860,7 +1055,6 @@ function carregarEditarClientePage(cliente) {
             nome_fantasia: document.getElementById('nome_fantasia').value,
             email: document.getElementById('email').value,
             telefone: document.getElementById('telefone').value,
-            endereco: document.getElementById('endereco').value,
             ativo: document.getElementById('ativo').value,
             tipo_cliente: document.getElementById('tipo_cliente').value,
             cnpj_cpf: document.getElementById('cnpj_cpf').value,
@@ -893,7 +1087,60 @@ function carregarEditarClientePage(cliente) {
             console.error('Erro ao atualizar cliente:', erro);
             exibirMensagem('Erro ao atualizar cliente', 'erro');
         }
-    }
+    };
+
+    document.getElementById('editar-endereco-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const enderecoAtualizado = {
+            cep: document.getElementById('cep').value,
+            rua: document.getElementById('rua').value,
+            numero: document.getElementById('numero').value,
+            complemento: document.getElementById('complemento').value,
+            bairro: document.getElementById('bairro').value,
+            cidade: document.getElementById('cidade').value,
+            estado: document.getElementById('estado').value,
+            pais: document.getElementById('pais').value
+        };
+        try {
+            const resposta = await fetch(`http://localhost:5000/clientes/${cliente[0]}/endereco`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(enderecoAtualizado)
+            });
+            if (resposta.ok) {
+                exibirMensagem('Endereço atualizado com sucesso!');
+                carregarClientesPage();
+            } else {
+                const erro = await resposta.json();
+                exibirMensagem(`Erro: ${erro.erro}`, 'erro');
+            }
+        } catch (erro) {
+            console.error('Erro ao atualizar endereço:', erro);
+            exibirMensagem('Erro ao atualizar endereço', 'erro');
+        }
+    };
+
+    document.getElementById('cep').addEventListener('blur', async () => {
+        const cep = document.getElementById('cep').value.replace(/\D/g, '');
+        if (cep.length === 8) {
+            try {
+                const resposta = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const dados = await resposta.json();
+                if (!dados.erro) {
+                    document.getElementById('rua').value = dados.logradouro || '';
+                    document.getElementById('bairro').value = dados.bairro || '';
+                    document.getElementById('cidade').value = dados.localidade || '';
+                    document.getElementById('estado').value = dados.uf || '';
+                    document.getElementById('pais').value = 'Brasil';
+                } else {
+                    exibirMensagem('CEP não encontrado', 'erro');
+                }
+            } catch (erro) {
+                console.error('Erro ao buscar CEP:', erro);
+                exibirMensagem('Erro ao buscar CEP', 'erro');
+            }
+        }
+    });
 }
 
 // Nova função para confirmar a exclusão de um cliente
@@ -997,7 +1244,7 @@ async function carregarClientesSelect() {
             const data = await resposta.json();
             
             selectClientes.innerHTML = data.clientes.map(cliente => `
-                <option value="${cliente[0]}" data-telefone="${cliente[3] || ''}" data-endereco="${cliente[4] || ''}">
+                <option value="${cliente[0]}" data-telefone="${cliente[3] || ''}">
                     ${cliente[1]}
                 </option>
             `).join('');
@@ -1006,13 +1253,10 @@ async function carregarClientesSelect() {
             selectClientes.addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
                 const telefone = selectedOption.getAttribute('data-telefone') || '';
-                const endereco = selectedOption.getAttribute('data-endereco') || '';
                 
                 const telefoneInput = document.getElementById('telefone_chamado');
-                const enderecoInput = document.getElementById('endereco_chamado');
                 
                 if (telefoneInput) telefoneInput.value = telefone;
-                if (enderecoInput) enderecoInput.value = endereco;
             });
 
             // Aciona a mudança inicial se existirem opções
@@ -1064,6 +1308,11 @@ async function finalizarChamado(id) {
  * @returns {Promise<void>} Uma Promise que resolve após a exclusão do chamado ou rejeita em caso de erro.
  */
 async function excluirChamado(id) {
+    // Adiciona confirmação antes de excluir
+    if (!confirm('Tem certeza que deseja excluir este chamado?')) {
+        return; // Se o usuário clicar em "Cancelar", interrompe a execução
+    }
+
     try {
         const resposta = await fetch(`http://localhost:5000/chamados/${id}`, {
             method: 'DELETE',
@@ -1125,7 +1374,6 @@ function carregarDetalhesCliente(cliente) {
         <p><strong>Nome Fantasia:</strong> ${cliente[2] || ''}</p>
         <p><strong>Email:</strong> ${cliente[3] || ''}</p>
         <p><strong>Telefone:</strong> ${cliente[4] || ''}</p>
-        <p><strong>Endereço:</strong> ${cliente[5] || ''}</p>
     `;
     // Exibe o modal usando o Bootstrap 5
     let modalElement = document.getElementById('clienteModal');
@@ -1270,7 +1518,11 @@ async function fetchWithLoading(url, options = {}) {
  * @param {string} [status='Aberto'] - O status dos chamados a serem carregados.
  */
 function proximaPaginaChamados(status = 'Aberto') {
-    paginaAtualChamados++;
+    if (status === 'Aberto') {
+        paginaAtualChamadosAbertos++;
+    } else {
+        paginaAtualChamadosFinalizados++;
+    }
     carregarChamados(status);
 }
 
@@ -1280,9 +1532,16 @@ function proximaPaginaChamados(status = 'Aberto') {
  * @param {string} [status='Aberto'] - O status dos chamados a serem carregados.
  */
 function paginaAnteriorChamados(status = 'Aberto') {
-    if (paginaAtualChamados > 1) {
-        paginaAtualChamados--;
-        carregarChamados(status);
+    if (status === 'Aberto') {
+        if (paginaAtualChamadosAbertos > 1) {
+            paginaAtualChamadosAbertos--;
+            carregarChamados(status);
+        }
+    } else {
+        if (paginaAtualChamadosFinalizados > 1) {
+            paginaAtualChamadosFinalizados--;
+            carregarChamados(status);
+        }
     }
 }
 
@@ -1314,8 +1573,16 @@ function stopAutoRefresh() {
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
+    // Aplique o tema salvo se existir
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('theme-toggle').textContent = '🌙';
+    }
     carregarHome();
     startAutoRefresh();
+    exibirInfoUsuario(); // Adiciona esta linha
+    checkAdminStatus();
+    startSessionMonitor();
 });
 
 document.addEventListener('visibilitychange', () => {
@@ -1333,102 +1600,172 @@ function carregarNovoClientePage() {
         <div class="row">
             <div class="col-md-8 offset-md-2">
                 <h2>Novo Cliente</h2>
-                <form id="novo-cliente-form">
-                    <div class="mb-3">
-                        <label for="nome" class="form-label">Razão Social/Nome:</label>
-                        <input type="text" id="nome" class="form-control" required>
+                <ul class="nav nav-tabs" id="clienteTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="dados-tab" data-bs-toggle="tab" href="#dados" role="tab">Dados do Cliente</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="endereco-tab" data-bs-toggle="tab" href="#endereco" role="tab">Endereço</a>
+                    </li>
+                </ul>
+                <div class="tab-content" id="clienteTabsContent">
+                    <div class="tab-pane fade show active" id="dados" role="tabpanel">
+                        <form id="novo-cliente-form">
+                            <!-- Campos existentes do cliente -->
+                            <div class="mb-3">
+                                <label for="nome" class="form-label">Razão Social/Nome:</label>
+                                <input type="text" id="nome" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="nome_fantasia" class="form-label">Nome Fantasia:</label>
+                                <input type="text" id="nome_fantasia" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">E-mail:</label>
+                                <input type="email" id="email" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="telefone" class="form-label">Telefone:</label>
+                                <input type="text" id="telefone" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="ativo" class="form-label">Ativo:</label>
+                                <select id="ativo" class="form-select">
+                                    <option value="Sim">Sim</option>
+                                    <option value="Não">Não</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tipo_cliente" class="form-label">Tipo Cliente:</label>
+                                <select id="tipo_cliente" class="form-select">
+                                    <option value="Comercial">Comercial</option>
+                                    <option value="Pessoa Física">Pessoa Física</option>
+                                    <!-- adicione mais opções se necessário -->
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="cnpj_cpf" class="form-label">CNPJ/CPF:</label>
+                                <input type="text" id="cnpj_cpf" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="ie_rg" class="form-label">IE/RG:</label>
+                                <input type="text" id="ie_rg" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="contribuinte_icms" class="form-label">Contribuinte ICMS:</label>
+                                <select id="contribuinte_icms" class="form-select">
+                                    <option value="Sim">Sim</option>
+                                    <option value="Não">Não</option>
+                                    <option value="Isento">Isento</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="rg_orgao_emissor" class="form-label">RG Órgão Emissor:</label>
+                                <input type="text" id="rg_orgao_emissor" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="nacionalidade" class="form-label">Nacionalidade:</label>
+                                <input type="text" id="nacionalidade" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="naturalidade" class="form-label">Naturalidade:</label>
+                                <input type="text" id="naturalidade" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="estado_nascimento" class="form-label">Estado de Nascimento:</label>
+                                <input type="text" id="estado_nascimento" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="data_nascimento" class="form-label">Data de Nascimento:</label>
+                                <input type="date" id="data_nascimento" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="sexo" class="form-label">Sexo:</label>
+                                <select id="sexo" class="form-select">
+                                    <option value="Feminino">Feminino</option>
+                                    <option value="Masculino">Masculino</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="profissao" class="form-label">Profissão:</label>
+                                <input type="text" id="profissao" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="estado_civil" class="form-label">Estado Civil:</label>
+                                <input type="text" id="estado_civil" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="inscricao_municipal" class="form-label">Inscrição Municipal:</label>
+                                <input type="text" id="inscricao_municipal" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Cadastrar Cliente</button>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label for="nome_fantasia" class="form-label">Nome Fantasia:</label>
-                        <input type="text" id="nome_fantasia" class="form-control">
+                    <div class="tab-pane fade" id="endereco" role="tabpanel">
+                        <form id="novo-endereco-form">
+                            <div class="mb-3">
+                                <label for="cep" class="form-label">CEP:</label>
+                                <input type="text" id="cep" class="form-control" placeholder="Digite o CEP">
+                            </div>
+                            <div class="mb-3">
+                                <label for="rua" class="form-label">Rua:</label>
+                                <input type="text" id="rua" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="numero" class="form-label">Número:</label>
+                                <input type="text" id="numero" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="complemento" class="form-label">Complemento:</label>
+                                <input type="text" id="complemento" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="bairro" class="form-label">Bairro:</label>
+                                <input type="text" id="bairro" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="cidade" class="form-label">Cidade:</label>
+                                <input type="text" id="cidade" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="estado" class="form-label">Estado:</label>
+                                <input type="text" id="estado" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="pais" class="form-label">País:</label>
+                                <input type="text" id="pais" class="form-control">
+                            </div>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">E-mail:</label>
-                        <input type="email" id="email" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="telefone" class="form-label">Telefone:</label>
-                        <input type="text" id="telefone" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="endereco" class="form-label">Endereço:</label>
-                        <input type="text" id="endereco" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="ativo" class="form-label">Ativo:</label>
-                        <select id="ativo" class="form-select">
-                            <option value="Sim">Sim</option>
-                            <option value="Não">Não</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="tipo_cliente" class="form-label">Tipo Cliente:</label>
-                        <select id="tipo_cliente" class="form-select">
-                            <option value="Comercial">Comercial</option>
-                            <option value="Pessoa Física">Pessoa Física</option>
-                            <!-- adicione mais opções se necessário -->
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="cnpj_cpf" class="form-label">CNPJ/CPF:</label>
-                        <input type="text" id="cnpj_cpf" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="ie_rg" class="form-label">IE/RG:</label>
-                        <input type="text" id="ie_rg" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="contribuinte_icms" class="form-label">Contribuinte ICMS:</label>
-                        <select id="contribuinte_icms" class="form-select">
-                            <option value="Sim">Sim</option>
-                            <option value="Não">Não</option>
-                            <option value="Isento">Isento</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="rg_orgao_emissor" class="form-label">RG Órgão Emissor:</label>
-                        <input type="text" id="rg_orgao_emissor" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="nacionalidade" class="form-label">Nacionalidade:</label>
-                        <input type="text" id="nacionalidade" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="naturalidade" class="form-label">Naturalidade:</label>
-                        <input type="text" id="naturalidade" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="estado_nascimento" class="form-label">Estado de Nascimento:</label>
-                        <input type="text" id="estado_nascimento" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="data_nascimento" class="form-label">Data de Nascimento:</label>
-                        <input type="date" id="data_nascimento" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="sexo" class="form-label">Sexo:</label>
-                        <select id="sexo" class="form-select">
-                            <option value="Feminino">Feminino</option>
-                            <option value="Masculino">Masculino</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="profissao" class="form-label">Profissão:</label>
-                        <input type="text" id="profissao" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="estado_civil" class="form-label">Estado Civil:</label>
-                        <input type="text" id="estado_civil" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label for="inscricao_municipal" class="form-label">Inscrição Municipal:</label>
-                        <input type="text" id="inscricao_municipal" class="form-control">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Cadastrar Cliente</button>
-                </form>
+                </div>
             </div>
         </div>
     `;
+
+    // Adiciona o handler para busca de CEP
+    document.getElementById('cep').addEventListener('blur', async () => {
+        const cep = document.getElementById('cep').value.replace(/\D/g, '');
+        if (cep.length === 8) {
+            try {
+                const resposta = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const dados = await resposta.json();
+                if (!dados.erro) {
+                    document.getElementById('rua').value = dados.logradouro || '';
+                    document.getElementById('bairro').value = dados.bairro || '';
+                    document.getElementById('cidade').value = dados.localidade || '';
+                    document.getElementById('estado').value = dados.uf || '';
+                    document.getElementById('pais').value = 'Brasil';
+                } else {
+                    exibirMensagem('CEP não encontrado', 'erro');
+                }
+            } catch (erro) {
+                console.error('Erro ao buscar CEP:', erro);
+                exibirMensagem('Erro ao buscar CEP', 'erro');
+            }
+        }
+    });
+
+    // Atualiza o handler do formulário para incluir os dados de endereço
     document.getElementById('novo-cliente-form').onsubmit = async (e) => {
         e.preventDefault();
         const novoCliente = {
@@ -1436,7 +1773,6 @@ function carregarNovoClientePage() {
             nome_fantasia: document.getElementById('nome_fantasia').value,
             email: document.getElementById('email').value,
             telefone: document.getElementById('telefone').value,
-            endereco: document.getElementById('endereco').value,
             ativo: document.getElementById('ativo').value,
             tipo_cliente: document.getElementById('tipo_cliente').value,
             cnpj_cpf: document.getElementById('cnpj_cpf').value,
@@ -1450,7 +1786,15 @@ function carregarNovoClientePage() {
             sexo: document.getElementById('sexo').value,
             profissao: document.getElementById('profissao').value,
             estado_civil: document.getElementById('estado_civil').value,
-            inscricao_municipal: document.getElementById('inscricao_municipal').value
+            inscricao_municipal: document.getElementById('inscricao_municipal').value,
+            cep: document.getElementById('cep').value,
+            rua: document.getElementById('rua').value,
+            numero: document.getElementById('numero').value,
+            complemento: document.getElementById('complemento').value,
+            bairro: document.getElementById('bairro').value,
+            cidade: document.getElementById('cidade').value,
+            estado: document.getElementById('estado').value,
+            pais: document.getElementById('pais').value
         };
         try {
             const resposta = await fetch('http://localhost:5000/clientes', {
@@ -1490,6 +1834,24 @@ async function carregarDetalhesChamadoPage(id) {
         currentChamadoId = id; // Store the current chamado ID
         isDescriptionVisible = true; // Reset to description visible on load
 
+        // Replace the cliente input group with this new version
+        const clienteHTML = `
+            <div class="mb-3 col-md-6">
+                <label for="cliente" class="form-label">Cliente:</label>
+                <div class="input-group">
+                    <input type="text" id="cliente" class="form-control" 
+                           value="${chamado.cliente_nome ? chamado.cliente_nome : 'Cliente removido'}" readonly>
+                    ${chamado.cliente_id ? `
+                        <button type="button" class="btn btn-outline-secondary" 
+                                onclick="mostrarDetalhesCliente(${chamado.cliente_id})">
+                            Ver Cadastro
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+
+        // Update the template to use the new clienteHTML
         document.getElementById('conteudo').innerHTML = `
             <div class="row">
                 <div class="col-md-12">
@@ -1503,19 +1865,7 @@ async function carregarDetalhesChamadoPage(id) {
                             <label for="assunto" class="form-label">Assunto:</label>
                             <input type="text" id="assunto" class="form-control" value="${chamado.assunto || ''}" ${isFinalizado ? 'readonly' : ''}>
                         </div>
-                        <div class="mb-3 col-md-6">
-                            <label for="cliente" class="form-label">Cliente:</label>
-                            <input type="text" id="cliente" class="form-control" value="${chamado.cliente_nome ? chamado.cliente_nome : chamado.cliente_id}" readonly>
-                        </div>
-                        <div class="mb-3 col-md-6">
-                            <label for="telefone_chamado" class="form-label">Telefone:</label>
-                            <input type="text" id="telefone_chamado" class="form-control" value="${chamado.telefone || ''}" ${isFinalizado ? 'readonly' : ''}>
-                        </div>
-                        <div class="mb-3 col-md-6">
-                            <label for="endereco_chamado" class="form-label">Endereço:</label>
-                            <input type="text" id="endereco_chamado" class="form-control" value="${chamado.endereco || ''}" ${isFinalizado ? 'readonly' : ''}>
-                        </div>
-
+                        ${clienteHTML}
                         <!-- Container para a seção de descrição e andamentos -->
                         <div id="description-and-andamentos-container" style="display: flex; overflow: hidden; width: 100%;">
                             <!-- Seção de Descrição Principal -->
@@ -1523,8 +1873,8 @@ async function carregarDetalhesChamadoPage(id) {
                                 <div class="mb-3 col-md-6" style="width: 100%; margin-left: -18px;">
                                     <label for="descricao" class="form-label">Descrição:</label>
                                     <textarea id="descricao" class="form-control" rows="5" ${isFinalizado ? 'readonly' : ''}>${chamado.descricao}</textarea>
-                                    <!-- Botão Adicionar Andamento -->
-                                    <button type="button" class="btn btn-primary" style="float: right;" onclick="toggleDescriptionVisibility()">Adicionar Andamento</button>
+                                    <!-- Botão com novo texto -->
+                                    <button type="button" class="btn btn-primary" style="float: right;" onclick="toggleDescriptionVisibility()">Andamentos</button>
                                 </div>
                             </div>
 
@@ -1537,7 +1887,6 @@ async function carregarDetalhesChamadoPage(id) {
                                 <!-- Removed incorrectly placed buttons -->
                             </div>
                         </div>
-
                         <div class="mb-3 col-md-6">
                             <label for="status" class="form-label">Status:</label>
                             <input type="text" id="status" class="form-control" value="${chamado.status}" readonly>
@@ -1568,6 +1917,19 @@ async function carregarDetalhesChamadoPage(id) {
             const andamentosArray = status === 'Finalizado' 
                 ? chamado.andamentos 
                 : [...chamado.andamentos, { id: null, data_hora: '', texto: '' }];
+
+            // Verificar se não há andamentos em um chamado finalizado
+            if (status === 'Finalizado' && (!andamentosArray || andamentosArray.length === 0)) {
+                const semAndamentosDiv = document.createElement('div');
+                semAndamentosDiv.style.textAlign = 'center';
+                semAndamentosDiv.style.padding = '20px';
+                semAndamentosDiv.innerHTML = `
+                    <p>Não há andamentos registrados para este chamado.</p>
+                    <button class="btn btn-secondary" onclick="toggleDescriptionVisibility()">Voltar para Descrição</button>
+                `;
+                andamentosCarousel.appendChild(semAndamentosDiv);
+                return;
+            }
 
             andamentosArray.forEach((andamento, index) => {
                 const andamentoDiv = document.createElement('div');
@@ -1676,7 +2038,6 @@ async function carregarDetalhesChamadoPage(id) {
                     assunto: document.getElementById('assunto').value,
                     descricao: document.getElementById('descricao').value,
                     telefone: document.getElementById('telefone_chamado').value,
-                    endereco: document.getElementById('endereco_chamado').value,
                     status: chamado.status
                 };
                 try {
@@ -1713,9 +2074,11 @@ document.getElementById('theme-toggle').addEventListener('click', function() {
     if (body.classList.contains('dark-mode')) {
         body.classList.remove('dark-mode');
         this.textContent = '☀️';
+        localStorage.setItem('theme', 'light');
     } else {
         body.classList.add('dark-mode');
         this.textContent = '🌙';
+        localStorage.setItem('theme', 'dark');
     }
     // Atualiza a cor da legenda do gráfico imediatamente, se o gráfico existir
     if (graficoChamados) {
@@ -1816,10 +2179,6 @@ let currentChamadoId = null;
  */
 function toggleDescriptionVisibility() {
     const status = document.getElementById('status').value;
-    if (status === 'Finalizado') {
-        exibirMensagem('Não é possível adicionar andamentos em chamados finalizados', 'erro');
-        return;
-    }
 
     const descriptionSection = document.getElementById('description-section');
     const andamentosSection = document.getElementById('andamentos-section');
@@ -1846,6 +2205,19 @@ function renderAndamentos() {
     const andamentosArray = status === 'Finalizado' 
         ? chamado.andamentos 
         : [...chamado.andamentos, { id: null, data_hora: '', texto: '' }];
+
+    // Verificar se não há andamentos em um chamado finalizado
+    if (status === 'Finalizado' && (!andamentosArray || andamentosArray.length === 0)) {
+        const semAndamentosDiv = document.createElement('div');
+        semAndamentosDiv.style.textAlign = 'center';
+        semAndamentosDiv.style.padding = '20px';
+        semAndamentosDiv.innerHTML = `
+            <p>Não há andamentos registrados para este chamado.</p>
+            <button class="btn btn-secondary" onclick="toggleDescriptionVisibility()">Voltar para Descrição</button>
+        `;
+        andamentosCarousel.appendChild(semAndamentosDiv);
+        return;
+    }
 
     andamentosArray.forEach((andamento, index) => {
         const andamentoDiv = document.createElement('div');
@@ -2111,5 +2483,602 @@ function configurarBuscaClientes() {
                 buscarClientes();
             }
         });
+    }
+}
+
+// Função para verificar se o usuário é admin após o login
+async function checkAdminStatus() {
+    const response = await fetch('/auth/check-role');
+    const data = await response.json();
+    if (data.role === 'admin') {
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+    }
+}
+
+// Função para carregar a página de gerenciamento de usuários
+function carregarUsuariosPage() {
+    updateActiveMenu('usuarios');
+    document.getElementById('conteudo').innerHTML = `
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="mb-4">Gerenciamento de Usuários</h2>
+                
+                <!-- Toolbar moderna -->
+                <div class="modern-toolbar">
+                    <button id="btn-novo-usuario" class="btn btn-success" onclick="abrirModalNovoUsuario()">
+                        <i class="bi bi-plus-lg"></i> Novo Usuário
+                    </button>
+                    <button id="btn-editar-usuario" class="btn btn-info" onclick="editarUsuarioSelecionado()" disabled>
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    <button id="btn-excluir-usuario" class="btn btn-danger" onclick="excluirUsuarioSelecionado()" disabled>
+                        <i class="bi bi-trash"></i> Excluir
+                    </button>
+                </div>
+
+                <!-- Tabela moderna -->
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Tipo</th>
+                            <th>Data de Criação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usuarios-list">
+                        <!-- Dados serão renderizados aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Modal para Novo/Editar Usuário (mantém o mesmo) -->
+        <div class="modal fade" id="usuarioModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Novo Usuário</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="usuario-form">
+                            <input type="hidden" id="usuario-id">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Senha</label>
+                                <input type="password" class="form-control" id="password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Tipo</label>
+                                <select class="form-control" id="role" required>
+                                    <option value="guest">Guest</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" onclick="salvarUsuario()">Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    carregarUsuarios();
+}
+
+// Função para carregar a lista de usuários
+async function carregarUsuarios() {
+    try {
+        showLoading();
+        const response = await fetch('/usuarios');
+        if (!response.ok) {
+            throw new Error('Falha ao carregar usuários');
+        }
+        const usuarios = await response.json();
+        
+        const tbody = document.getElementById('usuarios-list');
+        tbody.innerHTML = usuarios.map(usuario => `
+            <tr data-id="${usuario.id}" data-username="${usuario.username}" style="cursor:pointer;">
+                <td>${usuario.username}</td>
+                <td>${usuario.role}</td>
+                <td>${new Date(usuario.created_at).toLocaleString()}</td>
+            </tr>
+        `).join('');
+
+        // Adiciona eventos de clique nas linhas
+        document.querySelectorAll("#usuarios-list tr").forEach(row => {
+            row.addEventListener('click', function() {
+                document.querySelectorAll("#usuarios-list tr").forEach(r => r.classList.remove('table-warning'));
+                this.classList.add('table-warning');
+                
+                const username = this.getAttribute('data-username');
+                const id = this.getAttribute('data-id');
+                
+                document.getElementById('btn-editar-usuario').disabled = false;
+                
+                // Desabilita o botão de excluir apenas para o admin
+                document.getElementById('btn-excluir-usuario').disabled = (username === 'admin');
+                
+                selectedUserId = id;
+                selectedUsername = username;
+            });
+        });
+
+    } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+        exibirMensagem('Erro ao carregar usuários: ' + error.message, 'erro');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Adicione estas novas funções para manipular a seleção
+let selectedUserId = null;
+let selectedUsername = null;
+
+function editarUsuarioSelecionado() {
+    if (!selectedUserId) {
+        exibirMensagem('Selecione um usuário para editar', 'erro');
+        return;
+    }
+    editarUsuario(selectedUserId);
+}
+
+function excluirUsuarioSelecionado() {
+    if (!selectedUserId) {
+        exibirMensagem('Selecione um usuário para excluir', 'erro');
+        return;
+    }
+    if (selectedUsername === 'admin') {
+        exibirMensagem('O usuário admin não pode ser excluído', 'erro');
+        return;
+    }
+    excluirUsuario(selectedUserId);
+}
+
+// Função para abrir o modal de novo usuário
+function abrirModalNovoUsuario() {
+    document.getElementById('usuario-id').value = '';
+    document.getElementById('usuario-form').reset();
+    document.querySelector('#usuarioModal .modal-title').textContent = 'Novo Usuário';
+    new bootstrap.Modal(document.getElementById('usuarioModal')).show();
+}
+
+// Função para salvar usuário (novo ou edição)
+async function salvarUsuario() {
+    const id = document.getElementById('usuario-id').value;
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const role = document.getElementById('role').value;
+
+    try {
+        const url = id ? `/usuarios/${id}` : '/usuarios';
+        const method = id ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password, role })
+        });
+
+        if (response.ok) {
+            exibirMensagem('Usuário salvo com sucesso!');
+            bootstrap.Modal.getInstance(document.getElementById('usuarioModal')).hide();
+            carregarUsuarios();
+        } else {
+            const error = await response.json();
+            throw new Error(error.error);
+        }
+    } catch (error) {
+        console.error('Erro ao salvar usuário:', error);
+        exibirMensagem(error.message || 'Erro ao salvar usuário', 'erro');
+    }
+}
+
+// Função para editar usuário
+async function editarUsuario(id) {
+    try {
+        showLoading();
+        const response = await fetch(`/usuarios/${id}`);
+        
+        // Verificar se foi redirecionado para login
+        if (response.url.includes('login.html')) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error('Falha ao carregar usuário');
+        }
+        
+        const usuario = await response.json();
+        
+        document.getElementById('usuario-id').value = usuario.id;
+        document.getElementById('username').value = usuario.username;
+        document.getElementById('role').value = usuario.role;
+        document.getElementById('password').value = ''; // Não exibe a senha atual
+        
+        // Configura o modal baseado no tipo de usuário
+        const usernameInput = document.getElementById('username');
+        const roleSelect = document.getElementById('role');
+        const modalTitle = document.querySelector('#usuarioModal .modal-title');
+
+        if (usuario.username === 'admin') {
+            // Para o admin, desabilita username e role, mostra apenas campo de senha
+            usernameInput.value = 'admin';
+            usernameInput.disabled = true;
+            roleSelect.value = 'admin';
+            roleSelect.disabled = true;
+            modalTitle.textContent = 'Alterar Senha do Admin';
+        } else {
+            // Para outros usuários, habilita todos os campos
+            usernameInput.disabled = false;
+            roleSelect.disabled = false;
+            modalTitle.textContent = 'Editar Usuário';
+        }
+
+        new bootstrap.Modal(document.getElementById('usuarioModal')).show();
+    } catch (error) {
+        console.error('Erro ao carregar usuário:', error);
+        exibirMensagem('Erro ao carregar usuário: ' + error.message, 'erro');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Função para excluir usuário
+async function excluirUsuario(id) {
+    if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
+    
+    try {
+        const response = await fetch(`/usuarios/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+            exibirMensagem('Usuário excluído com sucesso!');
+            carregarUsuarios();
+        } else {
+            const error = await response.json();
+            throw new Error(error.error);
+        }
+    } catch (error) {
+        console.error('Erro ao excluir usuário:', error);
+        exibirMensagem(error.message || 'Erro ao excluir usuário', 'erro');
+    }
+}
+
+// Adicione esta linha ao final do evento DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    // ...existing code...
+    checkAdminStatus(); // Verifica se o usuário é admin ao carregar a página
+});
+
+// Função para fazer logout
+async function logout() {
+    try {
+        const response = await fetch('/auth/logout');
+        if (response.ok) {
+            window.location.href = '/login.html';
+        } else {
+            throw new Error('Falha ao fazer logout');
+        }
+    } catch (error) {
+        console.error('Erro ao fazer logout:', error);
+        exibirMensagem('Erro ao fazer logout', 'erro');
+    }
+}
+
+// Função para exibir informações do usuário logado
+async function exibirInfoUsuario() {
+    try {
+        const response = await fetch('/auth/check-role');
+        const data = await response.json();
+        
+        const usernameSpan = document.getElementById('usuario-logado');
+        const roleSpan = document.getElementById('usuario-role');
+        
+        if (data.username && data.role) {
+            usernameSpan.textContent = data.username;
+            roleSpan.textContent = data.role;
+            roleSpan.className = `badge rounded-pill bg-${data.role === 'admin' ? 'danger' : 'primary'}`;
+        }
+    } catch (error) {
+        console.error('Erro ao carregar informações do usuário:', error);
+    }
+}
+
+// Adicione esta nova função
+async function reabrirChamado(id) {
+    try {
+        const resposta = await fetch(`http://localhost:5000/chamados/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                status: 'Aberto',
+                data_fechamento: null 
+            })
+        });
+
+        if (resposta.ok) {
+            exibirMensagem('Chamado reaberto com sucesso!');
+            carregarChamados('Finalizado');
+            carregarChamados('Aberto');
+        } else {
+            const erro = await resposta.json();
+            exibirMensagem(`Erro: ${erro.erro}`, 'erro');
+        }
+    } catch (erro) {
+        console.error('Erro ao reabrir chamado:', erro);
+        exibirMensagem('Erro ao reabrir chamado', 'erro');
+    }
+}
+
+// Modifique a função carregarChamadosFinalizados
+function carregarChamadosFinalizados() {
+    document.getElementById('chamados-content').innerHTML = `
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="mb-4">Chamados Finalizados</h2>
+                
+                <!-- Toolbar moderna -->
+                <div class="modern-toolbar">
+                    <button id="btn-abrir" class="btn btn-info" onclick="abrirDetalhesChamado(selectedChamadoId)" disabled>
+                        <i class="bi bi-folder2-open"></i> Visualizar
+                    </button>
+                    <button id="btn-reabrir" class="btn btn-warning" onclick="reabrirChamado(selectedChamadoId)" disabled>
+                        <i class="bi bi-arrow-clockwise"></i> Reabrir
+                    </button>
+                    <button id="btn-excluir" class="btn btn-danger" onclick="excluirChamadoSelecionado()" disabled>
+                        <i class="bi bi-trash"></i> Excluir
+                    </button>
+                </div>
+
+                <!-- Tabela moderna -->
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Protocolo</th>
+                            <th>Cliente</th>
+                            <th onclick="sortChamados('data')">Data</th>
+                            <th>Assunto</th>
+                            <th>Data Fechamento</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chamados-finalizados">
+                        <!-- Dados serão renderizados aqui -->
+                    </tbody>
+                </table>
+
+                <!-- Paginação moderna -->
+                <div class="modern-pagination">
+                    <button id="btn-anterior-chamados-finalizado" onclick="paginaAnteriorChamados('Finalizado')">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </button>
+                    <span class="page-info" id="pagina-atual-chamados-finalizado">
+                        Página ${paginaAtualChamadosFinalizados}
+                    </span>
+                    <button id="btn-proximo-chamados-finalizado" onclick="proximaPaginaChamados('Finalizado')">
+                        Próxima <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    carregarChamados('Finalizado');
+}
+
+// Modifique a parte do código que adiciona os event listeners nas linhas da tabela
+// Dentro da função carregarChamados, na parte que trata chamados finalizados:
+if (status === 'Finalizado') {
+    document.querySelectorAll("#chamados-finalizados tr").forEach(row => {
+        row.addEventListener('click', function() {
+            document.querySelectorAll("#chamados-finalizados tr").forEach(r => r.classList.remove('table-warning'));
+            this.classList.add('table-warning');
+            selectedChamadoId = this.getAttribute('data-id');
+            
+            // Habilita os botões quando um chamado é selecionado
+            document.getElementById('btn-abrir').disabled = false;
+            document.getElementById('btn-reabrir').disabled = false;
+            document.getElementById('btn-excluir').disabled = false;
+        });
+    });
+}
+
+// Add this new function to show client details in a modal
+async function mostrarDetalhesCliente(clienteId) {
+    try {
+        const response = await fetch(`http://localhost:5000/clientes/${clienteId}`);
+        if (!response.ok) {
+            throw new Error('Cliente não encontrado');
+        }
+        
+        const cliente = await response.json();
+        
+        // Create a modal dynamically with all client fields
+        const modalHtml = `
+            <div class="modal fade" id="clienteDetalhesModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Detalhes do Cliente #${cliente.id}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li class="nav-item">
+                                    <a class="nav-link active" data-bs-toggle="tab" href="#dados-cliente">
+                                        Dados Principais
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#dados-complementares">
+                                        Dados Complementares
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#documentos">
+                                        Documentos
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" data-bs-toggle="tab" href="#endereco-cliente">
+                                        Endereço
+                                    </a>
+                                </li>
+                            </ul>
+                            <div class="tab-content pt-3">
+                                <div class="tab-pane fade show active" id="dados-cliente">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <strong>Razão Social/Nome:</strong><br>
+                                            ${cliente.nome || ''}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>Nome Fantasia:</strong><br>
+                                            ${cliente.nome_fantasia || ''}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>Email:</strong><br>
+                                            ${cliente.email || ''}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>Telefone:</strong><br>
+                                            ${cliente.telefone || ''}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>Tipo Cliente:</strong><br>
+                                            ${cliente.tipo_cliente || ''}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>Status Ativo:</strong><br>
+                                            ${cliente.ativo || ''}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="tab-pane fade" id="dados-complementares">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <strong>Nacionalidade:</strong><br>
+                                            ${cliente.nacionalidade || ''}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>Naturalidade:</strong><br>
+                                            ${cliente.naturalidade || ''}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>Estado de Nascimento:</strong><br>
+                                            ${cliente.estado_nascimento || ''}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>Data de Nascimento:</strong><br>
+                                            ${cliente.data_nascimento || ''}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>Sexo:</strong><br>
+                                            ${cliente.sexo || ''}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>Profissão:</strong><br>
+                                            ${cliente.profissao || ''}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>Estado Civil:</strong><br>
+                                            ${cliente.estado_civil || ''}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="tab-pane fade" id="documentos">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <strong>CNPJ/CPF:</strong><br>
+                                            ${cliente.cnpj_cpf || ''}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>IE/RG:</strong><br>
+                                            ${cliente.ie_rg || ''}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>Contribuinte ICMS:</strong><br>
+                                            ${cliente.contribuinte_icms || ''}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>RG Órgão Emissor:</strong><br>
+                                            ${cliente.rg_orgao_emissor || ''}
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <strong>Inscrição Municipal:</strong><br>
+                                            ${cliente.inscricao_municipal || ''}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="tab-pane fade" id="endereco-cliente">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-2">
+                                            <strong>CEP:</strong><br>
+                                            ${cliente.cep || ''}
+                                        </div>
+                                        <div class="col-md-8 mb-2">
+                                            <strong>Rua:</strong><br>
+                                            ${cliente.rua || ''}
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <strong>Número:</strong><br>
+                                            ${cliente.numero || ''}
+                                        </div>
+                                        <div class="col-md-8 mb-2">
+                                            <strong>Complemento:</strong><br>
+                                            ${cliente.complemento || ''}
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <strong>Bairro:</strong><br>
+                                            ${cliente.bairro || ''}
+                                        </div>
+                                        <div class="col-md-4 mb-2">
+                                            <strong>Cidade:</strong><br>
+                                            ${cliente.cidade || ''}
+                                        </div>
+                                        <div class="col-md-2 mb-2">
+                                            <strong>Estado:</strong><br>
+                                            ${cliente.estado || ''}
+                                        </div>
+                                        <div class="col-md-2 mb-2">
+                                            <strong>País:</strong><br>
+                                            ${cliente.pais || ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Remove existing modal if any
+        const existingModal = document.getElementById('clienteDetalhesModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        // Add the modal to the document
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        // Show the modal
+        const modal = new bootstrap.Modal(document.getElementById('clienteDetalhesModal'));
+        modal.show();
+
+    } catch (erro) {
+        console.error('Erro ao carregar detalhes do cliente:', erro);
+        exibirMensagem('Erro ao carregar detalhes do cliente', 'erro');
     }
 }
