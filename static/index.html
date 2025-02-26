@@ -34,11 +34,25 @@
                     <li class="nav-item">
                         <a id="menu-chamados" class="nav-link" href="#" onclick="carregarChamadosPage()">Chamados</a>
                     </li>
+                    <li class="nav-item admin-only" style="display: none;">
+                        <a id="menu-usuarios" class="nav-link" href="#" onclick="carregarUsuariosPage()">Usuários</a>
+                    </li>
                 </ul>
-                <!-- Novo grupo para posicionar o botão à direita -->
+                <!-- Novo grupo para posicionar os botões à direita -->
                 <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
+                    <!-- Adiciona informações do usuário -->
+                    <li class="nav-item me-3">
+                        <span class="navbar-text">
+                            <i class="bi bi-person-circle"></i>
+                            <span id="usuario-logado"></span>
+                            <span class="badge rounded-pill" id="usuario-role"></span>
+                        </span>
+                    </li>
+                    <li class="nav-item me-2">
                         <button id="theme-toggle" class="btn btn-dark">☀️</button>
+                    </li>
+                    <li class="nav-item">
+                        <button onclick="logout()" class="btn btn-outline-danger">Sair</button>
                     </li>
                 </ul>
             </div>
@@ -141,10 +155,33 @@
         </div>
     </div>
 
+    <!-- Modal para aviso de sessão -->
+    <div class="modal fade" id="sessionWarningModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Aviso de Sessão
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p>Sua sessão irá expirar em <strong><span id="timeLeft">1</span> minuto(s)</strong>.</p>
+                    <p>Deseja continuar conectado?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary">Sair</button>
+                    <button type="button" class="btn btn-warning" onclick="renewSession()">Continuar Conectado</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Rodapé da página -->
     <footer>
         <div class="container">
-            <p>&copy; 2025 HelpHub. Todos os direitos reservados.</p>
+            <p>&copy; 2025 HelpHub. Todos os direitos reservados.<br>
+            Contato: DreamerJPMG@gmail.com</p>
         </div>
     </footer>
 
