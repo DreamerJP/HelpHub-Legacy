@@ -1,0 +1,6 @@
+# Ignorar o arquivo secret_key
+secret_key
+
+# Ignorar o conteúdo do diretório logs, exceto o arquivo .gitkeep
+/logs/*
+!logs/.gitkeep
