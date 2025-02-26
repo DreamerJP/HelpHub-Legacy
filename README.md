@@ -21,3 +21,5 @@ sistema_chamados/
 Após deixar o server ativo, acessar:
 http://127.0.0.1:5000/
 Server local + porta
+
+Senha padrão admin/admin
