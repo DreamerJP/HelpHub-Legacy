@@ -2,18 +2,18 @@
 sistema_chamados/
 │
 ├── backend/
-│   ├── app.py          # Código do backend em Flask
-│   ├── database.db     # Arquivo do banco de dados SQLite
+│   ├── app.py            # Código do backend em Flask
+│   ├── database.db       # Arquivo do banco de dados SQLite
 │   └── static/
-│       ├── login-bg.webp  # Fundo da tela de login
-│       ├── favicon.ico # Icone
-│       ├── logo.png # Logo
-│       ├── login.html  # Página principal de login
-│       ├── index.html  # Página principal
-│       ├── styles.css  # Estilos da página
-│       └── script.js   # JavaScript para interação com backend
+│       ├── login-bg.webp # Fundo da tela de login
+│       ├── favicon.ico   # Icone
+│       ├── logo.png      # Logo
+│       ├── login.html    # Página principal de login
+│       ├── index.html    # Página principal
+│       ├── styles.css    # Estilos da página
+│       └── script.js     # JavaScript para interação com backend
 │
-└── README.md           # Instruções do projeto
+└── README.md             # Instruções do projeto
 ```
 
 
