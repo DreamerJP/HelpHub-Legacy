@@ -16,9 +16,9 @@ let selectedChamadoId = null; // ID do chamado selecionado
 let currentChamadoSortField = ''; // Campo de ordenação atual dos chamados ("protocolo", "cliente", "data" ou "assunto")
 let currentChamadoSortOrder = 'asc'; // Ordem de ordenação atual dos chamados (padrão: ascendente)
 
-let totalPaginasClientes = 1; // Nova variável global para total de páginas
+let totalPaginasClientes = 1; // Total de páginas de clientes
 
-// Adicione esta função no início do arquivo
+// Variáveis para o controle de sessão
 let sessionCheckInterval;
 let lastUserActivity = Date.now();
 const SESSION_WARNING_TIME = 30;  // 30 minutos
@@ -29,14 +29,23 @@ document.addEventListener('mousemove', updateUserActivity);
 document.addEventListener('keypress', updateUserActivity);
 document.addEventListener('click', updateUserActivity);
 
+/**
+ * Atualiza o timestamp da última atividade do usuário
+ */
 function updateUserActivity() {
     lastUserActivity = Date.now();
 }
 
+/**
+ * Inicia o monitoramento de sessão do usuário
+ */
 function startSessionMonitor() {
     sessionCheckInterval = setInterval(checkSession, 60000); // Verifica a cada minuto
 }
 
+/**
+ * Verifica se a sessão está prestes a expirar
+ */
 function checkSession() {
     const timeSinceLastActivity = (Date.now() - lastUserActivity) / (60 * 1000); // Em minutos
 
@@ -59,7 +68,9 @@ function checkSession() {
     }
 }
 
-// Função para renovar a sessão
+/**
+ * Renova a sessão do usuário com o servidor
+ */
 async function renewSession() {
     try {
         const response = await fetch('/auth/renew-session', {
@@ -81,12 +92,16 @@ async function renewSession() {
     }
 }
 
-// Atualiza o modal para forçar logout ao clicar em "Sair"
+// Configura o botão de sair no modal de aviso de sessão
 document.querySelector('#sessionWarningModal .btn-secondary').onclick = function() {
     window.location.href = '/auth/logout';
 };
 
-// Função para exibir mensagens de feedback ao usuário
+/**
+ * Exibe uma mensagem temporária para feedback ao usuário
+ * @param {string} mensagem - Texto da mensagem a ser exibida
+ * @param {string} tipo - Tipo da mensagem: 'sucesso' ou 'erro'
+ */
 function exibirMensagem(mensagem, tipo = 'sucesso') {
     const mensagemDiv = document.getElementById('mensagem'); // Obtém o elemento para exibir a mensagem
     mensagemDiv.textContent = mensagem; // Define o texto da mensagem
@@ -98,10 +113,12 @@ function exibirMensagem(mensagem, tipo = 'sucesso') {
     }, 3000);
 }
 
-// Funções de navegação
-// Atualiza o menu ativo, destacando a página atual
+/**
+ * Atualiza o menu ativo, destacando a página atual
+ * @param {string} selected - Identificador do menu a ser ativado
+ */
 function updateActiveMenu(selected) {
-    const menus = ['menu-home', 'menu-clientes', 'menu-chamados', 'menu-usuarios'];
+    const menus = ['menu-home', 'menu-clientes', 'menu-chamados', 'menu-usuarios', 'menu-agenda'];
     menus.forEach(function(id) {
         const element = document.getElementById(id);
         if (element) {
@@ -114,7 +131,9 @@ function updateActiveMenu(selected) {
     }
 }
 
-// Carrega a página inicial
+/**
+ * Carrega a página inicial do sistema
+ */
 function carregarHome() {
     updateActiveMenu('home'); // Atualiza o menu ativo
     document.getElementById('conteudo').innerHTML = `
@@ -178,7 +197,9 @@ function carregarHome() {
     configurarBuscaClientes(); // Configura a busca de clientes na página inicial
 }
 
-// Carrega a página de clientes, exibindo a lista em formato de tabela
+/**
+ * Carrega a página de listagem de clientes
+ */
 function carregarClientesPage() {
     updateActiveMenu('clientes'); // Atualiza o menu ativo
     document.getElementById('conteudo').innerHTML = `
@@ -239,7 +260,9 @@ function carregarClientesPage() {
     configurarPesquisaClientes(); // Configura a pesquisa de clientes
 }
 
-// Função para pesquisar clientes
+/**
+ * Realiza a pesquisa de clientes com base no termo digitado
+ */
 async function pesquisarClientes() {
     const termo = document.getElementById('pesquisa-cliente').value; // Obtém o termo de pesquisa
     try {
@@ -279,7 +302,9 @@ async function pesquisarClientes() {
     }
 }
 
-// Adiciona evento de keyup para pesquisa em tempo real
+/**
+ * Configura o campo de pesquisa para pesquisar clientes em tempo real
+ */
 function configurarPesquisaClientes() {
     const input = document.getElementById('pesquisa-cliente'); // Obtém o campo de pesquisa
     if (input) {
@@ -297,7 +322,10 @@ function configurarPesquisaClientes() {
     }
 }
 
-// Função para buscar clientes (usada na home e na página de clientes cadastrados)
+/**
+ * Busca clientes na API com base no termo informado
+ * @param {string} termo - Termo para busca de clientes
+ */
 async function buscarClientes(termo) {
     try {
         const resposta = await fetch(`http://localhost:5000/clientes/buscar?termo=${encodeURIComponent(termo)}`); // Envia a requisição para a API
@@ -335,7 +363,9 @@ async function buscarClientes(termo) {
     }
 }
 
-// Carrega a página de chamados
+/**
+ * Carrega a página de chamados com as abas disponíveis
+ */
 async function carregarChamadosPage() {
     try {
         updateActiveMenu('chamados'); // Atualiza o menu ativo
@@ -372,7 +402,10 @@ async function carregarChamadosPage() {
     }
 }
 
-// Seleciona a aba de chamados, destacando a aba ativa
+/**
+ * Seleciona a aba ativa na página de chamados
+ * @param {string} aba - Identificador da aba a ser ativada
+ */
 function selecionarAbaChamados(aba) {
     const tabs = ['tab-abrir', 'tab-abertos', 'tab-finalizados']; // Lista de IDs das abas
     tabs.forEach(function(id) {
@@ -381,7 +414,10 @@ function selecionarAbaChamados(aba) {
     document.getElementById('tab-' + aba).classList.add('active'); // Adiciona a classe 'active' à aba selecionada
 }
 
-// Carrega a subpágina para abrir um novo chamado
+/**
+ * Carrega a subpágina para abrir um novo chamado
+ * @returns {Promise<void>}
+ */
 function carregarAbrirChamado() {
     return new Promise((resolve) => {
         document.getElementById('chamados-content').innerHTML = `
@@ -439,7 +475,9 @@ function carregarAbrirChamado() {
     });
 }
 
-// Configura a busca de cliente no formulário de chamado
+/**
+ * Configura o campo de busca de clientes no formulário de chamado
+ */
 function configurarBuscaClienteChamado() {
     const clienteBusca = document.getElementById('cliente_busca'); // Obtém o campo de busca de cliente
     const resultadosDiv = document.getElementById('resultados_cliente'); // Obtém a div para exibir os resultados
@@ -474,7 +512,11 @@ function configurarBuscaClienteChamado() {
     });
 }
 
-// Seleciona o cliente no formulário de chamado
+/**
+ * Seleciona um cliente no formulário de chamado
+ * @param {Event} event - Evento de clique
+ * @param {HTMLElement} element - Elemento clicado
+ */
 function selecionarClienteChamado(event, element) {
     event.preventDefault(); // Previne o comportamento padrão do link
     
@@ -493,7 +535,9 @@ function selecionarClienteChamado(event, element) {
     document.getElementById('resultados_cliente').innerHTML = '';
 }
 
-// Configura o formulário de chamado para enviar os dados para a API
+/**
+ * Configura o formulário de chamado para enviar dados para a API
+ */
 function configurarFormularioChamado() {
     document.getElementById('chamado-form').onsubmit = async (event) => {
         event.preventDefault(); // Previne o comportamento padrão do formulário
@@ -538,7 +582,9 @@ function configurarFormularioChamado() {
     };
 }
 
-// Carrega a subpágina de chamados abertos, exibindo a lista em formato de tabela com cabeçalho
+/**
+ * Carrega a lista de chamados abertos
+ */
 function carregarChamadosAbertos() {
     document.getElementById('chamados-content').innerHTML = `
         <div class="row">
@@ -593,7 +639,9 @@ function carregarChamadosAbertos() {
     carregarChamados('Aberto'); // Carrega os chamados com status "Aberto"
 }
 
-// Carrega a subpágina de chamados finalizados
+/**
+ * Carrega a lista de chamados finalizados
+ */
 function carregarChamadosFinalizados() {
     document.getElementById('chamados-content').innerHTML = `
         <div class="row">
@@ -648,14 +696,17 @@ function carregarChamadosFinalizados() {
     carregarChamados('Finalizado'); // Carrega os chamados com status "Finalizado"
 }
 
-// Funções de paginação
-// Avança para a próxima página de clientes
+/**
+ * Avança para a próxima página de clientes
+ */
 function proximaPaginaClientes() {
     paginaAtualClientes++; // Incrementa o número da página atual
     carregarClientes(); // Carrega os clientes da nova página
 }
 
-// Retorna para a página anterior de clientes
+/**
+ * Retorna para a página anterior de clientes
+ */
 function paginaAnteriorClientes() {
     if (paginaAtualClientes > 1) { // Verifica se não está na primeira página
         paginaAtualClientes--; // Decrementa o número da página atual
@@ -663,8 +714,9 @@ function paginaAnteriorClientes() {
     }
 }
 
-// Funções para carregar dados
-// Carrega a lista de clientes
+/**
+ * Carrega a lista de clientes
+ */
 async function carregarClientes() {
     try {
         const url = `http://localhost:5000/clientes?pagina=${paginaAtualClientes}&limite=${limitePorPagina}&order_field=${currentSortField}&order_order=${currentSortOrder}`;
@@ -708,7 +760,10 @@ async function carregarClientes() {
     }
 }
 
-// Define função para alterar o critério de ordenação
+/**
+ * Define o critério de ordenação para a lista de clientes
+ * @param {string} field - Campo pelo qual ordenar
+ */
 function ordenarClientes(field) {
     if (currentSortField === field) {
         // Toggle order
@@ -720,16 +775,19 @@ function ordenarClientes(field) {
     carregarClientes(); // Re-renderiza a tabela ordenada
 }
 
-// Altere o processamento em carregarChamados para detectar se o container é uma tabela (tbody)
+/**
+ * Carrega os chamados com base no status
+ * @param {string} status - Status dos chamados a serem carregados
+ */
 function carregarChamados(status = 'Aberto') {
     try {
         const paginaAtual = status === 'Aberto' ? paginaAtualChamadosAbertos : paginaAtualChamadosFinalizados;
         const url = `http://localhost:5000/chamados?pagina=${paginaAtual}&limite=${limiteChamados}&status=${status}`; // Define a URL da API
-        console.log('Carregando chamados da URL:', url); // Adicionado log
+        console.log('Carregando chamados da URL:', url); // log
         fetchWithLoading(url) // Envia a requisição para a API com tela de carregamento
             .then(data => {
-                console.log('Resposta da API:', data); // Adicionado log
-                // Alterado para verificar explicitamente undefined
+                console.log('Resposta da API:', data); // log
+                // Verifica explicitamente undefined
                 if (data.chamados === undefined) {
                     throw new Error('Formato de resposta inválido'); // Lança um erro se o formato da resposta for inválido
                 }
@@ -861,7 +919,9 @@ function carregarChamados(status = 'Aberto') {
     }
 }
 
-// Funções de formulário
+/**
+ * Configura o formulário de cliente para enviar dados para a API
+ */
 function configurarFormularioCliente() {
     document.getElementById('cliente-form').onsubmit = async (event) => {
         event.preventDefault();
@@ -894,11 +954,10 @@ function configurarFormularioCliente() {
     };
 }
 
-// Funções de edição
-// Remova ou comente a função antiga:
-// function abrirFormularioEdicaoCliente(cliente) { ... }
-
-// Nova função para editar cliente via formulário completo
+/**
+ * Carrega a página de edição de cliente
+ * @param {Array} cliente - Dados do cliente a ser editado
+ */
 function carregarEditarClientePage(cliente) {
     document.getElementById('conteudo').innerHTML = `
         <div class="row">
@@ -910,6 +969,9 @@ function carregarEditarClientePage(cliente) {
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="endereco-tab" data-bs-toggle="tab" href="#endereco" role="tab">Endereço</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="chamados-tab" data-bs-toggle="tab" href="#chamados-cliente" role="tab">Chamados registrados</a>
                     </li>
                 </ul>
                 <div class="tab-content" id="clienteTabsContent">
@@ -1044,10 +1106,23 @@ function carregarEditarClientePage(cliente) {
                             <button type="submit" class="btn btn-primary">Atualizar Endereço</button>
                         </form>
                     </div>
+                    <div class="tab-pane fade" id="chamados-cliente" role="tabpanel">
+                        <div class="chamados-cliente-container my-3">
+                            <h3 class="mb-3">Chamados do Cliente</h3>
+                            <div id="chamados-cliente-lista">
+                                <div class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Carregando...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     `;
+
     document.getElementById('editar-cliente-form').onsubmit = async (e) => {
         e.preventDefault();
         const clienteAtualizado = {
@@ -1141,16 +1216,149 @@ function carregarEditarClientePage(cliente) {
             }
         }
     });
+
+    // Adicionar evento para carregar chamados quando a aba for selecionada
+    document.getElementById('chamados-tab').addEventListener('shown.bs.tab', function (e) {
+        carregarChamadosCliente(cliente[0]);
+    });
 }
 
-// Nova função para confirmar a exclusão de um cliente
+/**
+ * Carrega os chamados de um cliente específico
+ * @param {number} clienteId - ID do cliente
+ */
+async function carregarChamadosCliente(clienteId) {
+    try {
+        const chamadosContainer = document.getElementById('chamados-cliente-lista');
+        
+        // Buscar chamados abertos do cliente
+        const resultadoAbertos = await fetchWithLoading(`/chamados?status=Aberto&cliente_id=${clienteId}`);
+        
+        // Buscar chamados finalizados do cliente
+        const resultadoFinalizados = await fetchWithLoading(`/chamados?status=Finalizado&cliente_id=${clienteId}`);
+        
+        // Filtra apenas os chamados deste cliente específico
+        const chamadosAbertos = resultadoAbertos.chamados.filter(chamado => chamado[1] == clienteId);
+        const chamadosFinalizados = resultadoFinalizados.chamados.filter(chamado => chamado[1] == clienteId);
+        
+        // Verificar se existem chamados
+        if (chamadosAbertos.length === 0 && chamadosFinalizados.length === 0) {
+            chamadosContainer.innerHTML = `
+                <div class="alert alert-info">
+                    Este cliente não possui chamados registrados.
+                </div>
+            `;
+            return;
+        }
+        
+        // Montar a tabela HTML para exibir os chamados com classes responsivas
+        let html = `
+            <div class="table-responsive">
+                <table class="table table-striped table-cliente-chamados">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%">Protocolo</th>
+                            <th style="width: 10%">Status</th>
+                            <th style="width: 20%">Data</th>
+                            <th style="width: 35%">Assunto</th>
+                            <th style="width: 20%">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        // Adiciona chamados abertos primeiro
+        if (chamadosAbertos.length > 0) {
+            chamadosAbertos.forEach(chamado => {
+                html += `
+                    <tr>
+                        <td>${chamado[6] || '-'}</td>
+                        <td><span class="status-badge status-aberto">Aberto</span></td>
+                        <td>${formatarData(chamado[4])}</td>
+                        <td class="text-truncate" style="max-width: 250px;" title="${chamado[7] || '-'}">${chamado[7] || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="abrirDetalhesChamado(${chamado[0]})">
+                                Ver Detalhes
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        // Adiciona chamados finalizados depois
+        if (chamadosFinalizados.length > 0) {
+            chamadosFinalizados.forEach(chamado => {
+                html += `
+                    <tr>
+                        <td>${chamado[6] || '-'}</td>
+                        <td><span class="status-badge status-finalizado">Finalizado</span></td>
+                        <td>${formatarData(chamado[4])}</td>
+                        <td class="text-truncate" style="max-width: 250px;" title="${chamado[7] || '-'}">${chamado[7] || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="abrirDetalhesChamado(${chamado[0]})">
+                                Ver Detalhes
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3">
+                <p><strong>Total de chamados:</strong> ${chamadosAbertos.length + chamadosFinalizados.length}</p>
+                <p><strong>Chamados abertos:</strong> ${chamadosAbertos.length}</p>
+                <p><strong>Chamados finalizados:</strong> ${chamadosFinalizados.length}</p>
+            </div>
+        `;
+        
+        chamadosContainer.innerHTML = html;
+    } catch (erro) {
+        console.error('Erro ao carregar chamados do cliente:', erro);
+        document.getElementById('chamados-cliente-lista').innerHTML = `
+            <div class="alert alert-danger">
+                Erro ao carregar chamados. Por favor, tente novamente.
+            </div>
+        `;
+    }
+}
+
+/**
+ * Formata uma data para exibição amigável
+ * @param {string} dataString - String com a data
+ * @returns {string} Data formatada ou string vazia se inválida
+ */
+function formatarData(dataString) {
+    if (!dataString) return '';
+    
+    try {
+        const data = new Date(dataString);
+        return data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+    } catch (e) {
+        return dataString;
+    }
+}
+
+/**
+ * Confirma a exclusão de um cliente
+ * @param {number} id - ID do cliente a ser excluído
+ */
 function confirmarExclusaoCliente(id) {
     if (confirm('Confirma exclusão do cliente?')) {
         excluirCliente(id);
     }
 }
 
-// Nova função para abrir o prompt de edição de chamado
+/**
+ * Abre prompt para editar um chamado
+ * @param {number} id - ID do chamado
+ * @param {string} descricao - Descrição atual do chamado
+ * @param {string} status - Status atual do chamado
+ */
 function abrirFormularioEdicaoChamado(id, descricao, status) {
     let novoDescricao = prompt('Editar descrição:', descricao);
     if (novoDescricao !== null) {
@@ -1158,7 +1366,12 @@ function abrirFormularioEdicaoChamado(id, descricao, status) {
     }
 }
 
-// Nova função para atualizar chamado via API
+/**
+ * Atualiza um chamado via API
+ * @param {number} id - ID do chamado
+ * @param {string} descricao - Nova descrição
+ * @param {string} status - Novo status
+ */
 async function editarChamado(id, descricao, status) {
     try {
         const resposta = await fetch(`http://localhost:5000/chamados/${id}`, {
@@ -1179,6 +1392,14 @@ async function editarChamado(id, descricao, status) {
     }
 }
 
+/**
+ * Atualiza um cliente via API
+ * @param {number} id - ID do cliente
+ * @param {string} nome - Nome do cliente
+ * @param {string} email - Email do cliente
+ * @param {string} telefone - Telefone do cliente
+ * @param {object} endereco - Dados de endereço
+ */
 async function editarCliente(id, nome, email, telefone, endereco) {
     try {
         const resposta = await fetch(`http://localhost:5000/clientes/${id}`, {
@@ -1202,6 +1423,10 @@ async function editarCliente(id, nome, email, telefone, endereco) {
     }
 }
 
+/**
+ * Exclui um cliente via API
+ * @param {number} id - ID do cliente a ser excluído
+ */
 async function excluirCliente(id) {
     try {
         const resposta = await fetch(`http://localhost:5000/clientes/${id}`, {
@@ -1221,13 +1446,9 @@ async function excluirCliente(id) {
     }
 }
 
-// Funções para chamados
 /**
- * Carrega as opções de clientes em um elemento select.
- * @async
- * @function carregarClientesSelect
- * @returns {Promise<void>} Uma Promise que resolve após carregar os clientes ou rejeita em caso de erro.
- * @throws {Error} Se o elemento select de clientes não for encontrado.
+ * Carrega as opções de clientes em um elemento select
+ * @returns {Promise<void>}
  */
 async function carregarClientesSelect() {
     return new Promise(async (resolve, reject) => {
@@ -1274,11 +1495,8 @@ async function carregarClientesSelect() {
 }
 
 /**
- * Finaliza um chamado, alterando seu status para 'Finalizado'.
- * @async
- * @function finalizarChamado
- * @param {number} id - O ID do chamado a ser finalizado.
- * @returns {Promise<void>} Uma Promise que resolve após a finalização do chamado ou rejeita em caso de erro.
+ * Finaliza um chamado, alterando seu status para 'Finalizado'
+ * @param {number} id - ID do chamado a ser finalizado
  */
 async function finalizarChamado(id) {
     try {
@@ -1301,11 +1519,8 @@ async function finalizarChamado(id) {
 }
 
 /**
- * Exclui um chamado do sistema.
- * @async
- * @function excluirChamado
- * @param {number} id - O ID do chamado a ser excluído.
- * @returns {Promise<void>} Uma Promise que resolve após a exclusão do chamado ou rejeita em caso de erro.
+ * Exclui um chamado do sistema
+ * @param {number} id - ID do chamado a ser excluído
  */
 async function excluirChamado(id) {
     // Adiciona confirmação antes de excluir
@@ -1332,12 +1547,8 @@ async function excluirChamado(id) {
     }
 }
 
-// Funções de busca e estatísticas
 /**
- * Busca clientes com base em um termo de pesquisa.
- * @async
- * @function buscarClientes
- * @returns {Promise<void>} Uma Promise que resolve após a busca de clientes ou rejeita em caso de erro.
+ * Busca clientes com base em um termo de pesquisa
  */
 async function buscarClientes() {
     const termo = document.getElementById('busca-cliente').value;
@@ -1350,7 +1561,6 @@ async function buscarClientes() {
                 <div class="card-body">
                     <h5>${cliente[1]}</h5>
                     <p>${cliente[2]} | ${cliente[3]}</p>
-                    <!-- Alterado para passar o cliente inteiro -->
                     <button class="btn btn-sm btn-primary" onclick="carregarDetalhesCliente(${JSON.stringify(cliente).replace(/"/g, '&quot;')})">Ver Detalhes</button>
                 </div>
             </div>
@@ -1364,8 +1574,7 @@ async function buscarClientes() {
 }
 
 /**
- * Carrega os detalhes de um cliente em um modal.
- * @function carregarDetalhesCliente
+ * Carrega os detalhes de um cliente em um modal
  * @param {object} cliente - O objeto do cliente cujos detalhes serão exibidos.
  */
 function carregarDetalhesCliente(cliente) {
@@ -1382,10 +1591,7 @@ function carregarDetalhesCliente(cliente) {
 }
 
 /**
- * Carrega as estatísticas do sistema, como total de clientes e chamados.
- * @async
- * @function carregarEstatisticas
- * @returns {Promise<void>} Uma Promise que resolve após carregar as estatísticas ou rejeita em caso de erro.
+ * Carrega as estatísticas do sistema
  */
 async function carregarEstatisticas() {
     try {
@@ -1433,16 +1639,15 @@ async function carregarEstatisticas() {
 }
 
 /**
- * Inicializa o gráfico de chamados com os dados fornecidos.
- * @function inicializarGrafico
- * @param {object} dados - Os dados para inicializar o gráfico.
+ * Inicializa o gráfico de chamados
+ * @param {object} dados - Dados para o gráfico
  */
 function inicializarGrafico(dados) {
     const ctx = document.getElementById('grafico-chamados').getContext('2d');
     if (graficoChamados) {
         graficoChamados.destroy();
     }
-    // Define legend color based on dark mode status
+    // Define a cor da legenda com base no status do modo escuro
     const legendColor = document.body.classList.contains('dark-mode') ? '#ffffff' : '#000000';
     graficoChamados = new Chart(ctx, {
         type: 'doughnut',
@@ -1468,31 +1673,25 @@ function inicializarGrafico(dados) {
     });
 }
 
-// Utilitários
 /**
- * Exibe a tela de carregamento.
- * @function showLoading
+ * Exibe a tela de carregamento
  */
 function showLoading() {
     document.getElementById('loading').style.display = 'flex';
 }
 
 /**
- * Oculta a tela de carregamento.
- * @function hideLoading
+ * Oculta a tela de carregamento
  */
 function hideLoading() {
     document.getElementById('loading').style.display = 'none';
 }
 
 /**
- * Realiza uma requisição fetch com tela de carregamento.
- * @async
- * @function fetchWithLoading
- * @param {string} url - A URL da requisição.
- * @param {object} options - As opções da requisição fetch.
- * @returns {Promise<object>} Uma Promise que resolve com os dados da resposta ou rejeita em caso de erro.
- * @throws {Error} Se a resposta não for ok ou se ocorrer um erro na requisição.
+ * Realiza uma requisição fetch com tela de carregamento
+ * @param {string} url - URL da requisição
+ * @param {object} options - Opções da requisição
+ * @returns {Promise<object>} Dados da resposta
  */
 async function fetchWithLoading(url, options = {}) {
     showLoading();
@@ -1511,11 +1710,9 @@ async function fetchWithLoading(url, options = {}) {
     }
 }
 
-// Novas funções de paginação para chamados
 /**
- * Avança para a próxima página de chamados.
- * @function proximaPaginaChamados
- * @param {string} [status='Aberto'] - O status dos chamados a serem carregados.
+ * Avança para a próxima página de chamados
+ * @param {string} status - Status dos chamados
  */
 function proximaPaginaChamados(status = 'Aberto') {
     if (status === 'Aberto') {
@@ -1527,9 +1724,8 @@ function proximaPaginaChamados(status = 'Aberto') {
 }
 
 /**
- * Retorna para a página anterior de chamados.
- * @function paginaAnteriorChamados
- * @param {string} [status='Aberto'] - O status dos chamados a serem carregados.
+ * Retorna para a página anterior de chamados
+ * @param {string} status - Status dos chamados
  */
 function paginaAnteriorChamados(status = 'Aberto') {
     if (status === 'Aberto') {
@@ -1545,12 +1741,8 @@ function paginaAnteriorChamados(status = 'Aberto') {
     }
 }
 
-// Atualizações automáticas
-let refreshInterval;
-
 /**
- * Inicia o ciclo de atualização automática das estatísticas.
- * @function startAutoRefresh
+ * Inicia o ciclo de atualização automática das estatísticas
  */
 function startAutoRefresh() {
     stopAutoRefresh();
@@ -1562,8 +1754,7 @@ function startAutoRefresh() {
 }
 
 /**
- * Interrompe o ciclo de atualização automática das estatísticas.
- * @function stopAutoRefresh
+ * Interrompe o ciclo de atualização automática das estatísticas
  */
 function stopAutoRefresh() {
     if (refreshInterval) {
@@ -1571,16 +1762,16 @@ function stopAutoRefresh() {
     }
 }
 
-// Inicialização
+// Inicialização quando o DOM estiver carregado
 document.addEventListener('DOMContentLoaded', () => {
-    // Aplique o tema salvo se existir
+    // Aplica o tema salvo se existir
     if (localStorage.getItem('theme') === 'dark') {
         document.body.classList.add('dark-mode');
         document.getElementById('theme-toggle').textContent = '🌙';
     }
     carregarHome();
     startAutoRefresh();
-    exibirInfoUsuario(); // Adiciona esta linha
+    exibirInfoUsuario();
     checkAdminStatus();
     startSessionMonitor();
 });
@@ -1592,8 +1783,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /**
- * Carrega a página para criar um novo cliente.
- * @function carregarNovoClientePage
+ * Carrega a página para criar um novo cliente
  */
 function carregarNovoClientePage() {
     document.getElementById('conteudo').innerHTML = `
@@ -1817,10 +2007,8 @@ function carregarNovoClientePage() {
 }
 
 /**
- * Carrega a página de detalhes de um chamado específico.
- * @async
- * @function carregarDetalhesChamadoPage
- * @param {number} id - O ID do chamado a ser carregado.
+ * Carrega a página de detalhes de um chamado
+ * @param {number} id - ID do chamado
  */
 async function carregarDetalhesChamadoPage(id) {
     try {
@@ -1831,7 +2019,7 @@ async function carregarDetalhesChamadoPage(id) {
             return;
         }
         const isFinalizado = chamado.status === 'Finalizado';
-        currentChamadoId = id; // Store the current chamado ID
+        currentChamadoId = id; // Armazena o ID do chamado atual
         isDescriptionVisible = true; // Reset to description visible on load
 
         // Replace the cliente input group with this new version
@@ -1913,7 +2101,7 @@ async function carregarDetalhesChamadoPage(id) {
             const status = document.getElementById('status').value;
             andamentosCarousel.innerHTML = '';
 
-            // If finalized, don't add the empty entry for new progress
+            // Se finalizado, não adiciona a entrada vazia para novos andamentos
             const andamentosArray = status === 'Finalizado' 
                 ? chamado.andamentos 
                 : [...chamado.andamentos, { id: null, data_hora: '', texto: '' }];
@@ -2066,8 +2254,7 @@ async function carregarDetalhesChamadoPage(id) {
 }
 
 /**
- * Lógica para alternar tema entre dark e light mode.
- * @function
+ * Alterna entre tema claro e escuro
  */
 document.getElementById('theme-toggle').addEventListener('click', function() {
     const body = document.body;
@@ -2089,9 +2276,8 @@ document.getElementById('theme-toggle').addEventListener('click', function() {
 });
 
 /**
- * Ordena os chamados com base no campo especificado.
- * @function sortChamados
- * @param {string} field - O campo pelo qual os chamados serão ordenados.
+ * Ordena os chamados com base no campo especificado
+ * @param {string} field - Campo pelo qual os chamados serão ordenados
  */
 function sortChamados(field) {
     if (currentChamadoSortField === field) {
@@ -2104,21 +2290,20 @@ function sortChamados(field) {
 }
 
 /**
- * Abre a página de detalhes do chamado.
- * @function abrirDetalhesChamado
- * @param {number} id - O ID do chamado a ser aberto.
+ * Abre a página de detalhes do chamado
+ * @param {number} id - O ID do chamado a ser aberto
  */
 function abrirDetalhesChamado(id) {
     if (id) {
+        currentChamadoId = id; // Armazena o ID do chamado atual
         carregarDetalhesChamadoPage(id);
     } else {
-        exibirMensagem('Selecione um chamado', 'erro');
+        exibirMensagem('Selecione um chamado primeiro', 'erro');
     }
 }
 
 /**
- * Exclui o chamado selecionado.
- * @function excluirChamadoSelecionado
+ * Exclui o chamado selecionado
  */
 function excluirChamadoSelecionado() {
     if (!selectedChamadoId) {
@@ -2128,12 +2313,12 @@ function excluirChamadoSelecionado() {
     excluirChamado(selectedChamadoId);
 }
 
+// Variáveis para controle de seleção de cliente
 let selectedClienteId = null;
 let selectedCliente = null;
 
 /**
- * Carrega a página de edição do cliente selecionado.
- * @function editarClienteSelecionado
+ * Carrega a página de edição do cliente selecionado
  */
 function editarClienteSelecionado() {
     if (selectedClienteId) {
@@ -2144,8 +2329,7 @@ function editarClienteSelecionado() {
 }
 
 /**
- * Exclui o cliente selecionado após confirmação.
- * @function excluirClienteSelecionado
+ * Exclui o cliente selecionado após confirmação
  */
 function excluirClienteSelecionado() {
     if (selectedClienteId) {
@@ -2156,26 +2340,25 @@ function excluirClienteSelecionado() {
 }
 
 /**
- * Variável global para controlar a visibilidade da descrição e dos andamentos.
+ * Variável para controlar a visibilidade da descrição e dos andamentos
  * @type {boolean}
  */
 let isDescriptionVisible = true;
 
 /**
- * Variável global para armazenar o índice do andamento atual.
+ * Variável para armazenar o índice do andamento atual
  * @type {number}
  */
 let currentAndamentoIndex = -1;
 
 /**
- * Variável global para armazenar o ID do chamado atual.
+ * Variável para armazenar o ID do chamado atual
  * @type {number}
  */
 let currentChamadoId = null;
 
 /**
- * Alterna a visibilidade entre a seção de descrição e a seção de andamentos.
- * @function toggleDescriptionVisibility
+ * Alterna a visibilidade entre a seção de descrição e a seção de andamentos
  */
 function toggleDescriptionVisibility() {
     const status = document.getElementById('status').value;
@@ -2193,15 +2376,14 @@ function toggleDescriptionVisibility() {
 }
 
 /**
- * Renderiza os andamentos do chamado.
- * @function renderAndamentos
+ * Renderiza os andamentos de um chamado
  */
 function renderAndamentos() {
     const andamentosCarousel = document.getElementById('andamentos-carousel');
     const status = document.getElementById('status').value;
     andamentosCarousel.innerHTML = '';
 
-    // If finalized, don't add the empty entry for new progress
+    // Se finalizado, não adiciona a entrada vazia para novos andamentos
     const andamentosArray = status === 'Finalizado' 
         ? chamado.andamentos 
         : [...chamado.andamentos, { id: null, data_hora: '', texto: '' }];
@@ -2318,10 +2500,8 @@ function renderAndamentos() {
 }
 
 /**
- * Adiciona um novo andamento ao chamado.
- * @async
- * @function adicionarNovoAndamento
- * @param {number} chamadoId - O ID do chamado ao qual o andamento será adicionado.
+ * Adiciona um novo andamento ao chamado
+ * @param {number} chamadoId - ID do chamado
  */
 window.adicionarNovoAndamento = async (chamadoId) => {
     const texto = prompt('Digite o novo andamento:');
@@ -2347,10 +2527,8 @@ window.adicionarNovoAndamento = async (chamadoId) => {
 };
 
 /**
- * Exclui um andamento existente do chamado.
- * @async
- * @function excluirAndamento
- * @param {number} andamentoId - O ID do andamento a ser excluído.
+ * Exclui um andamento existente
+ * @param {number} andamentoId - ID do andamento
  */
 window.excluirAndamento = async (andamentoId) => {
     const status = document.getElementById('status').value;
@@ -2379,12 +2557,9 @@ window.excluirAndamento = async (andamentoId) => {
 };
 
 /**
- * Salva um novo andamento para o chamado.
- * Verifica o status antes de salvar.
- * @async
- * @function salvarAndamento
- * @param {number} chamadoId - O ID do chamado.
- * @param {string} texto - O texto do andamento a ser salvo.
+ * Salva um novo andamento para o chamado
+ * @param {number} chamadoId - ID do chamado
+ * @param {string} texto - Texto do andamento
  */
 async function salvarAndamento(chamadoId, texto) {
     const status = document.getElementById('status').value;
@@ -2472,8 +2647,7 @@ async function salvarNovoAndamento(chamadoId, button) {
 }
 
 /**
- * Configura a busca de clientes no campo de busca.
- * @function configurarBuscaClientes
+ * Configura a busca de clientes na página inicial
  */
 function configurarBuscaClientes() {
     const buscaInput = document.getElementById('busca-cliente');
@@ -2486,7 +2660,9 @@ function configurarBuscaClientes() {
     }
 }
 
-// Função para verificar se o usuário é admin após o login
+/**
+ * Verifica se o usuário é administrador após o login
+ */
 async function checkAdminStatus() {
     const response = await fetch('/auth/check-role');
     const data = await response.json();
@@ -2495,7 +2671,9 @@ async function checkAdminStatus() {
     }
 }
 
-// Função para carregar a página de gerenciamento de usuários
+/**
+ * Carrega a página de gerenciamento de usuários
+ */
 function carregarUsuariosPage() {
     updateActiveMenu('usuarios');
     document.getElementById('conteudo').innerHTML = `
@@ -2571,7 +2749,9 @@ function carregarUsuariosPage() {
     carregarUsuarios();
 }
 
-// Função para carregar a lista de usuários
+/**
+ * Carrega a lista de usuários do sistema
+ */
 async function carregarUsuarios() {
     try {
         showLoading();
@@ -2617,10 +2797,13 @@ async function carregarUsuarios() {
     }
 }
 
-// Adicione estas novas funções para manipular a seleção
+// Variáveis para controle de seleção de usuário
 let selectedUserId = null;
 let selectedUsername = null;
 
+/**
+ * Seleciona um usuário para edição
+ */
 function editarUsuarioSelecionado() {
     if (!selectedUserId) {
         exibirMensagem('Selecione um usuário para editar', 'erro');
@@ -2629,6 +2812,9 @@ function editarUsuarioSelecionado() {
     editarUsuario(selectedUserId);
 }
 
+/**
+ * Exclui o usuário selecionado após confirmação
+ */
 function excluirUsuarioSelecionado() {
     if (!selectedUserId) {
         exibirMensagem('Selecione um usuário para excluir', 'erro');
@@ -2641,7 +2827,9 @@ function excluirUsuarioSelecionado() {
     excluirUsuario(selectedUserId);
 }
 
-// Função para abrir o modal de novo usuário
+/**
+ * Abre o modal para criar um novo usuário
+ */
 function abrirModalNovoUsuario() {
     document.getElementById('usuario-id').value = '';
     document.getElementById('usuario-form').reset();
@@ -2649,7 +2837,9 @@ function abrirModalNovoUsuario() {
     new bootstrap.Modal(document.getElementById('usuarioModal')).show();
 }
 
-// Função para salvar usuário (novo ou edição)
+/**
+ * Salva um usuário novo ou editado
+ */
 async function salvarUsuario() {
     const id = document.getElementById('usuario-id').value;
     const username = document.getElementById('username').value;
@@ -2680,7 +2870,10 @@ async function salvarUsuario() {
     }
 }
 
-// Função para editar usuário
+/**
+ * Edita um usuário existente
+ * @param {number} id - ID do usuário
+ */
 async function editarUsuario(id) {
     try {
         showLoading();
@@ -2731,7 +2924,10 @@ async function editarUsuario(id) {
     }
 }
 
-// Função para excluir usuário
+/**
+ * Exclui um usuário do sistema
+ * @param {number} id - ID do usuário
+ */
 async function excluirUsuario(id) {
     if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
     
@@ -2750,13 +2946,13 @@ async function excluirUsuario(id) {
     }
 }
 
-// Adicione esta linha ao final do evento DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
-    // ...existing code...
     checkAdminStatus(); // Verifica se o usuário é admin ao carregar a página
 });
 
-// Função para fazer logout
+/**
+ * Realiza o logout do usuário
+ */
 async function logout() {
     try {
         const response = await fetch('/auth/logout');
@@ -2771,7 +2967,9 @@ async function logout() {
     }
 }
 
-// Função para exibir informações do usuário logado
+/**
+ * Exibe informações do usuário logado na interface
+ */
 async function exibirInfoUsuario() {
     try {
         const response = await fetch('/auth/check-role');
@@ -2790,7 +2988,10 @@ async function exibirInfoUsuario() {
     }
 }
 
-// Adicione esta nova função
+/**
+ * Reabre um chamado finalizado
+ * @param {number} id - ID do chamado
+ */
 async function reabrirChamado(id) {
     try {
         const resposta = await fetch(`http://localhost:5000/chamados/${id}`, {
@@ -2816,7 +3017,7 @@ async function reabrirChamado(id) {
     }
 }
 
-// Modifique a função carregarChamadosFinalizados
+// Função carregarChamadosFinalizados
 function carregarChamadosFinalizados() {
     document.getElementById('chamados-content').innerHTML = `
         <div class="row">
@@ -2871,8 +3072,6 @@ function carregarChamadosFinalizados() {
     carregarChamados('Finalizado');
 }
 
-// Modifique a parte do código que adiciona os event listeners nas linhas da tabela
-// Dentro da função carregarChamados, na parte que trata chamados finalizados:
 if (status === 'Finalizado') {
     document.querySelectorAll("#chamados-finalizados tr").forEach(row => {
         row.addEventListener('click', function() {
@@ -2888,7 +3087,7 @@ if (status === 'Finalizado') {
     });
 }
 
-// Add this new function to show client details in a modal
+// Função para mostrar detalhes do cliente em um modal
 async function mostrarDetalhesCliente(clienteId) {
     try {
         const response = await fetch(`http://localhost:5000/clientes/${clienteId}`);
@@ -2898,7 +3097,7 @@ async function mostrarDetalhesCliente(clienteId) {
         
         const cliente = await response.json();
         
-        // Create a modal dynamically with all client fields
+        // Cria um modal dinamicamente com todos os campos do cliente
         const modalHtml = `
             <div class="modal fade" id="clienteDetalhesModal" tabindex="-1">
                 <div class="modal-dialog modal-lg">
@@ -3064,16 +3263,16 @@ async function mostrarDetalhesCliente(clienteId) {
             </div>
         `;
 
-        // Remove existing modal if any
+        // Remove o modal existente, se houver
         const existingModal = document.getElementById('clienteDetalhesModal');
         if (existingModal) {
             existingModal.remove();
         }
 
-        // Add the modal to the document
+        // Adiciona o modal ao documento
         document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-        // Show the modal
+        // Mostra o modal
         const modal = new bootstrap.Modal(document.getElementById('clienteDetalhesModal'));
         modal.show();
 
@@ -3082,3 +3281,868 @@ async function mostrarDetalhesCliente(clienteId) {
         exibirMensagem('Erro ao carregar detalhes do cliente', 'erro');
     }
 }
+
+/**
+ * Carrega a página de agenda de visitas
+ */
+function carregarAgendaPage() {
+    updateActiveMenu('agenda');  // Add this line if it's not already present
+    document.getElementById('conteudo').innerHTML = `
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Agenda de Visitas Técnicas</h2>
+                <div id="calendario"></div>
+            </div>
+        </div>
+    `;
+    configurarCalendario();
+}
+
+// Variável para armazenar o ID do agendamento atual
+let currentAgendamentoId = null;
+
+// Cache para armazenar instâncias de tooltips
+const tooltipCache = new Map();
+
+/**
+ * Remove todos os tooltips ativos
+ */
+function destroyAllTooltips() {
+    tooltipCache.forEach(tooltip => tooltip.destroy());
+    tooltipCache.clear();
+}
+
+/**
+ * Cria ou obtém um tooltip do cache
+ * @param {HTMLElement} element - Elemento para adicionar o tooltip
+ * @param {string} content - Conteúdo do tooltip
+ * @returns {object} Instância do tooltip
+ */
+function getOrCreateTooltip(element, content) {
+    if (tooltipCache.has(element)) {
+        const tooltip = tooltipCache.get(element);
+        tooltip.setContent(content);
+        return tooltip;
+    }
+
+    const tooltip = tippy(element, {
+        content: content,
+        theme: 'light',
+        animation: 'shift-away',
+        interactive: true,
+        appendTo: document.body,
+        placement: 'top',
+        arrow: true,
+        maxWidth: 300,
+        allowHTML: true,
+        trigger: 'mouseenter',
+        hideOnClick: false,
+        onHide(instance) {
+            // Previne que o tooltip fique preso na tela
+            instance.setContent(instance.props.content);
+        },
+        onDestroy() {
+            tooltipCache.delete(element);
+        }
+    });
+
+    tooltipCache.set(element, tooltip);
+    return tooltip;
+}
+
+/**
+ * Formata o conteúdo do tooltip para agendamentos
+ * @param {object} event - Evento do agendamento
+ * @returns {string} HTML formatado para o tooltip
+ */
+function formatarTooltipAgendamento(event) {
+    const props = event.extendedProps;
+    return `
+        <div class="agenda-tooltip">
+            <div class="tooltip-header">
+                <strong>${props.protocolo || 'N/A'}</strong>
+            </div>
+            <div class="tooltip-body">
+                <p><strong>Cliente:</strong> ${props.cliente_nome || 'N/A'}</p>
+                <p><strong>Assunto:</strong> ${props.assunto || 'N/A'}</p>
+                <p><strong>Telefone:</strong> ${props.cliente_telefone || 'N/A'}</p>
+                <p><strong>Endereço:</strong> ${props.endereco || 'Não disponível'}</p>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * Recria os tooltips após mudanças no calendário
+ */
+function recriarTooltips() {
+    const events = document.querySelectorAll('.fc-event');
+    events.forEach(eventEl => {
+        const fcEvent = calendar.getEventById(eventEl.getAttribute('data-event-id'));
+        if (fcEvent) {
+            getOrCreateTooltip(eventEl, formatarTooltipAgendamento(fcEvent));
+        }
+    });
+}
+
+/**
+ * Configura o calendário para exibição dos agendamentos
+ */
+function configurarCalendario() {
+    var calendarEl = document.getElementById('calendario');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'timeGridWeek',
+        locale: 'pt-br',
+        timeZone: 'America/Sao_Paulo',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        selectable: true,
+        selectMirror: true,
+        editable: true,
+        allDaySlot: false,
+        forceEventDuration: true,
+        defaultTimedEventDuration: '01:00:00',
+        
+        // handler de seleção para abrir o modal de agendamento
+        select: function(info) {
+            // Formata as datas para o formato esperado pelo input datetime-local
+            const startStr = info.start.toISOString().slice(0, 16);
+            const endStr = info.end ? info.end.toISOString().slice(0, 16) : 
+                new Date(info.start.getTime() + 60*60000).toISOString().slice(0, 16);
+                
+            // Abre o modal de agendamento com as datas selecionadas
+            abrirModalAgendamento(startStr, endStr);
+        },
+        
+        eventClick: function(info) {
+            abrirModalDetalhesAgendamento(info.event);
+        },
+        
+        eventDrop: async function(info) {
+            try {
+                await fetch(`/agendamentos/${info.event.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        data_agendamento: info.event.start.toISOString(),
+                        data_final_agendamento: info.event.end.toISOString()
+                    })
+                });
+                exibirMensagem('Agendamento atualizado com sucesso!');
+                
+                // Recria os tooltips após o drop
+                setTimeout(recriarTooltips, 100);
+                refreshCalendar(); // Refresh calendar after drop
+            } catch (erro) {
+                console.error('Erro ao atualizar agendamento:', erro);
+                exibirMensagem('Erro ao atualizar agendamento', 'erro');
+                info.revert();
+            }
+        },
+        
+        eventResize: async function(info) {
+            try {
+                await fetch(`/agendamentos/${info.event.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        data_agendamento: info.event.start.toISOString(),
+                        data_final_agendamento: info.event.end.toISOString()
+                    })
+                });
+                exibirMensagem('Agendamento atualizado com sucesso!');
+                // Recria os tooltips após o resize
+                setTimeout(recriarTooltips, 100);
+                refreshCalendar(); // Refresh calendar after resize
+            } catch (erro) {
+                console.error('Erro ao atualizar agendamento:', erro);
+                exibirMensagem('Erro ao atualizar agendamento', 'erro');
+                info.revert();
+            }
+        },
+        
+        events: function(fetchInfo, successCallback, failureCallback) {
+            carregarAgendamentos(successCallback, failureCallback);
+        },
+        
+        eventDidMount: function(info) {
+            info.el.setAttribute('data-event-id', info.event.id);
+            const tooltip = getOrCreateTooltip(
+                info.el,
+                formatarTooltipAgendamento(info.event)
+            );
+        },
+        
+        eventWillUnmount: function(info) {
+            const tooltip = tooltipCache.get(info.el);
+            if (tooltip) {
+                tooltip.destroy();
+            }
+        },
+        
+        eventMouseLeave: function(info) {
+            const tooltip = tooltipCache.get(info.el);
+            if (tooltip) {
+                tooltip.hide();
+            }
+        },
+        
+        eventDragStart: function() {
+            destroyAllTooltips();
+        },
+        
+        eventResizeStart: function() {
+            destroyAllTooltips();
+        },
+    });
+    
+    // Salva a referência ao calendário globalmente
+    window.calendar = calendar;
+    
+    calendar.render();
+}
+
+/**
+ * Atualiza a visualização do calendário
+ */
+function refreshCalendar() {
+    setTimeout(() => {
+        carregarAgendaPage();
+    }, 300);
+}
+
+// Adicionar limpeza de tooltips quando os modais são abertos/fechados
+document.addEventListener('DOMContentLoaded', function() {
+    ['agendamentoModal', 'agendamentoDetalhesModal'].forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.addEventListener('show.bs.modal', destroyAllTooltips);
+            modal.addEventListener('hidden.bs.modal', () => {
+                setTimeout(() => {
+                    const calendarEl = document.getElementById('calendario');
+                    if (calendarEl && calendarEl.fullCalendar) {
+                        calendarEl.fullCalendar.render();
+                    }
+                }, 100);
+            });
+        }
+    });
+});
+
+/**
+ * Abre o modal de agendamento com datas específicas
+ * @param {string} startStr - Data/hora inicial formatada
+ * @param {string} endStr - Data/hora final formatada
+ */
+function abrirModalAgendamento(startStr, endStr) {
+    // Limpar todos os campos do formulário
+    document.getElementById('agendamentoForm').reset();
+    
+    // Limpar explicitamente o campo de observações (para garantir)
+    document.getElementById('observacoes_agendamento').value = '';
+    
+    // Limpar a lista de chamados e o chamado selecionado
+    document.getElementById('lista-chamados').innerHTML = '';
+    document.getElementById('chamado-selecionado').classList.add('d-none');
+    document.getElementById('chamado-selecionado').innerHTML = '';
+    
+    // Agora atribuir os novos valores das datas
+    document.getElementById('data_agendamento').value = startStr;
+    document.getElementById('data_final_agendamento').value = endStr;
+    
+    // Configurar o campo de busca de chamados
+    configurarBuscaChamadosAgendamento();
+    
+    // Configurar o botão de salvar
+    document.getElementById('salvarAgendamento').onclick = salvarAgendamento;
+    
+    // Mostrar o modal
+    const modal = new bootstrap.Modal(document.getElementById('agendamentoModal'));
+    modal.show();
+}
+
+/**
+ * Configura o campo de busca de chamados no modal de agendamento
+ */
+function configurarBuscaChamadosAgendamento() {
+    const buscaChamadoInput = document.getElementById('busca-chamado');
+    const listaChamadosDiv = document.getElementById('lista-chamados');
+    const chamadoSelecionadoDiv = document.getElementById('chamado-selecionado');
+    let timeoutId;
+
+    // Função para buscar chamados
+    async function buscarChamados(termo) {
+        try {
+            if (!termo || termo.trim().length < 2) {
+                listaChamadosDiv.innerHTML = '';
+                listaChamadosDiv.classList.remove('show');
+                return;
+            }
+
+            const response = await fetch(`/chamados/buscar-abertos?termo=${encodeURIComponent(termo)}`);
+            if (!response.ok) {
+                throw new Error('Falha ao buscar chamados');
+            }
+            
+            const chamados = await response.json();
+            
+            if (chamados.length === 0) {
+                listaChamadosDiv.innerHTML = '<div class="list-group-item">Nenhum chamado encontrado</div>';
+                listaChamadosDiv.classList.add('show');
+                return;
+            }
+            
+            const chamadosHtml = chamados.map(chamado => `
+                <a href="#" class="list-group-item list-group-item-action" 
+                   data-id="${chamado.id}" 
+                   data-protocolo="${chamado.protocolo}"
+                   data-assunto="${chamado.assunto || ''}"
+                   data-cliente="${chamado.cliente_nome || 'Cliente removido'}">
+                    ${chamado.protocolo} - ${chamado.cliente_nome || 'Cliente removido'} - ${chamado.assunto || 'Sem assunto'}
+                </a>
+            `).join('');
+            
+            listaChamadosDiv.innerHTML = chamadosHtml;
+            listaChamadosDiv.classList.add('show');
+        } catch (error) {
+            console.error('Erro na busca de chamados:', error);
+            listaChamadosDiv.innerHTML = '<div class="list-group-item text-danger">Erro ao buscar chamados</div>';
+            listaChamadosDiv.classList.add('show');
+        }
+    }
+
+    // Event listener para o input de busca
+    buscaChamadoInput.addEventListener('input', function() {
+        clearTimeout(timeoutId);
+        const termo = this.value.trim();
+        
+        // Só busca se tiver pelo menos 2 caracteres
+        if (termo.length >= 2) {
+            timeoutId = setTimeout(() => {
+                buscarChamados(termo);
+            }, 300);
+        } else {
+            listaChamadosDiv.innerHTML = '';
+            listaChamadosDiv.classList.remove('show');
+        }
+    });
+
+    // Event listener para selecionar um chamado
+    listaChamadosDiv.addEventListener('click', function(e) {
+        if (e.target.tagName === 'A') {
+            e.preventDefault();
+            const chamadoId = e.target.dataset.id;
+            const protocolo = e.target.dataset.protocolo;
+            const assunto = e.target.dataset.assunto;
+            const cliente = e.target.dataset.cliente;
+            
+            buscaChamadoInput.value = `${protocolo} - ${cliente}`;
+            buscaChamadoInput.dataset.chamadoId = chamadoId;
+            
+            // Mostrar detalhes do chamado selecionado
+            chamadoSelecionadoDiv.innerHTML = `
+                <p><strong>Protocolo:</strong> ${protocolo}</p>
+                <p><strong>Cliente:</strong> ${cliente}</p>
+                <p><strong>Assunto:</strong> ${assunto}</p>
+            `;
+            chamadoSelecionadoDiv.classList.remove('d-none');
+            
+            // Esconde a lista de resultados
+            listaChamadosDiv.classList.remove('show');
+        }
+    });
+
+    // Esconde a lista quando clicar fora
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#lista-chamados') && !e.target.closest('#busca-chamado')) {
+            listaChamadosDiv.classList.remove('show');
+        }
+    });
+
+    // Previne o fechamento da lista ao clicar nela
+    listaChamadosDiv.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+}
+
+/**
+ * Salva um novo agendamento
+ */
+async function salvarAgendamento() {
+    try {
+        const chamadoId = document.getElementById('busca-chamado').dataset.chamadoId;
+        const dataAgendamento = document.getElementById('data_agendamento').value;
+        const dataFinalAgendamento = document.getElementById('data_final_agendamento').value;
+        
+        // Verificações de validação
+        if (!chamadoId) {
+            exibirMensagem('Selecione um chamado', 'erro');
+            return;
+        }
+        
+        if (!dataAgendamento || !dataFinalAgendamento) {
+            exibirMensagem('Preencha as datas de início e fim', 'erro');
+            return;
+        }
+        
+        // Mostra a tela de carregamento
+        showLoading();
+        
+        // Envia os dados para o servidor
+        const response = await fetch('/agendamentos', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                chamado_id: parseInt(chamadoId),
+                data_agendamento: dataAgendamento,
+                data_final_agendamento: dataFinalAgendamento,
+                observacoes: document.getElementById('observacoes_agendamento')?.value || ''
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.erro || 'Erro ao criar agendamento');
+        }
+        
+        // Exibe mensagem de sucesso
+        exibirMensagem('Agendamento criado com sucesso!');
+        
+        // Fecha o modal
+        bootstrap.Modal.getInstance(document.getElementById('agendamentoModal')).hide();
+        
+        // Atualiza o calendário
+        const calendarEl = document.getElementById('calendario');
+        if (calendarEl && calendarEl.fullCalendar) {
+            calendarEl.fullCalendar.refetchEvents();
+        }
+        refreshCalendar(); // Refresh calendar after saving
+        
+    } catch (error) {
+        console.error('Erro ao salvar agendamento:', error);
+        exibirMensagem(error.message || 'Erro ao salvar agendamento', 'erro');
+    } finally {
+        // Esconde a tela de carregamento
+        hideLoading();
+    }
+}
+
+/**
+ * Carrega os agendamentos da API
+ * @param {Function} successCallback - Função de sucesso
+ * @param {Function} failureCallback - Função de falha
+ */
+async function carregarAgendamentos(successCallback, failureCallback) {
+    try {
+        const response = await fetch('/agendamentos');
+        if (!response.ok) {
+            throw new Error('Falha ao carregar agendamentos');
+        }
+        
+        const agendamentos = await response.json();
+        
+        // Converte os agendamentos para o formato que o FullCalendar espera
+        const eventos = agendamentos.map(agendamento => {
+            const titulo = `Visita Técnica - ${agendamento.protocolo}`;
+            const status = agendamento.chamado_status || 'Aberto';
+            
+            // Define a cor com base no status
+            let backgroundColor = '#0d6efd'; // Azul para agendamentos normais
+            let borderColor = '#0a58ca';
+            
+            if (status === 'Finalizado') {
+                backgroundColor = '#28a745'; // Verde para agendamentos finalizados
+                borderColor = '#1e7e34';
+            }
+            
+            // Cria a descrição formatada para exibir no calendário
+            const description = `
+                <strong>Cliente:</strong> ${agendamento.cliente_nome}<br>
+                <strong>Assunto:</strong> ${agendamento.assunto || 'N/A'}<br>
+                <strong>Endereço:</strong> ${agendamento.endereco || 'N/A'}<br>
+                <strong>Telefone:</strong> ${agendamento.cliente_telefone || 'N/A'}
+            `;
+            
+            return {
+                id: agendamento.id,
+                title: titulo,
+                start: agendamento.data_agendamento,
+                end: agendamento.data_final_agendamento,
+                backgroundColor: backgroundColor,
+                borderColor: borderColor,
+                extendedProps: {
+                    protocolo: agendamento.protocolo,
+                    cliente_nome: agendamento.cliente_nome,
+                    assunto: agendamento.assunto,
+                    cliente_telefone: agendamento.cliente_telefone,
+                    endereco: agendamento.endereco,
+                    chamado_id: agendamento.chamado_id
+                }
+            };
+        });
+        
+        successCallback(eventos);
+    } catch (erro) {
+        console.error('Erro ao carregar agendamentos:', erro);
+        failureCallback(erro);
+    }
+}
+
+/**
+ * Abre o modal para finalizar um chamado via agendamento
+ * @param {object} event - Evento do agendamento
+ */
+function abrirModalFinalizarChamado(event) {
+    const chamadoId = event.extendedProps.chamado_id;
+    currentAgendamentoId = event.id; // Armazena o ID do agendamento atual
+    const modalFinalizar = new bootstrap.Modal(document.getElementById('finalizarChamadoModal'));
+    
+    // Clear previous data
+    document.getElementById('relatorio_visita').value = '';
+    modalFinalizar.show();
+
+    document.getElementById('salvarFinalizacao').onclick = async function() {
+        const relatorioVisita = document.getElementById('relatorio_visita').value;
+        if (!relatorioVisita) {
+            exibirMensagem('Preencha o relatório da visita!', 'erro');
+            return;
+        }
+
+        try {
+            // Adicionar andamento e finalizar chamado
+            const resposta = await fetch(`http://localhost:5000/chamados/${chamadoId}/finalizar-ordem-servico`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    relatorio_visita: relatorioVisita
+                })
+            });
+
+            if (resposta.ok) {
+                exibirMensagem('Chamado finalizado com sucesso!');
+                modalFinalizar.hide();
+                configurarCalendario(); // Recarrega a agenda
+            } else {
+                const erro = await resposta.json();
+                exibirMensagem(`Erro: ${erro.erro}`, 'erro');
+            }
+        } catch (erro) {
+            console.error('Erro ao finalizar chamado:', erro);
+            exibirMensagem('Erro ao finalizar chamado', 'erro');
+        }
+    };
+}
+
+/**
+ * Exclui um agendamento da agenda
+ * @param {number} agendamentoId - ID do agendamento
+ */
+async function excluirAgendamento(agendamentoId) {
+    if (confirm('Tem certeza que deseja excluir este agendamento?')) {
+        try {
+            const resposta = await fetch(`http://localhost:5000/agendamentos/${agendamentoId}`, {
+                method: 'DELETE'
+            });
+
+            if (resposta.ok) {
+                exibirMensagem('Agendamento excluído com sucesso!');
+                configurarCalendario(); // Recarrega a agenda
+            } else {
+                const erro = await resposta.json();
+                exibirMensagem(`Erro: ${erro.erro}`, 'erro');
+            }
+        } catch (erro) {
+            console.error('Erro ao excluir agendamento:', erro);
+            exibirMensagem('Erro ao excluir agendamento', 'erro');
+        }
+    }
+}
+
+// Add function to handle scheduling deletion
+async function excluirAgendamentoAtual() {
+    if (!currentAgendamentoId) {
+        exibirMensagem('Erro: Agendamento não identificado', 'erro');
+        return;
+    }
+
+    if (confirm('Tem certeza que deseja excluir este agendamento?')) {
+        try {
+            const response = await fetch(`/agendamentos/${currentAgendamentoId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                exibirMensagem('Agendamento excluído com sucesso');
+                const modalFinalizacao = bootstrap.Modal.getInstance(document.getElementById('finalizarChamadoModal'));
+                modalFinalizacao.hide();
+                
+                // Atualiza o calendário
+                const calendar = document.querySelector('#calendario').FullCalendar;
+                if (calendar) {
+                    calendar.refetchEvents();
+                } else {
+                    carregarAgendaPage();
+                }
+            } else {
+                const data = await response.json();
+                exibirMensagem(data.erro || 'Erro ao excluir agendamento', 'erro');
+            }
+        } catch (erro) {
+            console.error('Erro ao excluir agendamento:', erro);
+            exibirMensagem('Erro ao excluir agendamento', 'erro');
+        }
+    }
+}
+
+document.getElementById('salvarFinalizacao').onclick = async function() {
+    const relatorio = document.getElementById('relatorio_visita').value;
+    if (!relatorio) {
+        alert('Por favor, preencha o relatório da visita.');
+        return;
+    }
+
+    try {
+        const chamadoId = currentChamadoId;
+        const agendamentoId = currentAgendamentoId;
+
+        // Finaliza a ordem de serviço
+        const response = await fetch(`/chamados/${chamadoId}/finalizar-ordem-servico`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ relatorio_visita: relatorio })
+        });
+
+        if (!response.ok) {
+            throw new Error('Erro ao finalizar ordem de serviço');
+        }
+
+        // Após finalizar com sucesso
+        const modal = bootstrap.Modal.getInstance(document.getElementById('finalizarChamadoModal'));
+        modal.hide();
+
+        // Atualiza o calendário
+        const calendarEl = document.getElementById('calendario');
+        if (calendarEl) {
+            const calendar = calendarEl.fullCalendar;
+            if (calendar) {
+                // Encontra o evento e atualiza sua cor
+                const event = calendar.getEventById(agendamentoId);
+                if (event) {
+                    event.setProp('backgroundColor', '#28a745'); // Verde para finalizado
+                    event.setProp('borderColor', '#28a745');
+                }
+            }
+        }
+        refreshCalendar(); // Atualiza o calendário após a exclusão
+        exibirMensagem('Ordem de serviço finalizada com sucesso!', 'sucesso');
+        
+        // Limpa o formulário
+        document.getElementById('relatorio_visita').value = '';
+        
+    } catch (erro) {
+        console.error('Erro ao finalizar ordem de serviço:', erro);
+        exibirMensagem('Erro ao finalizar ordem de serviço', 'erro');
+    }
+};
+
+/**
+ * Abre o modal de detalhes do agendamento
+ * @param {object} event - Evento do agendamento
+ */
+async function abrirModalDetalhesAgendamento(event) {
+    try {
+        currentAgendamentoId = event.id;
+        const chamadoId = event.extendedProps.chamado_id;
+        
+        // Obtém os detalhes completos do agendamento
+        const response = await fetch(`/agendamentos/${event.id}`);
+        if (!response.ok) {
+            throw new Error('Erro ao carregar detalhes do agendamento');
+        }
+        
+        const agendamento = await response.json();
+        
+        // Atualiza os detalhes no modal
+        document.getElementById('detalhe-protocolo').textContent = agendamento.protocolo || 'N/A';
+        document.getElementById('detalhe-cliente').textContent = agendamento.cliente_nome || 'Cliente removido';
+        document.getElementById('detalhe-assunto').textContent = agendamento.assunto || 'N/A';
+        document.getElementById('detalhe-telefone').textContent = agendamento.cliente_telefone || 'N/A';
+        document.getElementById('detalhe-endereco').textContent = agendamento.endereco || 'Endereço não disponível';
+        document.getElementById('detalhe-status').textContent = agendamento.chamado_status || 'N/A';
+        
+        // Formatando as datas para exibição
+        const dataInicio = new Date(agendamento.data_agendamento);
+        const dataFim = new Date(agendamento.data_final_agendamento);
+        
+        document.getElementById('detalhe-data').textContent = dataInicio.toLocaleString('pt-BR');
+        document.getElementById('detalhe-data-fim').textContent = dataFim.toLocaleString('pt-BR');
+        
+        // Exibe a descrição do chamado
+        document.getElementById('detalhe-descricao').textContent = agendamento.descricao || 'Sem descrição';
+        
+        // Exibe as observações do agendamento
+        document.getElementById('detalhe-observacoes').textContent = agendamento.observacoes || 'Sem observações';
+
+        // Configura os IDs para o botão de finalização
+        document.getElementById('detalhe-chamado-id').value = chamadoId;
+        document.getElementById('detalhe-agendamento-id').value = event.id;
+        
+        // Ajusta a visibilidade dos botões conforme o status do chamado
+        const isFinalizado = agendamento.chamado_status === 'Finalizado';
+        document.getElementById('detalhe-section-finalizacao').style.display = isFinalizado ? 'none' : 'block';
+        document.getElementById('detalhe-btn-finalizar').style.display = isFinalizado ? 'none' : 'block';
+        document.getElementById('detalhe-finalizado-msg').style.display = isFinalizado ? 'block' : 'none';
+        document.getElementById('relatorio_visita').value = '';
+        
+        // Abre o modal
+        const detalhesModal = new bootstrap.Modal(document.getElementById('agendamentoDetalhesModal'));
+        
+        // Adiciona listener para quando o modal for fechado
+        document.getElementById('agendamentoDetalhesModal').addEventListener('hidden.bs.modal', function () {
+            setTimeout(recriarTooltips, 100);
+        });
+        
+        detalhesModal.show();
+        
+    } catch (error) {
+        console.error('Erro:', error);
+        exibirMensagem('Erro ao carregar detalhes do agendamento', 'erro');
+    }
+}
+
+/**
+ * Finaliza o chamado e agendamento a partir do modal de detalhes
+ */
+async function finalizarOrdemServicoModal() {
+    try {
+        // Adicione logs para depuração
+        console.log('Iniciando finalização de ordem de serviço');
+        
+        // Identificar corretamente o elemento de texto usando o contexto do modal
+        const modal = document.getElementById('agendamentoDetalhesModal');
+        const relatorioTextarea = modal.querySelector('#relatorio_visita');
+        
+        if (!relatorioTextarea) {
+            console.error('Campo de relatório não encontrado!');
+            exibirMensagem('Erro: campo de relatório não encontrado', 'erro');
+            return;
+        }
+        
+        // Capturar e validar o valor
+        const relatorio = relatorioTextarea.value.trim();
+        console.log('Valor do relatório capturado:', relatorio, 'Comprimento:', relatorio.length);
+        
+        const chamadoId = document.getElementById('detalhe-chamado-id').value;
+        const agendamentoId = document.getElementById('detalhe-agendamento-id').value;
+        
+        // Validação mais robusta
+        if (!relatorio || relatorio.length === 0) {
+            console.error('Relatório vazio ou somente espaços');
+            exibirMensagem('O relatório da visita é obrigatório', 'erro');
+            return;
+        }
+
+        // Preparar dados para envio explicitamente
+        const dadosEnvio = {
+            relatorio_visita: relatorio,
+            agendamento_id: agendamentoId
+        };
+        
+        console.log('Dados a enviar:', dadosEnvio);
+
+        const response = await fetch(`/chamados/${chamadoId}/finalizar-ordem-servico`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dadosEnvio)
+        });
+
+        const data = await response.json();
+        console.log('Resposta recebida:', data);
+        
+        if (response.ok) {
+            exibirMensagem('Ordem de serviço finalizada com sucesso!', 'sucesso');
+            // Fecha o modal
+            const modalInstance = bootstrap.Modal.getInstance(document.getElementById('agendamentoDetalhesModal'));
+            modalInstance.hide();
+            // Atualiza o calendário
+            refreshCalendar();
+        } else {
+            throw new Error(data.erro || 'Erro ao finalizar ordem de serviço');
+        }
+    } catch (error) {
+        console.error('Erro ao finalizar ordem de serviço:', error);
+        exibirMensagem('Erro ao finalizar ordem de serviço: ' + error.message, 'erro');
+    }
+}
+
+/**
+ * Exclui o agendamento a partir do modal de detalhes
+ */
+async function excluirAgendamentoModal() {
+    const agendamentoId = document.getElementById('detalhe-agendamento-id').value;
+    
+    if (!agendamentoId) {
+        exibirMensagem('ID do agendamento não encontrado', 'erro');
+        return;
+    }
+    
+    if (confirm('Tem certeza que deseja excluir este agendamento?')) {
+        try {
+            showLoading();
+            
+            const response = await fetch(`/agendamentos/${agendamentoId}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) {
+                throw new Error('Erro ao excluir agendamento');
+            }
+            
+            // Fecha o modal
+            bootstrap.Modal.getInstance(document.getElementById('agendamentoDetalhesModal')).hide();
+            
+            // Recarrega o calendário
+            const calendarEl = document.getElementById('calendario');
+            if (calendarEl && calendarEl.fullCalendar) {
+                calendarEl.fullCalendar.refetchEvents();
+            }
+            
+            exibirMensagem('Agendamento excluído com sucesso!', 'sucesso');
+			refreshCalendar(); // Refresh calendar after deletion
+        } catch (error) {
+            console.error('Erro:', error);
+            exibirMensagem('Erro ao excluir agendamento', 'erro');
+        } finally {
+            hideLoading();
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Adicione este bloco para garantir a limpeza ao fechar o modal
+    const agendamentoModal = document.getElementById('agendamentoModal');
+    if (agendamentoModal) {
+        agendamentoModal.addEventListener('hidden.bs.modal', function () {
+            // Limpar o formulário quando o modal é fechado
+            document.getElementById('agendamentoForm').reset();
+            document.getElementById('observacoes_agendamento').value = '';
+            document.getElementById('lista-chamados').innerHTML = '';
+            document.getElementById('chamado-selecionado').classList.add('d-none');
+            document.getElementById('chamado-selecionado').innerHTML = '';
+        });
+    }   
+
+});
