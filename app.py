@@ -12,12 +12,17 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 import secrets
 
-# Define diretorios base
+# ========================================================
+# INICIALIZAÇÃO E CONFIGURAÇÃO BÁSICA
+# ========================================================
+
+# Define diretórios base para o funcionamento da aplicação
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 LOGS_DIR = os.path.join(BASE_DIR, 'logs')
 DATABASE = os.path.join(BASE_DIR, 'database.db')
 
 # Configuração de fallback para logs críticos
+# Esta função estabelece um logger básico que será usado em caso de falha na configuração principal
 def setup_critical_logger():
     critical_logger = logging.getLogger('critical')
     critical_handler = logging.StreamHandler()
@@ -27,7 +32,7 @@ def setup_critical_logger():
     critical_logger.addHandler(critical_handler)
     return critical_logger
 
-# Inicializa logger crítico para erros de setup
+# Inicializa logger crítico para erros de setup que possam ocorrer antes da inicialização completa
 critical_logger = setup_critical_logger()
 
 try:
@@ -35,7 +40,7 @@ try:
     if not os.path.exists(LOGS_DIR):
         os.makedirs(LOGS_DIR)
     
-    # Testa permissões de escrita
+    # Testa permissões de escrita para evitar problemas futuros de acesso
     test_file = os.path.join(LOGS_DIR, 'test.log')
     try:
         with open(test_file, 'w') as f:
@@ -48,14 +53,18 @@ except Exception as e:
     critical_logger.critical(f"Erro fatal ao configurar diretório de logs: {e}")
     raise SystemExit(1)
 
-# Inicializa o aplicativo Flask
+# Inicializa o aplicativo Flask com suporte a CORS (Cross-Origin Resource Sharing)
 app = Flask(__name__)
 CORS(app)
 
-# Configuração melhorada dos handlers de log
+# ========================================================
+# CONFIGURAÇÃO DE LOGGING
+# ========================================================
+
+# Configuração avançada dos handlers de log com rotação de arquivos e formatação personalizada
 def setup_logging():
     try:
-        # Formatadores
+        # Formatadores para diferentes destinos de log
         file_formatter = logging.Formatter(
             '%(asctime)s - %(levelname)s - [%(name)s:%(funcName)s:%(lineno)d] - %(message)s'
         )
@@ -63,17 +72,17 @@ def setup_logging():
             '%(asctime)s - %(levelname)s - %(message)s'
         )
 
-        # Handler para erros
+        # Handler para erros - armazena apenas mensagens de erro e fatais
         error_handler = RotatingFileHandler(
             os.path.join(LOGS_DIR, 'error.log'),
-            maxBytes=5*1024*1024,
-            backupCount=5,
+            maxBytes=5*1024*1024,  # 5MB por arquivo
+            backupCount=5,  # Mantém até 5 arquivos de backup
             encoding='utf-8'
         )
         error_handler.setLevel(logging.ERROR)
         error_handler.setFormatter(file_formatter)
 
-        # Handler para segurança
+        # Handler para segurança - registra eventos relacionados à autenticação e autorização
         security_handler = RotatingFileHandler(
             os.path.join(LOGS_DIR, 'security.log'),
             maxBytes=5*1024*1024,
@@ -83,7 +92,7 @@ def setup_logging():
         security_handler.setLevel(logging.WARNING)
         security_handler.setFormatter(file_formatter)
 
-        # Handler para acesso
+        # Handler para acesso - registra requisições e operações normais
         access_handler = RotatingFileHandler(
             os.path.join(LOGS_DIR, 'access.log'),
             maxBytes=5*1024*1024,
@@ -102,7 +111,7 @@ def setup_logging():
         root_logger = logging.getLogger()
         root_logger.setLevel(logging.DEBUG if app.debug else logging.INFO)
 
-        # Remove handlers existentes
+        # Remove handlers existentes para evitar duplicação
         for handler in root_logger.handlers[:]:
             root_logger.removeHandler(handler)
 
@@ -124,23 +133,23 @@ def setup_logging():
         critical_logger.critical(f"Erro fatal na configuração de logging: {e}")
         raise SystemExit(1)
 
-# Inicializa os loggers específicos
+# Inicializa os loggers específicos para diferentes áreas da aplicação
 try:
     handlers = setup_logging()
 
-    # Logger para autenticação
+    # Logger para autenticação e autorização
     auth_logger = logging.getLogger('auth')
     auth_logger.setLevel(logging.INFO)
     auth_logger.addHandler(handlers['security'])
     auth_logger.propagate = False  # Evita duplicação de logs
 
-    # Logger para banco de dados
+    # Logger para operações de banco de dados
     db_logger = logging.getLogger('database')
     db_logger.setLevel(logging.ERROR)
     db_logger.addHandler(handlers['error'])
     db_logger.propagate = False
 
-    # Logger para aplicação
+    # Logger para operações gerais da aplicação
     app_logger = logging.getLogger('app')
     app_logger.setLevel(logging.INFO)
     app_logger.addHandler(handlers['error'])
@@ -153,7 +162,7 @@ except Exception as e:
     critical_logger.critical(f"Erro fatal ao inicializar loggers: {e}")
     raise SystemExit(1)
 
-# Função de teste dos loggers
+# Função para verificar se os loggers estão funcionando corretamente
 def test_loggers():
     try:
         app_logger.info("Teste de log da aplicação")
@@ -169,12 +178,17 @@ if not test_loggers():
     critical_logger.critical("Falha na verificação dos loggers")
     raise SystemExit(1)
 
-# Gera uma chave secreta aleatória se não existir
+# ========================================================
+# SEGURANÇA E CONFIGURAÇÃO DA SESSÃO
+# ========================================================
+
+# Caminho para o arquivo que armazena a chave secreta da aplicação
 SECRET_KEY_FILE = os.path.join(BASE_DIR, 'secret_key')
 
+# Obtém uma chave secreta existente ou gera uma nova com alta entropia
 def get_or_generate_secret_key():
     try:
-        # Tenta ler a chave existente
+        # Tenta ler a chave existente do arquivo
         if os.path.exists(SECRET_KEY_FILE):
             with open(SECRET_KEY_FILE, 'r') as f:
                 return f.read().strip()
@@ -182,79 +196,89 @@ def get_or_generate_secret_key():
         pass
     
     # Gera uma nova chave se não existir ou houver erro na leitura
-    new_key = secrets.token_hex(32)  # Gera 32 bytes (256 bits) de dados aleatórios
+    new_key = secrets.token_hex(32)  # Gera 256 bits (32 bytes) de dados aleatórios hexadecimais
     
-    # Salva a nova chave
+    # Salva a nova chave em arquivo com permissões restritas
     try:
         with open(SECRET_KEY_FILE, 'w') as f:
             f.write(new_key)
-        # Restrict file permissions
+        # Restringe permissões do arquivo para leitura/escrita apenas pelo proprietário
         os.chmod(SECRET_KEY_FILE, 0o600)
     except Exception as e:
         app_logger.error(f"Erro ao salvar chave secreta: {e}")
     
     return new_key
 
+# Define a chave secreta para o Flask, usada para sessões e tokens CSRF
 app.secret_key = get_or_generate_secret_key()
 
 # Configuração do tempo da sessão
 app.permanent_session_lifetime = timedelta(hours=8)  # Sessão dura 8 horas
 
+# Hook executado antes de cada requisição para manter a sessão ativa
 @app.before_request
 def before_request():
     # Renova a sessão se o usuário estiver ativo
     if 'user_id' in session:
         session.modified = True  # Atualiza o timestamp da sessão
 
-# Define o número máximo de tentativas para operações no banco de dados.
+# ========================================================
+# ACESSO AO BANCO DE DADOS
+# ========================================================
+
+# Define o número máximo de tentativas para operações no banco de dados
 MAX_RETRIES = 3
 
-# Context manager para gerenciar a conexão com o banco de dados SQLite.
-# Garante que a conexão seja fechada após o uso, mesmo em caso de exceção.
+# Context manager para gerenciar a conexão com o banco de dados SQLite
+# Garante que a conexão seja fechada após o uso, mesmo em caso de exceção
 @contextmanager
 def get_db_connection():
     conn = None
     try:
-        # Tenta estabelecer uma conexão com o banco de dados.
+        # Estabelece uma conexão com o banco de dados SQLite
         conn = sqlite3.connect(DATABASE)
-        # Habilita o suporte a chaves estrangeiras no SQLite.
+        # Habilita o suporte a chaves estrangeiras no SQLite para integridade referencial
         conn.execute('PRAGMA foreign_keys = ON')
-        # Retorna a conexão para ser usada no bloco 'with'.
+        # Retorna a conexão para ser usada no bloco 'with'
         yield conn
     except sqlite3.Error as e:
-        # Loga erros de banco de dados.
-        app_logger.error(f"Database error: {e}")
-        # Relança a exceção para que possa ser tratada em um nível superior.
+        # Registra erros de banco de dados no log especializado
+        app_logger.error(f"Erro no banco de dados: {e}")
+        # Propaga a exceção para tratamento no chamador
         raise
     finally:
-        # Garante que a conexão seja fechada, se estiver aberta.
+        # Garante que a conexão seja fechada, mesmo em caso de exceção
         if conn:
             conn.close()
 
-# Decorador para executar novamente operações no banco de dados em caso de falha.
-# Útil para lidar com condições de concorrência ou problemas transitórios.
+# Decorador para executar novamente operações no banco de dados em caso de falha
+# Útil para lidar com condições de concorrência ou problemas transitórios
 def retry_db_operation(func):
     def wrapper(*args, **kwargs):
         for attempt in range(MAX_RETRIES):
             try:
-                # Tenta executar a função.
+                # Tenta executar a função decorada
                 return func(*args, **kwargs)
             except sqlite3.Error as e:
-                # Se atingir o número máximo de tentativas, relança a exceção.
+                # Se atingir o número máximo de tentativas, propaga a exceção
                 if attempt == MAX_RETRIES - 1:
                     raise
-                # Loga um aviso sobre a falha e a tentativa de repetição.
-                app_logger.warning(f"Database operation failed, retrying... ({attempt + 1}/{MAX_RETRIES})")
-                # Aguarda um curto período antes de tentar novamente.
+                # Registra um aviso sobre a falha e a nova tentativa
+                app_logger.warning(f"Operação no banco de dados falhou, tentando novamente... ({attempt + 1}/{MAX_RETRIES})")
+                # Aguarda um curto período antes de tentar novamente para resolver condições transitórias
                 sleep(1)
     return wrapper
 
-# Cria as tabelas no banco de dados se elas não existirem.
-# A coluna cliente_id na tabela chamados DEVE permitir valores NULL.
+# ========================================================
+# INICIALIZAÇÃO DO ESQUEMA DO BANCO DE DADOS
+# ========================================================
+
+# Cria as tabelas no banco de dados se elas não existirem
 def criar_tabelas():
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        # Cria a tabela clientes, se não existir.
+        
+        # Tabela clientes - armazena informações detalhadas sobre os clientes
         cursor.execute('''CREATE TABLE IF NOT EXISTS clientes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nome TEXT NOT NULL,
@@ -284,8 +308,9 @@ def criar_tabelas():
             estado TEXT,
             pais TEXT
         )''')
-        # Cria a tabela chamados, se não existir.
-        # A coluna cliente_id NÃO deve conter a restrição NOT NULL.
+        
+        # Tabela chamados - armazena os chamados de suporte com relação aos clientes
+        # cliente_id pode ser NULL quando um cliente é removido
         cursor.execute('''CREATE TABLE IF NOT EXISTS chamados (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             cliente_id INTEGER,
@@ -298,7 +323,8 @@ def criar_tabelas():
             telefone TEXT,
             FOREIGN KEY(cliente_id) REFERENCES clientes(id) ON DELETE SET NULL
         )''')
-        # Cria a tabela chamado_andamentos para armazenar as entradas de progresso dos chamados.
+        
+        # Tabela chamado_andamentos - histórico de atualizações de cada chamado
         cursor.execute('''CREATE TABLE IF NOT EXISTS chamado_andamentos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             chamado_id INTEGER NOT NULL,
@@ -306,7 +332,19 @@ def criar_tabelas():
             texto TEXT NOT NULL,
             FOREIGN KEY(chamado_id) REFERENCES chamados(id) ON DELETE CASCADE
         )''')
-        # Cria a tabela de usuários
+        
+        # Tabela agendamentos - agenda de visitas técnicas para atendimento aos chamados
+        cursor.execute('''CREATE TABLE IF NOT EXISTS agendamentos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            chamado_id INTEGER NOT NULL,
+            data_agendamento TEXT NOT NULL,
+            data_final_agendamento TEXT NOT NULL,
+            observacoes TEXT,
+            status TEXT DEFAULT 'Aberto',
+            FOREIGN KEY (chamado_id) REFERENCES chamados(id)
+        )''')
+        
+        # Tabela usuarios - autenticação e controle de acesso ao sistema
         cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
@@ -315,108 +353,146 @@ def criar_tabelas():
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )''')
         
-        # Verifica se já existe um usuário admin
+        # Verifica se já existe um usuário admin e cria se necessário
         cursor.execute('SELECT COUNT(*) FROM usuarios WHERE username = "admin"')
         if cursor.fetchone()[0] == 0:
-            # Cria o usuário admin padrão
+            # Cria o usuário admin padrão com senha hash segura
             admin_pass = generate_password_hash('admin')
             cursor.execute('INSERT INTO usuarios (username, password, role) VALUES (?, ?, ?)',
                          ('admin', admin_pass, 'admin'))
         
-        # Salva as alterações no banco de dados.
+        # Salva as alterações no banco de dados
         conn.commit()
 
-# Cria as tabelas ao iniciar o aplicativo
+# Executa a criação das tabelas ao iniciar o aplicativo
 criar_tabelas()
 
-# Adiciona as colunas 'protocolo', 'data_fechamento', 'assunto' e 'telefone' à tabela chamados,
-# caso elas não existam.
+# Adiciona colunas à tabela chamados que podem não existir em instalações antigas
 def adicionar_colunas():
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        # Obtém informações sobre as colunas da tabela chamados.
+        # Obtém informações sobre a estrutura atual da tabela chamados
         cursor.execute("PRAGMA table_info(chamados)")
-        # Extrai os nomes das colunas existentes.
         colunas = [info[1] for info in cursor.fetchall()]
-        # Adiciona a coluna protocolo se ela não existir.
+        
+        # Adiciona cada coluna nova, se necessário
         if 'protocolo' not in colunas:
             cursor.execute('ALTER TABLE chamados ADD COLUMN protocolo TEXT')
-        # Adiciona a coluna data_fechamento se ela não existir.
         if 'data_fechamento' not in colunas:
             cursor.execute('ALTER TABLE chamados ADD COLUMN data_fechamento TEXT')
-        # Adiciona a coluna assunto se ela não existir.
         if 'assunto' not in colunas:
             cursor.execute('ALTER TABLE chamados ADD COLUMN assunto TEXT')
-        # Adiciona a coluna telefone se ela não existir.
         if 'telefone' not in colunas:
             cursor.execute('ALTER TABLE chamados ADD COLUMN telefone TEXT')
-        # Salva as alterações no banco de dados.
+        
+        # Salva as alterações
         conn.commit()
 
-# Adiciona as colunas 'protocolo' e 'data_fechamento' se não existirem
+# Executa a adição de colunas ao iniciar o aplicativo
 adicionar_colunas()
 
-# Atualiza os chamados existentes que não possuem um protocolo definido.
-# Gera o protocolo com base na data de abertura e no ID do cliente.
+# Adiciona colunas à tabela agendamentos que podem não existir em instalações antigas
+def adicionar_colunas_agendamentos():
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        # Obtém informações sobre a estrutura atual da tabela agendamentos
+        cursor.execute("PRAGMA table_info(agendamentos)")
+        colunas = [info[1] for info in cursor.fetchall()]
+        
+        # Adiciona cada coluna nova, se necessário
+        if 'observacoes' not in colunas:
+            cursor.execute('ALTER TABLE agendamentos ADD COLUMN observacoes TEXT')
+        if 'status' not in colunas:
+            cursor.execute('ALTER TABLE agendamentos ADD COLUMN status TEXT DEFAULT "Aberto"')
+            
+        # Salva as alterações
+        conn.commit()
+
+# Executa a adição de colunas na tabela agendamentos
+adicionar_colunas_agendamentos()
+
+# Atualiza os chamados existentes que não possuem protocolo definido
+# Formato do protocolo: ddmmyyyyHHMM + ID do cliente
 def atualizar_chamados_sem_protocolo():
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        # Seleciona os chamados que possuem protocolo nulo ou vazio.
+        # Seleciona os chamados sem protocolo
         cursor.execute('SELECT id, cliente_id, data_abertura FROM chamados WHERE protocolo IS NULL OR protocolo = ""')
         chamados = cursor.fetchall()
-        # Itera sobre os chamados selecionados.
+        
+        # Itera sobre os chamados selecionados
         for chamado in chamados:
             id, cliente_id, data_abertura = chamado
             try:
-                # Tenta converter a data de abertura para um objeto datetime.
+                # Tenta converter a data de abertura para formato datetime
                 data_abertura_dt = datetime.strptime(data_abertura, '%Y-%m-%d %H:%M:%S')
             except ValueError:
                 try:
-                    # Tenta converter a data de abertura usando outro formato.
+                    # Tenta formato alternativo se o primeiro falhar
                     data_abertura_dt = datetime.strptime(data_abertura, '%d/%m/%Y %H:%M')
                 except ValueError:
-                    # Loga um erro se o formato da data for inválido.
+                    # Registra erro se ambos os formatos falharem
                     app_logger.error(f"Formato de data inválido para o chamado ID {id}: {data_abertura}")
                     continue
-            # Gera o protocolo com base na data de abertura e no ID do cliente.
+                    
+            # Gera o protocolo baseado na data e ID do cliente
             protocolo = data_abertura_dt.strftime('%d%m%Y%H%M') + str(cliente_id)
-            # Atualiza o chamado com o protocolo gerado.
+            # Atualiza o chamado
             cursor.execute('UPDATE chamados SET protocolo = ? WHERE id = ?', (protocolo, id))
-        # Salva as alterações no banco de dados.
+            
+        # Salva todas as alterações
         conn.commit()
 
-# Atualiza os chamados existentes ao iniciar o aplicativo
+# Executa a atualização dos protocolos de chamados ao iniciar o aplicativo
 atualizar_chamados_sem_protocolo()
 
-# Rota para servir o arquivo index.html (frontend).
+# ========================================================
+# ROTAS ESTÁTICAS - INTERFACE DO USUÁRIO
+# ========================================================
+
+# Rota para servir a página inicial com verificação de autenticação
 @app.route('/')
 def index():
+    app_logger.info("Acessando a página inicial")
+    # Redireciona para a página de login se o usuário não estiver autenticado
     if 'user_id' not in session:
         return redirect('/login.html')
+    # Serve a interface principal para usuários autenticados
     return send_from_directory('static', 'index.html')
 
-# Rota para servir arquivos estáticos (CSS, JavaScript, imagens, etc.).
+# Rota para servir arquivos estáticos (CSS, JS, imagens, etc.)
 @app.route('/<path:path>')
 def static_files(path):
+    app_logger.info(f"Acessando arquivo estático: {path}")
     return send_from_directory('static', path)
 
-# Rota para listar clientes, com suporte a paginação.
+# ========================================================
+# API DE CLIENTES
+# ========================================================
+
+# Rota para listar clientes com paginação e ordenação
 @app.route('/clientes', methods=['GET'])
 def listar_clientes():
     try:
+        # Parâmetros de paginação e ordenação
         pagina = request.args.get('pagina', default=1, type=int)
         limite = request.args.get('limite', default=10, type=int)
         offset = (pagina - 1) * limite
         
-        # Adiciona parâmetros de ordenação
+        # Parâmetros de ordenação com validação para prevenir SQL injection
         order_field = request.args.get('order_field', default='id', type=str)
         order_order = request.args.get('order_order', default='asc', type=str)
+        
+        # Valida os campos de ordenação permitidos
         if order_field not in ['id', 'nome', 'nome_fantasia', 'email', 'telefone']:
             order_field = 'id'
         if order_order.lower() not in ['asc', 'desc']:
             order_order = 'asc'
+            
+        # Constrói a cláusula ORDER BY de forma segura
         order_clause = f"ORDER BY {order_field} {order_order.upper()}"
         
+        # Query SQL para selecionar clientes com paginação
         query = f"""
          SELECT id, nome, nome_fantasia, email, telefone, ativo,
                 tipo_cliente, cnpj_cpf, ie_rg, contribuinte_icms, rg_orgao_emissor,
@@ -426,13 +502,25 @@ def listar_clientes():
          FROM clientes
          {order_clause} LIMIT ? OFFSET ?
         """
+        
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            
+            # Conta o total de clientes para cálculo de paginação
             cursor.execute("SELECT COUNT(*) FROM clientes")
             total = cursor.fetchone()[0]
+            
+            # Executa a consulta principal
             cursor.execute(query, (limite, offset))
             clientes = cursor.fetchall()
+            
+            # Calcula o total de páginas
             total_pages = math.ceil(total / limite)
+            
+            # Registra operação no log
+            app_logger.info(f"Listando clientes - Página: {pagina}, Limite: {limite}, Total: {total}")
+            
+            # Retorna os resultados paginados
             return jsonify({
                 'clientes': clientes,
                 'total': total,
@@ -444,24 +532,29 @@ def listar_clientes():
         app_logger.error(f"Erro ao listar clientes: {e}")
         return jsonify({'erro': 'Erro ao listar clientes'}), 500
 
-# Rota para cadastrar um novo cliente.
+# Rota para cadastrar um novo cliente
 @app.route('/clientes', methods=['POST'])
 def cadastrar_cliente():
     try:
-        # Obtém os dados do cliente do corpo da requisição.
+        # Obtém os dados do cliente do corpo da requisição
         dados = request.json
-        # Valida se o nome do cliente foi fornecido.
+        
+        # Validação básica dos dados recebidos
         if not dados or not dados.get('nome') or len(dados['nome'].strip()) == 0:
+            app_logger.warning("Tentativa de cadastrar cliente sem nome")
             return jsonify({'erro': 'Nome é obrigatório'}), 400
 
-        # Valida o formato do email, se fornecido.
+        # Validação de formato de email, se fornecido
         if 'email' in dados and dados['email']:
             if '@' not in dados['email'] or '.' not in dados['email']:
+                app_logger.warning(f"Tentativa de cadastrar cliente com email inválido: {dados['email']}")
                 return jsonify({'erro': 'Email inválido'}), 400
 
+        # Processa os dados e insere no banco
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            # Define a query SQL para inserir um novo cliente.
+            
+            # Prepara a query SQL com todos os campos do cliente
             cursor.execute('''
                 INSERT INTO clientes (
                     nome, nome_fantasia, email, telefone, ativo, tipo_cliente, cnpj_cpf,
@@ -490,32 +583,45 @@ def cadastrar_cliente():
                 dados.get('estado_civil', '').strip(),
                 dados.get('inscricao_municipal', '').strip()
             ))
-            # Salva as alterações no banco de dados.
+            
+            # Confirma a transação
             conn.commit()
-            # Retorna uma mensagem de sucesso em formato JSON, juntamente com o ID do novo cliente.
+            
+            # Recupera o ID gerado
+            cliente_id = cursor.lastrowid
+            
+            # Registra sucesso no log
+            app_logger.info(f"Cliente cadastrado com sucesso! ID: {cliente_id}")
+            
+            # Retorna confirmação com o ID gerado
             return jsonify({
                 'mensagem': 'Cliente cadastrado com sucesso!',
-                'id': cursor.lastrowid
+                'id': cliente_id
             }), 201
     except Exception as e:
-        # Loga erros ao cadastrar cliente.
+        # Registra falha no log
         app_logger.error(f"Erro ao cadastrar cliente: {e}")
-        # Retorna uma mensagem de erro em formato JSON.
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro ao cadastrar cliente'}), 500
 
-# Rota para editar um cliente existente.
+# Rota para editar um cliente existente
 @app.route('/clientes/<int:id>', methods=['PUT'])
 def editar_cliente(id):
     try:
-        # Obtém os dados do cliente do corpo da requisição.
+        # Obtém os dados do cliente do corpo da requisição
         dados = request.json
-        # Valida se os dados foram fornecidos e se o nome do cliente está presente.
+        
+        # Validação básica dos dados recebidos
         if not dados or 'nome' not in dados:
+            app_logger.warning(f"Tentativa de editar cliente {id} com dados inválidos")
             return jsonify({'erro': 'Dados inválidos'}), 400
 
+        # Atualiza o cliente no banco
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            # Define a query SQL para atualizar um cliente existente.
+            
+            # Prepara a query SQL para atualizar todos os campos do cliente
             cursor.execute('''
                 UPDATE clientes
                 SET nome = ?,
@@ -558,54 +664,73 @@ def editar_cliente(id):
                 dados.get('inscricao_municipal'),
                 id
             ))
-            # Verifica se o cliente foi encontrado.
+            
+            # Verifica se o cliente foi encontrado
             if cursor.rowcount == 0:
+                app_logger.warning(f"Cliente não encontrado para edição: {id}")
                 return jsonify({'erro': 'Cliente não encontrado'}), 404
-            # Salva as alterações no banco de dados.
+                
+            # Confirma a transação
             conn.commit()
-            # Retorna uma mensagem de sucesso em formato JSON.
+            
+            # Registra sucesso no log
+            app_logger.info(f"Cliente atualizado com sucesso! ID: {id}")
+            
+            # Retorna confirmação
             return jsonify({'mensagem': 'Cliente atualizado com sucesso!'})
     except Exception as e:
-        # Loga erros ao editar cliente.
+        # Registra falha no log
         app_logger.error(f"Erro ao editar cliente: {e}")
-        # Retorna uma mensagem de erro em formato JSON.
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro ao editar cliente'}), 500
 
-# Rota para excluir um cliente existente.
+# Rota para excluir um cliente existente
 @app.route('/clientes/<int:id>', methods=['DELETE'])
 def excluir_cliente(id):
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            # Atualiza todos os chamados relacionados, independente do status, removendo a referência ao cliente
+            
+            # Primeiro, finaliza todos os chamados associados a este cliente
+            # Isso é necessário para manter a integridade dos dados históricos
             data_fechamento = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             cursor.execute("""
                 UPDATE chamados 
                 SET status = 'Finalizado', data_fechamento = ?, cliente_id = NULL
                 WHERE cliente_id = ?
             """, (data_fechamento, id))
+            
             # Em seguida, exclui o cliente
             cursor.execute("DELETE FROM clientes WHERE id=?", (id,))
-            # Verifica se o cliente foi encontrado.
+            
+            # Verifica se o cliente foi encontrado
             if cursor.rowcount == 0:
+                app_logger.warning(f"Cliente não encontrado para exclusão: {id}")
                 return jsonify({'erro': 'Cliente não encontrado'}), 404
-            # Salva as alterações no banco de dados.
+                
+            # Confirma a transação
             conn.commit()
-            # Retorna uma mensagem de sucesso em formato JSON.
+            
+            # Registra sucesso no log
+            app_logger.info(f"Cliente excluído com sucesso! ID: {id}")
+            
+            # Retorna confirmação
             return jsonify({'mensagem': 'Cliente excluído com sucesso!'})
     except Exception as e:
-        # Loga erros ao excluir cliente.
+        # Registra falha no log
         app_logger.error(f"Erro ao excluir cliente: {e}")
-        # Retorna uma mensagem de erro em formato JSON.
+        # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro ao excluir cliente'}), 500
 
-# Rota para buscar clientes com base em um termo de pesquisa.
+# Rota para buscar clientes com base em um termo de pesquisa
 @app.route('/clientes/buscar', methods=['GET'])
 def buscar_clientes():
     try:
-        # Obtém o termo de pesquisa da query string.
+        # Obtém o termo de pesquisa da query string
         termo = request.args.get('termo', '')
-        # Define a query SQL para buscar clientes com base no termo de pesquisa.
+        
+        # Query SQL para buscar clientes com base no termo de pesquisa
         query = """
          SELECT id, nome, nome_fantasia, email, telefone, ativo,
                 tipo_cliente, cnpj_cpf, ie_rg, contribuinte_icms, rg_orgao_emissor,
@@ -615,29 +740,43 @@ def buscar_clientes():
          WHERE id LIKE ? OR nome LIKE ? OR email LIKE ?
          COLLATE NOCASE
         """
+        
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            # Define o termo de pesquisa com curingas para busca parcial.
+            
+            # Define o termo de pesquisa com curingas para busca parcial
             search_term = f'%{termo}%'
-            # Executa a query para buscar os clientes.
+            
+            # Executa a query para buscar os clientes
             cursor.execute(query, (search_term, search_term, search_term))
             clientes = cursor.fetchall()
-            # Retorna os clientes encontrados em formato JSON.
+            
+            # Registra operação no log
+            app_logger.info(f"Busca de clientes realizada com o termo: {termo}")
+            
+            # Retorna os clientes encontrados
             return jsonify(clientes)
     except Exception as e:
-        # Loga erros ao buscar clientes.
+        # Registra falha no log
         app_logger.error(f"Erro na busca de clientes: {e}")
-        # Retorna uma mensagem de erro em formato JSON.
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro na busca'}), 500
 
-# Rota para abrir um novo chamado.
+# ========================================================
+# API DE CHAMADOS
+# ========================================================
+
+# Rota para abrir um novo chamado
 @app.route('/chamados', methods=['POST'])
 def abrir_chamado():
     try:
-        # Obtém os dados do chamado do corpo da requisição.
+        # Obtém os dados do chamado do corpo da requisição
         dados = request.json
-        # Valida se os dados foram fornecidos e se o ID do cliente e a descrição estão presentes.
+        
+        # Validação básica dos dados recebidos
         if not dados or 'cliente_id' not in dados or 'descricao' not in dados:
+            app_logger.warning("Tentativa de abrir chamado com dados inválidos")
             return jsonify({'erro': 'Dados inválidos'}), 400
 
         with get_db_connection() as conn:
@@ -646,6 +785,7 @@ def abrir_chamado():
             # Verifica se o cliente existe
             cursor.execute('SELECT id FROM clientes WHERE id = ?', (dados['cliente_id'],))
             if not cursor.fetchone():
+                app_logger.warning(f"Cliente não encontrado ao abrir chamado: {dados['cliente_id']}")
                 return jsonify({'erro': 'Cliente não encontrado'}), 404
 
             # Gerar protocolo automaticamente: ddmmyyyyHHMM + id do cliente
@@ -669,20 +809,26 @@ def abrir_chamado():
                 dados.get('telefone', '')
             ))
             
-            # Salva as alterações no banco de dados.
+            # Salva as alterações no banco de dados
             conn.commit()
-            # Retorna uma mensagem de sucesso em formato JSON, juntamente com o protocolo do novo chamado.
+            
+            # Registra sucesso no log
+            app_logger.info(f"Chamado aberto com sucesso! Protocolo: {protocolo}")
+            
+            # Retorna confirmação com o protocolo gerado
             return jsonify({'mensagem': 'Chamado aberto com sucesso!', 'protocolo': protocolo}), 201
     except Exception as e:
-        # Loga erros ao abrir chamado.
+        # Registra falha no log
         app_logger.error(f"Erro ao abrir chamado: {e}")
-        # Retorna uma mensagem de erro em formato JSON.
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro ao abrir chamado'}), 500
 
-# Rota para listar chamados, com suporte a paginação e filtro por status.
+# Rota para listar chamados com paginação e filtro por status
 @app.route('/chamados', methods=['GET'])
 def listar_chamados():
     try:
+        # Parâmetros de paginação e filtro
         pagina = request.args.get('pagina', default=1, type=int)
         limite = request.args.get('limite', default=10, type=int)
         status = request.args.get('status', default='Aberto', type=str)
@@ -690,10 +836,12 @@ def listar_chamados():
 
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            
+            # Conta o total de chamados com o status especificado
             cursor.execute('SELECT COUNT(*) FROM chamados WHERE status = ?', (status,))
             total = cursor.fetchone()[0]
             
-            # Query ajustada para retornar mais informações e garantir o nome do cliente
+            # Query SQL para selecionar chamados com paginação e filtro por status
             query = '''
                 SELECT 
                     c.id,
@@ -726,6 +874,10 @@ def listar_chamados():
                     chamado_dict[9] = "Cliente removido"  # Caso o cliente tenha sido excluído
                 chamados_processados.append(chamado_dict)
 
+            # Registra operação no log
+            app_logger.info(f"Listando chamados - Status: {status}, Página: {pagina}, Limite: {limite}, Total: {total}")
+            
+            # Retorna os resultados paginados
             return jsonify({
                 'chamados': chamados_processados,
                 'total': total,
@@ -734,21 +886,28 @@ def listar_chamados():
             })
 
     except Exception as e:
+        # Registra falha no log
         app_logger.error(f"Erro ao listar chamados: {e}")
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro ao listar chamados'}), 500
 
-# Rota para editar um chamado existente.
+# Rota para editar um chamado existente
 @app.route('/chamados/<int:id>', methods=['PUT'])
 def editar_chamado(id):
     try:
+        # Obtém os dados do chamado do corpo da requisição
         dados = request.json
+        
+        # Validação básica dos dados recebidos
         if not dados:
+            app_logger.warning(f"Tentativa de editar chamado {id} com dados inválidos")
             return jsonify({'erro': 'Dados inválidos'}), 400
 
         with get_db_connection() as conn:
             cursor = conn.cursor()
             
-            # Construir query dinamicamente baseado nos campos recebidos
+            # Constrói a query dinamicamente baseado nos campos recebidos
             campos_atualizacao = []
             valores = []
             
@@ -779,78 +938,107 @@ def editar_chamado(id):
             query = f"UPDATE chamados SET {', '.join(campos_atualizacao)} WHERE id=?"
             cursor.execute(query, valores)
             
+            # Verifica se o chamado foi encontrado
             if cursor.rowcount == 0:
+                app_logger.warning(f"Chamado não encontrado para edição: {id}")
                 return jsonify({'erro': 'Chamado não encontrado'}), 404
                 
+            # Confirma a transação
             conn.commit()
+            
+            # Registra sucesso no log
+            app_logger.info(f"Chamado atualizado com sucesso! ID: {id}")
+            
+            # Retorna confirmação
             return jsonify({'mensagem': 'Chamado atualizado com sucesso!'})
             
     except Exception as e:
+        # Registra falha no log
         app_logger.error(f"Erro ao editar chamado: {e}")
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro ao editar chamado'}), 500
 
-# Rota para finalizar um chamado existente.
+# Rota para finalizar um chamado existente
 @app.route('/chamados/<int:id>/finalizar', methods=['PUT'])
 def finalizar_chamado(id):
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            # Define a data de fechamento como a data e hora atuais.
+            
+            # Define a data de fechamento como a data e hora atuais
             data_fechamento = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            # Define a query SQL para finalizar um chamado existente.
+            
+            # Query SQL para finalizar um chamado existente
             cursor.execute('''
                 UPDATE chamados
                 SET status=?, data_fechamento=?
                 WHERE id=?
             ''', ('Finalizado', data_fechamento, id))
-            # Verifica se o chamado foi encontrado.
+            
+            # Verifica se o chamado foi encontrado
             if cursor.rowcount == 0:
                 app_logger.error(f"Chamado não encontrado: ID {id}")
                 return jsonify({'erro': 'Chamado não encontrado'}), 404
-            # Salva as alterações no banco de dados.
+                
+            # Confirma a transação
             conn.commit()
-            # Loga a finalização do chamado.
+            
+            # Registra sucesso no log
             app_logger.info(f"Chamado finalizado com sucesso: ID {id}")
-            # Retorna uma mensagem de sucesso em formato JSON.
+            
+            # Retorna confirmação
             return jsonify({'mensagem': 'Chamado finalizado com sucesso!'})
     except Exception as e:
-        # Loga erros ao finalizar chamado.
+        # Registra falha no log
         app_logger.error(f"Erro ao finalizar chamado: {e}")
-        # Retorna uma mensagem de erro em formato JSON.
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro ao finalizar chamado'}), 500
 
-# Rota para excluir um chamado existente.
+# Rota para excluir um chamado existente
 @app.route('/chamados/<int:id>', methods=['DELETE'])
 def excluir_chamado(id):
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            # Define a query SQL para excluir um chamado existente.
+            
+            # Query SQL para excluir um chamado existente
             cursor.execute('DELETE FROM chamados WHERE id=?', (id,))
-            # Verifica se o chamado foi encontrado.
+            
+            # Verifica se o chamado foi encontrado
             if cursor.rowcount == 0:
+                app_logger.warning(f"Chamado não encontrado para exclusão: {id}")
                 return jsonify({'erro': 'Chamado não encontrado'}), 404
-            # Salva as alterações no banco de dados.
+                
+            # Confirma a transação
             conn.commit()
-            # Retorna uma mensagem de sucesso em formato JSON.
+            
+            # Registra sucesso no log
+            app_logger.info(f"Chamado excluído com sucesso! ID: {id}")
+            
+            # Retorna confirmação
             return jsonify({'mensagem': 'Chamado excluído com sucesso!'})
     except Exception as e:
-        # Loga erros ao excluir chamado.
+        # Registra falha no log
         app_logger.error(f"Erro ao excluir chamado: {e}")
-        # Retorna uma mensagem de erro em formato JSON.
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro ao excluir chamado'}), 500
 
-# Rota da API para adicionar uma entrada de progresso a um chamado.
+# Rota da API para adicionar uma entrada de progresso a um chamado
 @app.route('/chamados/<int:chamado_id>/andamentos', methods=['POST'])
 def adicionar_andamento(chamado_id):
     try:
-        # Obtém os dados da entrada de progresso do corpo da requisição.
+        # Obtém os dados da entrada de progresso do corpo da requisição
         dados = request.json
-        # Loga os dados recebidos para fins de depuração.
+        
+        # Loga os dados recebidos para fins de depuração
         app_logger.debug(f"Recebendo dados para novo andamento: {dados}")
         
-        # Valida se os dados foram fornecidos e se o texto da entrada de progresso está presente.
+        # Validação básica dos dados recebidos
         if not dados or 'texto' not in dados or not dados['texto'].strip():
+            app_logger.warning("Tentativa de adicionar andamento sem texto")
             return jsonify({'erro': 'Texto do andamento é obrigatório'}), 400
 
         with get_db_connection() as conn:
@@ -859,33 +1047,35 @@ def adicionar_andamento(chamado_id):
             # Verifica se o chamado existe
             cursor.execute('SELECT id FROM chamados WHERE id = ?', (chamado_id,))
             if not cursor.fetchone():
+                app_logger.warning(f"Chamado não encontrado ao adicionar andamento: {chamado_id}")
                 return jsonify({'erro': 'Chamado não encontrado'}), 404
 
-            # Obtém a data e hora atuais.
+            # Obtém a data e hora atuais
             data_hora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
-            # Loga os dados da entrada de progresso antes da inserção.
+            # Loga os dados da entrada de progresso antes da inserção
             app_logger.debug(f"Inserindo andamento: chamado_id={chamado_id}, data_hora={data_hora}, texto={dados['texto']}")
             
-            # Define a query SQL para inserir uma nova entrada de progresso.
+            # Query SQL para inserir uma nova entrada de progresso
             cursor.execute('''
                 INSERT INTO chamado_andamentos (chamado_id, data_hora, texto)
                 VALUES (?, ?, ?)
             ''', (chamado_id, data_hora, dados['texto'].strip()))
             
-            # Obtém o ID da nova entrada de progresso.
+            # Obtém o ID da nova entrada de progresso
             novo_id = cursor.lastrowid
-            # Salva as alterações no banco de dados.
+            
+            # Confirma a transação
             conn.commit()
             
             # Confirma que o andamento foi salvo
             cursor.execute('SELECT id, data_hora, texto FROM chamado_andamentos WHERE id = ?', (novo_id,))
             andamento = cursor.fetchone()
             
-            # Loga a criação bem-sucedida da entrada de progresso.
+            # Registra sucesso no log
             app_logger.info(f"Andamento criado com sucesso: ID={novo_id}")
             
-            # Retorna uma mensagem de sucesso em formato JSON, juntamente com os dados da nova entrada de progresso.
+            # Retorna confirmação com os dados da nova entrada de progresso
             return jsonify({
                 'mensagem': 'Andamento adicionado com sucesso!',
                 'andamento': {
@@ -895,30 +1085,40 @@ def adicionar_andamento(chamado_id):
                 }
             }), 201
     except Exception as e:
-        # Loga erros ao adicionar entrada de progresso.
+        # Registra falha no log
         app_logger.error(f"Erro ao adicionar andamento: {str(e)}")
-        # Retorna uma mensagem de erro em formato JSON.
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'erro': f'Erro ao adicionar andamento: {str(e)}'}), 500
 
-# Rota da API para excluir uma entrada de progresso de um chamado.
+# Rota da API para excluir uma entrada de progresso de um chamado
 @app.route('/chamados/andamentos/<int:andamento_id>', methods=['DELETE'])
 def excluir_andamento(andamento_id):
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            # Define a query SQL para excluir uma entrada de progresso.
+            
+            # Query SQL para excluir uma entrada de progresso
             cursor.execute('DELETE FROM chamado_andamentos WHERE id=?', (andamento_id,))
-            # Verifica se a entrada de progresso foi encontrada.
+            
+            # Verifica se a entrada de progresso foi encontrada
             if cursor.rowcount == 0:
+                app_logger.warning(f"Andamento não encontrado para exclusão: {andamento_id}")
                 return jsonify({'erro': 'Andamento não encontrado'}), 404
-            # Salva as alterações no banco de dados.
+                
+            # Confirma a transação
             conn.commit()
-            # Retorna uma mensagem de sucesso em formato JSON.
+            
+            # Registra sucesso no log
+            app_logger.info(f"Andamento excluído com sucesso! ID: {andamento_id}")
+            
+            # Retorna confirmação
             return jsonify({'mensagem': 'Andamento excluído com sucesso!'})
     except Exception as e:
-        # Loga erros ao excluir entrada de progresso.
+        # Registra falha no log
         app_logger.error(f"Erro ao excluir andamento: {e}")
-        # Retorna uma mensagem de erro em formato JSON.
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro ao excluir andamento'}), 500
 
 # Modifica o endpoint /chamados/<int:id> para incluir as entradas de progresso
@@ -927,7 +1127,8 @@ def obter_chamado(id):
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            # Seleciona os dados do chamado, incluindo o nome do cliente através de um JOIN.
+            
+            # Seleciona os dados do chamado, incluindo o nome do cliente através de um JOIN
             cursor.execute('''
                 SELECT ch.id, ch.cliente_id, ch.descricao, ch.status, ch.data_abertura, 
                        ch.data_fechamento, ch.protocolo, ch.assunto, ch.telefone,
@@ -936,23 +1137,31 @@ def obter_chamado(id):
                 LEFT JOIN clientes cl ON ch.cliente_id = cl.id
                 WHERE ch.id = ?
             ''', (id,))
-            # Obtém o resultado da consulta.
+            
+            # Obtém o resultado da consulta
             chamado = cursor.fetchone()
-            # Verifica se o chamado foi encontrado.
+            
+            # Verifica se o chamado foi encontrado
             if not chamado:
+                app_logger.warning(f"Chamado não encontrado: {id}")
                 return jsonify({'erro': 'Chamado não encontrado'}), 404
 
-            # Seleciona as entradas de progresso (andamentos) para o chamado, ordenadas por data e hora.
+            # Seleciona as entradas de progresso (andamentos) para o chamado, ordenadas por data e hora
             cursor.execute('SELECT id, data_hora, texto FROM chamado_andamentos WHERE chamado_id = ? ORDER BY data_hora', (id,))
-            # Obtém os dados dos andamentos.
+            
+            # Obtém os dados dos andamentos
             andamentos_data = cursor.fetchall()
-            # Converte os dados dos andamentos em uma lista de dicionários.
+            
+            # Converte os dados dos andamentos em uma lista de dicionários
             andamentos_list = [
                 {'id': row[0], 'data_hora': row[1], 'texto': row[2]}
                 for row in andamentos_data
             ]
 
-            # Retorna os dados do chamado e a lista de andamentos em formato JSON.
+            # Registra sucesso no log
+            app_logger.info(f"Detalhes do chamado obtidos com sucesso: {id}")
+            
+            # Retorna os dados do chamado e a lista de andamentos
             return jsonify({
                 'id': chamado[0],
                 'cliente_id': chamado[1],
@@ -967,12 +1176,17 @@ def obter_chamado(id):
                 'andamentos': andamentos_list  # Inclui a lista de andamentos
             })
     except Exception as e:
-        # Loga erros ao obter detalhes do chamado.
+        # Registra falha no log
         app_logger.error(f"Erro ao obter detalhes do chamado: {e}")
-        # Retorna uma mensagem de erro em formato JSON.
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro ao obter detalhes do chamado'}), 500
 
-# Rotas de estatísticas e busca
+# ========================================================
+# API DE ESTATÍSTICAS
+# ========================================================
+
+# Rota para obter estatísticas gerais do sistema
 @app.route('/estatisticas', methods=['GET'])
 @retry_db_operation
 def obter_estatisticas():
@@ -1019,29 +1233,43 @@ def obter_estatisticas():
             ''')
             stats['chamados_por_mes'] = cursor.fetchall()
 
+            # Registra sucesso no log
+            app_logger.info("Estatísticas obtidas com sucesso")
+            
+            # Retorna as estatísticas
             return jsonify(stats)
     except Exception as e:
+        # Registra falha no log
         app_logger.error(f"Erro ao obter estatísticas: {e}")
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro ao obter estatísticas'}), 500
 
-# Adicione esta função de decorador para proteger as rotas
+# ========================================================
+# AUTENTICAÇÃO E AUTORIZAÇÃO
+# ========================================================
+
+# Decorador para proteger rotas que requerem autenticação
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             return jsonify({
                 'success': False,
-                'error': 'Authentication required'
+                'error': 'Autenticação necessária'
             }), 401
         return f(*args, **kwargs)
     return decorated_function
 
+# Rota para login de usuários
 @app.route('/auth/login', methods=['POST'])
 def auth_login():
     try:
+        # Obtém os dados de login do corpo da requisição
         data = request.json
         username = data.get('username', '').strip()
         
+        # Validação básica dos dados recebidos
         if not username:
             auth_logger.warning(f'Tentativa de login sem username: {request.remote_addr}')
             return jsonify({'error': 'Username required'}), 400
@@ -1088,8 +1316,10 @@ def auth_login():
             'error': 'Server error'
         }), 500
 
+# Rota para logout de usuários
 @app.route('/auth/logout')
 def auth_logout():
+    app_logger.info(f"Usuário {session.get('username', 'desconhecido')} deslogado.")
     session.clear()
     return redirect('/login.html')
 
@@ -1097,18 +1327,36 @@ def auth_logout():
 @app.route('/auth/check-role')
 def check_role():
     if 'role' not in session:
+        app_logger.warning("Tentativa de verificar papel sem sessão ativa.")
         return jsonify({'role': None, 'username': None}), 401
+    app_logger.info(f"Verificando papel do usuário: {session.get('username', 'desconhecido')}, papel: {session.get('role', 'desconhecido')}")
     return jsonify({
         'role': session['role'],
         'username': session['username']
     })
 
-# Rotas para gerenciamento de usuários
+# Rota para renovar a sessão do usuário
+@app.route('/auth/renew-session', methods=['POST'])
+def renew_session():
+    if 'user_id' in session:
+        # Renova a sessão
+        session.modified = True
+        app_logger.info(f"Sessão renovada para o usuário: {session.get('username', 'desconhecido')}")
+        return jsonify({'success': True})
+    app_logger.warning("Tentativa de renovar sessão sem user_id na sessão.")
+    return jsonify({'success': False}), 401
+
+# ========================================================
+# GERENCIAMENTO DE USUÁRIOS
+# ========================================================
+
+# Rota para listar usuários
 @app.route('/usuarios', methods=['GET'])
 @login_required
 def listar_usuarios():
     try:
         if session.get('role') != 'admin':
+            app_logger.warning(f"Usuário {session.get('username', 'desconhecido')} tentou listar usuários sem permissão.")
             return jsonify({'error': 'Acesso não autorizado'}), 403
             
         with get_db_connection() as conn:
@@ -1119,6 +1367,11 @@ def listar_usuarios():
                 ORDER BY created_at DESC
             ''')
             usuarios = cursor.fetchall()
+            
+            # Registra sucesso no log
+            app_logger.info(f"Usuário {session.get('username', 'desconhecido')} listou usuários com sucesso.")
+            
+            # Retorna a lista de usuários
             return jsonify([{
                 'id': u[0],
                 'username': u[1],
@@ -1126,46 +1379,75 @@ def listar_usuarios():
                 'created_at': u[3]
             } for u in usuarios])
     except Exception as e:
+        # Registra falha no log
         app_logger.error(f"Erro ao listar usuários: {e}")
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'error': str(e)}), 500
 
+# Rota para criar um novo usuário
 @app.route('/usuarios', methods=['POST'])
 @login_required
 def criar_usuario():
     if session.get('role') != 'admin':
+        app_logger.warning(f"Usuário {session.get('username', 'desconhecido')} tentou criar usuário sem permissão.")
         return jsonify({'error': 'Unauthorized'}), 403
         
     try:
+        # Obtém os dados do novo usuário do corpo da requisição
         data = request.json
         username = data.get('username')
         password = data.get('password')
         role = data.get('role', 'guest')
 
+        # Validação básica dos dados recebidos
         if not username or not password:
+            app_logger.warning("Tentativa de criar usuário sem username ou password.")
             return jsonify({'error': 'Username and password are required'}), 400
 
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            
+            # Gera o hash da senha
             hashed_password = generate_password_hash(password)
+            
+            # Insere o novo usuário no banco de dados
             cursor.execute(
                 'INSERT INTO usuarios (username, password, role) VALUES (?, ?, ?)',
                 (username, hashed_password, role)
             )
+            
+            # Confirma a transação
             conn.commit()
+            
+            # Registra sucesso no log
+            app_logger.info(f"Usuário {session.get('username', 'desconhecido')} criou usuário {username} com papel {role}.")
+            
+            # Retorna confirmação
             return jsonify({'message': 'User created successfully'}), 201
     except sqlite3.IntegrityError:
+        # Registra falha no log
+        app_logger.warning(f"Tentativa de criar usuário com username já existente: {username}")
+        
+        # Retorna mensagem de erro específica
         return jsonify({'error': 'Username already exists'}), 409
     except Exception as e:
+        # Registra falha no log
         app_logger.error(f"Erro ao criar usuário: {e}")
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'error': 'Error creating user'}), 500
 
+# Rota para atualizar um usuário existente
 @app.route('/usuarios/<int:id>', methods=['PUT'])
 @login_required
 def atualizar_usuario(id):
     if session.get('role') != 'admin':
+        app_logger.warning(f"Usuário {session.get('username', 'desconhecido')} tentou atualizar usuário sem permissão.")
         return jsonify({'error': 'Unauthorized'}), 403
         
     try:
+        # Obtém os dados do usuário do corpo da requisição
         data = request.json
         username = data.get('username')
         password = data.get('password')
@@ -1179,15 +1461,18 @@ def atualizar_usuario(id):
             current_user = cursor.fetchone()
             
             if not current_user:
+                app_logger.warning(f"Tentativa de atualizar usuário com ID inexistente: {id}")
                 return jsonify({'error': 'User not found'}), 404
 
             # Verifica se é o usuário admin
             if current_user[0] == 'admin':
                 # Se for o admin, só permite alterar a senha
                 if username != 'admin' or role != 'admin':
+                    app_logger.warning("Tentativa de modificar username ou role do admin.")
                     return jsonify({'error': 'Cannot modify admin username or role'}), 403
                 
                 if not password:
+                    app_logger.warning("Tentativa de alterar senha do admin sem fornecer nova senha.")
                     return jsonify({'error': 'Password is required for admin'}), 400
 
                 hashed_password = generate_password_hash(password)
@@ -1195,9 +1480,11 @@ def atualizar_usuario(id):
                     'UPDATE usuarios SET password=? WHERE id=?',
                     (hashed_password, id)
                 )
+                app_logger.info(f"Senha do admin alterada por {session.get('username', 'desconhecido')}.")
             else:
                 # Se não for o admin, verifica se não está tentando usar o username 'admin'
                 if username == 'admin':
+                    app_logger.warning("Tentativa de usar username reservado 'admin'.")
                     return jsonify({'error': 'Cannot use reserved username'}), 403
 
                 if password:
@@ -1211,50 +1498,84 @@ def atualizar_usuario(id):
                         'UPDATE usuarios SET username=?, role=? WHERE id=?',
                         (username, role, id)
                     )
-
+                app_logger.info(f"Usuário {username} atualizado por {session.get('username', 'desconhecido')}.")
+            
+            # Confirma a transação
             conn.commit()
+            
+            # Retorna confirmação
             return jsonify({'message': 'User updated successfully'})
             
     except sqlite3.IntegrityError:
+        # Registra falha no log
+        app_logger.warning(f"Tentativa de atualizar usuário para username já existente: {username}")
+        
+        # Retorna mensagem de erro específica
         return jsonify({'error': 'Username already exists'}), 409
     except Exception as e:
+        # Registra falha no log
         app_logger.error(f"Erro ao atualizar usuário: {e}")
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'error': 'Error updating user'}), 500
 
+# Rota para excluir um usuário existente
 @app.route('/usuarios/<int:id>', methods=['DELETE'])
 @login_required
 def excluir_usuario(id):
     if session.get('role') != 'admin':
+        app_logger.warning(f"Usuário {session.get('username', 'desconhecido')} tentou excluir usuário sem permissão.")
         return jsonify({'error': 'Unauthorized'}), 403
         
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            
             # Não permite excluir o próprio usuário
             if id == session.get('user_id'):
+                app_logger.warning(f"Usuário {session.get('username', 'desconhecido')} tentou se autoexcluir.")
                 return jsonify({'error': 'Cannot delete your own user'}), 400
+                
+            # Exclui o usuário
             cursor.execute('DELETE FROM usuarios WHERE id=?', (id,))
+            
+            # Confirma a transação
             conn.commit()
+            
+            # Registra sucesso no log
+            app_logger.info(f"Usuário {id} excluído por {session.get('username', 'desconhecido')}.")
+            
+            # Retorna confirmação
             return jsonify({'message': 'User deleted successfully'})
     except Exception as e:
+        # Registra falha no log
         app_logger.error(f"Erro ao excluir usuário: {e}")
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'error': 'Error deleting user'}), 500
 
+# Rota para obter detalhes de um usuário específico
 @app.route('/usuarios/<int:id>', methods=['GET'])
 @login_required
 def obter_usuario(id):
     if session.get('role') != 'admin':
+        app_logger.warning(f"Usuário {session.get('username', 'desconhecido')} tentou obter detalhes de usuário sem permissão.")
         return jsonify({'error': 'Unauthorized'}), 403
         
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            
+            # Seleciona os dados do usuário
             cursor.execute('SELECT id, username, role, created_at FROM usuarios WHERE id = ?', (id,))
             usuario = cursor.fetchone()
             
+            # Verifica se o usuário foi encontrado
             if not usuario:
+                app_logger.warning(f"Usuário não encontrado com ID: {id}")
                 return jsonify({'error': 'User not found'}), 404
                 
+            # Retorna os dados do usuário
             return jsonify({
                 'id': usuario[0],
                 'username': usuario[1],
@@ -1262,24 +1583,464 @@ def obter_usuario(id):
                 'created_at': usuario[3]
             })
     except Exception as e:
+        # Registra falha no log
         app_logger.error(f"Erro ao obter usuário: {e}")
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'error': 'Error getting user'}), 500
 
-@app.route('/auth/renew-session', methods=['POST'])
-def renew_session():
-    if 'user_id' in session:
-        # Renova a sessão
-        session.modified = True
-        return jsonify({'success': True})
-    return jsonify({'success': False}), 401
+# ========================================================
+# API DE AGENDAMENTOS
+# ========================================================
 
-# Rota para atualizar o endereço de um cliente existente.
+# Rota para criar um novo agendamento
+@app.route('/agendamentos', methods=['POST'])
+def criar_agendamento():
+    try:
+        # Obtém os dados do agendamento do corpo da requisição
+        dados = request.json
+        chamado_id = dados.get('chamado_id')
+        data_agendamento = dados.get('data_agendamento')
+        data_final_agendamento = dados.get('data_final_agendamento')
+        observacoes = dados.get('observacoes', '')
+
+        # Validação básica dos dados recebidos
+        if not chamado_id or not data_agendamento or not data_final_agendamento:
+            app_logger.warning("Tentativa de criar agendamento sem dados completos")
+            return jsonify({'erro': 'Chamado e data são obrigatórios'}), 400
+
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Verifica se já existe agendamento para este chamado
+            cursor.execute('''
+                SELECT a.data_agendamento, a.data_final_agendamento, c.protocolo
+                FROM agendamentos a
+                JOIN chamados c ON a.chamado_id = c.id
+                WHERE a.chamado_id = ?
+            ''', (chamado_id,))
+            
+            agendamento_existente = cursor.fetchone()
+            
+            if agendamento_existente:
+                app_logger.warning(f"Agendamento conflitante encontrado para o chamado {chamado_id}")
+                return jsonify({
+                    'erro': 'Protocolo já agendado',
+                    'detalhes': {
+                        'data_inicio': agendamento_existente[0],
+                        'data_fim': agendamento_existente[1],
+                        'protocolo': agendamento_existente[2]
+                    }
+                }), 409
+
+            # Insere o novo agendamento no banco de dados
+            cursor.execute('''
+                INSERT INTO agendamentos (chamado_id, data_agendamento, data_final_agendamento, observacoes)
+                VALUES (?, ?, ?, ?)
+            ''', (chamado_id, data_agendamento, data_final_agendamento, observacoes))
+            
+            # Obtém o ID do novo agendamento
+            agendamento_id = cursor.lastrowid
+            
+            # Confirma a transação
+            conn.commit()
+            
+            # Registra sucesso no log
+            app_logger.info(f"Agendamento criado com sucesso para o chamado {chamado_id}")
+            
+            # Retorna confirmação com o ID gerado
+            return jsonify({
+                'mensagem': 'Agendamento criado com sucesso!',
+                'id': agendamento_id
+            }), 201
+    except Exception as e:
+        # Registra falha no log
+        app_logger.error(f"Erro ao criar agendamento: {e}")
+        
+        # Retorna mensagem de erro genérica
+        return jsonify({'erro': 'Erro ao criar agendamento'}), 500
+
+# Rota para listar os agendamentos
+@app.route('/agendamentos', methods=['GET'])
+def listar_agendamentos():
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Query SQL para selecionar agendamentos com dados adicionais
+            cursor.execute('''
+                SELECT 
+                    ag.id, 
+                    ag.chamado_id, 
+                    ag.data_agendamento, 
+                    ag.data_final_agendamento, 
+                    ch.status AS chamado_status,
+                    ag.observacoes,
+                    ch.protocolo,
+                    ch.assunto,
+                    cl.nome AS cliente_nome,
+                    cl.telefone AS cliente_telefone,
+                    cl.rua || ', ' || cl.numero || 
+                        CASE WHEN cl.complemento IS NOT NULL AND cl.complemento != '' 
+                             THEN ' - ' || cl.complemento ELSE '' END || 
+                        ' - ' || cl.bairro || ' - ' || cl.cidade || '/' || cl.estado AS endereco_completo
+                FROM agendamentos ag
+                JOIN chamados ch ON ag.chamado_id = ch.id
+                LEFT JOIN clientes cl ON ch.cliente_id = cl.id
+            ''')
+            agendamentos = cursor.fetchall()
+            
+            # Converte os resultados em uma lista de dicionários
+            agendamentos_list = []
+            for agendamento in agendamentos:
+                agendamentos_list.append({
+                    'id': agendamento[0],
+                    'chamado_id': agendamento[1],
+                    'data_agendamento': agendamento[2],
+                    'data_final_agendamento': agendamento[3],
+                    'chamado_status': agendamento[4],
+                    'observacoes': agendamento[5],
+                    'protocolo': agendamento[6],
+                    'assunto': agendamento[7],
+                    'cliente_nome': agendamento[8] or 'Cliente removido',
+                    'cliente_telefone': agendamento[9] or 'N/A',
+                    'endereco': agendamento[10] or 'Endereço não disponível'
+                })
+            
+            # Registra sucesso no log
+            app_logger.info("Agendamentos listados com sucesso")
+            
+            # Retorna a lista de agendamentos
+            return jsonify(agendamentos_list), 200
+    except Exception as e:
+        # Registra falha no log
+        app_logger.error(f"Erro ao listar agendamentos: {e}")
+        
+        # Retorna mensagem de erro genérica
+        return jsonify({'erro': 'Erro ao listar agendamentos'}), 500
+
+# Rota para excluir um agendamento existente
+@app.route('/agendamentos/<int:id>', methods=['DELETE'])
+def excluir_agendamento(id):
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Query SQL para excluir um agendamento existente
+            cursor.execute('DELETE FROM agendamentos WHERE id=?', (id,))
+            
+            # Verifica se o agendamento foi encontrado
+            if cursor.rowcount == 0:
+                app_logger.warning(f"Tentativa de excluir agendamento inexistente com ID: {id}")
+                return jsonify({'erro': 'Agendamento não encontrado'}), 404
+                
+            # Confirma a transação
+            conn.commit()
+            
+            # Registra sucesso no log
+            app_logger.info(f"Agendamento excluído com sucesso. ID: {id}")
+            
+            # Retorna confirmação
+            return jsonify({'mensagem': 'Agendamento excluído com sucesso!'})
+    except Exception as e:
+        # Registra falha no log
+        app_logger.error(f"Erro ao excluir agendamento: {e}")
+        
+        # Retorna mensagem de erro genérica
+        return jsonify({'erro': 'Erro ao excluir agendamento'}), 500
+
+# Rota para atualizar um agendamento existente
+@app.route('/agendamentos/<int:id>', methods=['PUT'])
+def atualizar_agendamento(id):
+    try:
+        # Obtém os dados do agendamento do corpo da requisição
+        dados = request.json
+        data_agendamento = dados.get('data_agendamento')
+        data_final_agendamento = dados.get('data_final_agendamento')
+        observacoes = dados.get('observacoes')
+        status = dados.get('status')
+
+        # Validação básica dos dados recebidos
+        if not data_agendamento:
+            app_logger.warning("Tentativa de atualizar agendamento sem data")
+            return jsonify({'erro': 'Data de agendamento é obrigatória'}), 400
+
+        # Se não receber a data final, usa a data inicial + 1 hora
+        if not data_final_agendamento:
+            try:
+                # Tenta analisar a data com diferentes formatos
+                data_inicial = datetime.fromisoformat(data_agendamento.replace('Z', '+00:00'))
+                data_final = data_inicial + timedelta(hours=1)
+                data_final_agendamento = data_final.isoformat()
+            except ValueError as e:
+                try:
+                    # Tenta analisar a data com um formato diferente
+                    data_inicial = datetime.strptime(data_agendamento, '%Y-%m-%dT%H:%M:%S%z')
+                    data_final = data_inicial + timedelta(hours=1)
+                    data_final_agendamento = data_final.isoformat()
+                except ValueError as e2:
+                    app_logger.error(f"Erro ao processar data: {e2}")
+                    return jsonify({'erro': 'Formato de data inválido'}), 400
+
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Constrói a query dinamicamente baseado nos campos recebidos
+            campos_atualizacao = []
+            valores = []
+            
+            campos_atualizacao.append('data_agendamento=?')
+            valores.append(data_agendamento)
+            
+            campos_atualizacao.append('data_final_agendamento=?')
+            valores.append(data_final_agendamento)
+            
+            if observacoes is not None:
+                campos_atualizacao.append('observacoes=?')
+                valores.append(observacoes)
+                
+            if status:
+                campos_atualizacao.append('status=?')
+                valores.append(status)
+                
+            # Adiciona o ID do agendamento aos valores
+            valores.append(id)
+            
+            # Monta e executa a query
+            query = f"UPDATE agendamentos SET {', '.join(campos_atualizacao)} WHERE id=?"
+            cursor.execute(query, valores)
+            
+            # Verifica se o agendamento foi encontrado
+            if cursor.rowcount == 0:
+                app_logger.warning(f"Tentativa de atualizar agendamento inexistente com ID: {id}")
+                return jsonify({'erro': 'Agendamento não encontrado'}), 404
+                
+            # Confirma a transação
+            conn.commit()
+            
+            # Registra sucesso no log
+            app_logger.info(f"Agendamento atualizado com sucesso. ID: {id}")
+            
+            # Retorna confirmação
+            return jsonify({'mensagem': 'Agendamento atualizado com sucesso!'})
+    except Exception as e:
+        # Registra falha no log
+        app_logger.error(f"Erro ao atualizar agendamento: {e}")
+        
+        # Retorna mensagem de erro genérica
+        return jsonify({'erro': f'Erro ao atualizar agendamento: {str(e)}'}), 500
+
+# Rota para obter detalhes de um agendamento específico
+@app.route('/agendamentos/<int:id>', methods=['GET'])
+def obter_agendamento(id):
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Query SQL para selecionar os dados do agendamento com informações adicionais
+            cursor.execute('''
+                SELECT 
+                    ag.id, 
+                    ag.chamado_id, 
+                    ag.data_agendamento, 
+                    ag.data_final_agendamento, 
+                    ch.status AS chamado_status,
+                    ag.observacoes,
+                    ch.protocolo,
+                    ch.assunto,
+                    ch.descricao,
+                    cl.nome AS cliente_nome,
+                    cl.telefone AS cliente_telefone,
+                    cl.rua || ', ' || cl.numero || 
+                        CASE WHEN cl.complemento IS NOT NULL AND cl.complemento != '' 
+                             THEN ' - ' || cl.complemento ELSE '' END || 
+                        ' - ' || cl.bairro || ' - ' || cl.cidade || '/' || cl.estado AS endereco_completo
+                FROM agendamentos ag
+                JOIN chamados ch ON ag.chamado_id = ch.id
+                LEFT JOIN clientes cl ON ch.cliente_id = cl.id
+                WHERE ag.id = ?
+            ''', (id,))
+            
+            agendamento = cursor.fetchone()
+            
+            # Verifica se o agendamento foi encontrado
+            if not agendamento:
+                app_logger.warning(f"Agendamento não encontrado: {id}")
+                return jsonify({'erro': 'Agendamento não encontrado'}), 404
+                
+            # Converte os resultados em um dicionário
+            resultado = {
+                'id': agendamento[0],
+                'chamado_id': agendamento[1],
+                'data_agendamento': agendamento[2],
+                'data_final_agendamento': agendamento[3],
+                'chamado_status': agendamento[4],
+                'observacoes': agendamento[5],
+                'protocolo': agendamento[6],
+                'assunto': agendamento[7],
+                'descricao': agendamento[8],
+                'cliente_nome': agendamento[9] or 'Cliente removido',
+                'cliente_telefone': agendamento[10] or 'N/A',
+                'endereco': agendamento[11] or 'Endereço não disponível'
+            }
+            
+            # Registra sucesso no log
+            app_logger.info(f"Detalhes do agendamento obtidos com sucesso: {id}")
+            
+            # Retorna os dados do agendamento
+            return jsonify(resultado)
+    except Exception as e:
+        # Registra falha no log
+        app_logger.error(f"Erro ao obter detalhes do agendamento: {e}")
+        
+        # Retorna mensagem de erro genérica
+        return jsonify({'erro': 'Erro ao obter detalhes do agendamento'}), 500
+
+# Rota para finalizar a ordem de serviço (adicionar andamento e finalizar chamado)
+@app.route('/chamados/<int:chamado_id>/finalizar-ordem-servico', methods=['POST'])
+def finalizar_ordem_servico(chamado_id):
+    try:
+        # Log dos dados recebidos para depuração
+        dados = request.json
+        app_logger.info(f"Dados recebidos para finalizar ordem: {dados}")
+        
+        # Validação mais robusta para o relatório
+        relatorio_visita = None
+        if dados and 'relatorio_visita' in dados:
+            relatorio_visita = dados.get('relatorio_visita', '').strip()
+        
+        agendamento_id = dados.get('agendamento_id') if dados else None
+        
+        # Log do relatório para depuração
+        app_logger.info(f"Relatório extraído: '{relatorio_visita}', comprimento: {len(relatorio_visita) if relatorio_visita else 0}")
+
+        # Verificação mais detalhada
+        if not relatorio_visita:
+            app_logger.warning(f"Relatório vazio ou ausente para chamado {chamado_id}")
+            return jsonify({'erro': 'O relatório da visita é obrigatório'}), 400
+
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+
+            # Verificar se o chamado existe
+            cursor.execute('SELECT id FROM chamados WHERE id = ?', (chamado_id,))
+            if not cursor.fetchone():
+                app_logger.warning(f"Chamado não encontrado ao finalizar ordem: {chamado_id}")
+                return jsonify({'erro': 'Chamado não encontrado'}), 404
+
+            # Adicionar andamento
+            data_hora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            cursor.execute('''
+                INSERT INTO chamado_andamentos (chamado_id, data_hora, texto)
+                VALUES (?, ?, ?)
+            ''', (chamado_id, data_hora, relatorio_visita))
+            
+            novo_andamento_id = cursor.lastrowid
+            app_logger.info(f"Andamento {novo_andamento_id} criado com sucesso para chamado {chamado_id}")
+
+            # Finalizar chamado
+            data_fechamento = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            cursor.execute('''
+                UPDATE chamados
+                SET status = ?, data_fechamento = ?
+                WHERE id = ?
+            ''', ('Finalizado', data_fechamento, chamado_id))
+            
+            app_logger.info(f"Chamado {chamado_id} marcado como finalizado")
+
+            # Atualizar status do agendamento
+            if agendamento_id:
+                cursor.execute('''
+                    UPDATE agendamentos
+                    SET status = 'Finalizado'
+                    WHERE id = ?
+                ''', (agendamento_id,))
+                app_logger.info(f"Agendamento {agendamento_id} marcado como finalizado")
+
+            # Confirma a transação
+            conn.commit()
+            
+            # Registra sucesso no log
+            app_logger.info(f"Ordem de serviço finalizada com sucesso para o chamado {chamado_id}")
+            
+            # Retorna confirmação
+            return jsonify({
+                'mensagem': 'Ordem de serviço finalizada com sucesso!',
+                'status': 'Finalizado',
+                'data_fechamento': data_fechamento
+            })
+    except Exception as e:
+        # Registra falha no log
+        app_logger.error(f"Erro ao finalizar ordem de serviço: {str(e)}", exc_info=True)
+        
+        # Retorna mensagem de erro genérica
+        return jsonify({'erro': f'Erro ao finalizar ordem de serviço: {str(e)}'}), 500
+
+# Rota para buscar chamados abertos com base em um termo de pesquisa
+@app.route('/chamados/buscar-abertos', methods=['GET'])
+def buscar_chamados_abertos():
+    try:
+        # Obtém o termo de pesquisa da query string
+        termo = request.args.get('termo', '')
+        
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Query SQL para buscar chamados abertos com base no termo de pesquisa
+            cursor.execute('''
+                SELECT 
+                    c.id,
+                    c.protocolo,
+                    c.assunto,
+                    cl.nome as cliente_nome
+                FROM chamados c
+                LEFT JOIN clientes cl ON c.cliente_id = cl.id
+                WHERE c.status = 'Aberto'
+                AND (
+                    c.protocolo LIKE ? 
+                    OR c.assunto LIKE ? 
+                    OR cl.nome LIKE ?
+                    OR c.id LIKE ?
+                )
+                ORDER BY c.data_abertura DESC
+                LIMIT 10
+            ''', ('%' + termo + '%', '%' + termo + '%', '%' + termo + '%', '%' + termo + '%'))
+            
+            chamados = cursor.fetchall()
+            
+            # Registra operação no log
+            app_logger.info(f"Chamados abertos buscados com o termo: {termo}")
+            
+            # Retorna os chamados encontrados
+            return jsonify([{
+                'id': c[0],
+                'protocolo': c[1],
+                'assunto': c[2],
+                'cliente_nome': c[3] or 'Cliente removido'
+            } for c in chamados])
+            
+    except Exception as e:
+        # Registra falha no log
+        app_logger.error(f"Erro ao buscar chamados abertos: {e}")
+        
+        # Retorna mensagem de erro genérica
+        return jsonify({'erro': 'Erro ao buscar chamados'}), 500
+
+# ========================================================
+# ROTA PARA ATUALIZAR ENDEREÇO DE CLIENTE
+# ========================================================
+
+# Rota para atualizar o endereço de um cliente existente
 @app.route('/clientes/<int:id>/endereco', methods=['PUT'])
 def atualizar_endereco(id):
     try:
+        # Obtém os dados do endereço do corpo da requisição
         dados = request.json
+        
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            
+            # Query SQL para atualizar o endereço do cliente
             cursor.execute('''
                 UPDATE clientes SET
                     cep = ?,
@@ -1302,10 +2063,20 @@ def atualizar_endereco(id):
                 dados.get('pais'),
                 id
             ))
+            
+            # Confirma a transação
             conn.commit()
-        return jsonify({'mensagem': 'Endereço atualizado com sucesso!'})
+            
+            # Registra sucesso no log
+            app_logger.info(f"Endereço do cliente {id} atualizado com sucesso.")
+            
+            # Retorna confirmação
+            return jsonify({'mensagem': 'Endereço atualizado com sucesso!'})
     except Exception as e:
+        # Registra falha no log
         app_logger.error(f"Erro ao atualizar endereço: {e}")
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro ao atualizar endereço'}), 500
 
 # Rota para obter detalhes de um cliente específico
@@ -1314,6 +2085,8 @@ def obter_cliente(id):
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
+            
+            # Query SQL para selecionar os dados do cliente
             cursor.execute("""
                 SELECT id, nome, nome_fantasia, email, telefone, ativo,
                        tipo_cliente, cnpj_cpf, ie_rg, contribuinte_icms,
@@ -1326,7 +2099,10 @@ def obter_cliente(id):
             """, (id,))
             
             cliente = cursor.fetchone()
+            
+            # Verifica se o cliente foi encontrado
             if not cliente:
+                app_logger.warning(f"Cliente não encontrado: {id}")
                 return jsonify({'erro': 'Cliente não encontrado'}), 404
 
             # Converte a tupla em um dicionário para facilitar o acesso no frontend
@@ -1360,8 +2136,15 @@ def obter_cliente(id):
                 'pais': cliente[26]
             })
     except Exception as e:
+        # Registra falha no log
         app_logger.error(f"Erro ao obter cliente: {e}")
+        
+        # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro ao obter cliente'}), 500
+
+# ========================================================
+# INICIALIZAÇÃO DO APLICATIVO
+# ========================================================
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
