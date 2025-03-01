@@ -2652,11 +2652,99 @@ async function salvarNovoAndamento(chamadoId, button) {
 function configurarBuscaClientes() {
     const buscaInput = document.getElementById('busca-cliente');
     if (buscaInput) {
-        buscaInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                buscarClientes();
-            }
+        let timeoutId;
+        buscaInput.addEventListener('input', function() {
+            // Limpa o timeout anterior para implementar debounce
+            clearTimeout(timeoutId);
+            
+            // Define um novo timeout para buscar após o usuário parar de digitar
+            timeoutId = setTimeout(function() {
+                const termo = buscaInput.value.trim();
+                // Só busca se tiver pelo menos 2 caracteres
+                if (termo.length >= 2) {
+                    buscarClientesAjax(termo);
+                } else if (termo.length === 0) {
+                    // Limpa os resultados se o campo estiver vazio
+                    document.getElementById('resultado-busca').innerHTML = '';
+                }
+            }, 300); // Delay de 300ms para evitar muitas requisições
         });
+    }
+}
+
+/**
+ * Busca clientes na API e exibe os resultados
+ * @param {string} termo - Termo a ser buscado
+ */
+function buscarClientesAjax(termo) {
+    fetch(`http://localhost:5000/clientes/buscar?termo=${encodeURIComponent(termo)}`)
+        .then(response => response.json())
+        .then(clientes => {
+            const resultadoDiv = document.getElementById('resultado-busca');
+            if (clientes.length === 0) {
+                resultadoDiv.innerHTML = '<p class="text-muted">Nenhum cliente encontrado.</p>';
+                return;
+            }
+            
+            // Cria uma lista com os resultados
+            let html = '<div class="list-group mt-2">';
+            clientes.forEach(cliente => {
+                html += `
+                    <a href="#" class="list-group-item list-group-item-action" 
+                       onclick="mostrarDetalhesCliente(${cliente[0]})">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${cliente[1]}</strong>
+                                ${cliente[2] ? `<br><small>${cliente[2]}</small>` : ''}
+                            </div>
+                            <div class="text-muted">${cliente[4] || ''}</div>
+                        </div>
+                        <small class="text-muted">${cliente[3] || ''}</small>
+                    </a>
+                `;
+            });
+            html += '</div>';
+            resultadoDiv.innerHTML = html;
+        })
+        .catch(erro => {
+            console.error('Erro na busca de clientes:', erro);
+            document.getElementById('resultado-busca').innerHTML = 
+                '<p class="text-danger">Erro ao buscar clientes. Tente novamente.</p>';
+        });
+}
+
+/**
+ * Busca clientes ao clicar no botão de busca
+ */
+function buscarClientes() {
+    const termo = document.getElementById('busca-cliente').value.trim();
+    if (termo.length > 0) {
+        buscarClientesAjax(termo);
+    }
+}
+
+/**
+ * Exibe detalhes de um cliente em um modal
+ * @param {number} clienteId - ID do cliente a ser exibido
+ */
+async function mostrarDetalhesCliente(clienteId) {
+    try {
+        const resposta = await fetch(`http://localhost:5000/clientes/${clienteId}`);
+        if (!resposta.ok) {
+            throw new Error('Cliente não encontrado');
+        }
+        
+        const cliente = await resposta.json();
+        carregarDetalhesCliente([
+            cliente.id,
+            cliente.nome,
+            cliente.nome_fantasia,
+            cliente.email,
+            cliente.telefone
+        ]);
+    } catch (erro) {
+        console.error('Erro ao buscar detalhes do cliente:', erro);
+        exibirMensagem('Erro ao buscar detalhes do cliente', 'erro');
     }
 }
 
