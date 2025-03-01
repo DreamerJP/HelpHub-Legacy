@@ -6,6 +6,8 @@ sistema_chamados/
 │   ├── database.db     # Arquivo do banco de dados SQLite
 │   └── static/
 │       ├── login-bg.webp  # Fundo da tela de login
+│       ├── favicon.ico # Icone
+│       ├── logo.png # Logo
 │       ├── login.html  # Página principal de login
 │       ├── index.html  # Página principal
 │       ├── styles.css  # Estilos da página
