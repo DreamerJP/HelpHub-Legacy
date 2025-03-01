@@ -4,26 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Chamados</title>
+    <!-- Carrega o CSS do Bootstrap 5 do CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Estilos personalizados do sistema -->
     <link rel="stylesheet" href="styles.css">
+    <!-- Biblioteca Chart.js para gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Dependências para o calendário FullCalendar -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.css">
+    <!-- Bibliotecas para tooltips personalizados -->
+    <link href="https://unpkg.com/@popperjs/core@2.11.6/dist/umd/popper.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/tippy.js@6.3.7/themes/light.css" rel="stylesheet">
+    <link href="https://unpkg.com/tippy.js@6.3.7/animations/shift-away.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Barra de navegação -->
+    <!-- Barra de navegação principal usando Bootstrap 5 -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <!-- Logo e link para a página inicial -->
+            <!-- Logo da aplicação com link para a home -->
             <a class="navbar-brand" href="#" onclick="carregarHome()">
                 <img src="logo.png" alt="Logo" height="30" class="d-inline-block align-text-top">
                 HelpHub
             </a>
-            <!-- Botão para colapsar a barra de navegação em telas menores -->
+            <!-- Botão hambúrguer para menu responsivo em dispositivos móveis -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <!-- Conteúdo da barra de navegação -->
+            <!-- Menu de navegação colapsável -->
             <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- Lista de links da barra de navegação -->
+                <!-- Links principais do sistema -->
                 <ul class="navbar-nav">
                     <li class="nav-item">
                         <a id="menu-home" class="nav-link active" href="#" onclick="carregarHome()">Home</a>
@@ -34,13 +43,17 @@
                     <li class="nav-item">
                         <a id="menu-chamados" class="nav-link" href="#" onclick="carregarChamadosPage()">Chamados</a>
                     </li>
+                    <li class="nav-item">
+                        <a id="menu-agenda" class="nav-link" href="#" onclick="carregarAgendaPage()">Agenda</a>
+                    </li>
+                    <!-- Opção visível apenas para administradores -->
                     <li class="nav-item admin-only" style="display: none;">
                         <a id="menu-usuarios" class="nav-link" href="#" onclick="carregarUsuariosPage()">Usuários</a>
                     </li>
                 </ul>
-                <!-- Novo grupo para posicionar os botões à direita -->
+                <!-- Controles à direita: informações do usuário, tema e logout -->
                 <ul class="navbar-nav ms-auto">
-                    <!-- Adiciona informações do usuário -->
+                    <!-- Exibe nome e tipo do usuário logado -->
                     <li class="nav-item me-3">
                         <span class="navbar-text">
                             <i class="bi bi-person-circle"></i>
@@ -48,9 +61,11 @@
                             <span class="badge rounded-pill" id="usuario-role"></span>
                         </span>
                     </li>
+                    <!-- Botão para alternar entre temas claro/escuro -->
                     <li class="nav-item me-2">
                         <button id="theme-toggle" class="btn btn-dark">☀️</button>
                     </li>
+                    <!-- Botão para logout do sistema -->
                     <li class="nav-item">
                         <button onclick="logout()" class="btn btn-outline-danger">Sair</button>
                     </li>
@@ -59,11 +74,13 @@
         </div>
     </nav>
 
-    <!-- Container principal -->
+    <!-- Container principal - área de conteúdo dinâmico -->
     <div class="container mt-4" id="conteudo">
-        <!-- Conteúdo inicial (Home) -->
+        <!-- Conteúdo inicial (Home) - será substituído via JavaScript -->
         <div class="row">
+            <!-- Área esquerda (pesquisa e estatísticas) -->
             <div class="col-md-8">
+                <!-- Caixa de busca de clientes -->
                 <div class="card">
                     <div class="card-body">
                         <h2>Buscar Cliente</h2>
@@ -75,7 +92,9 @@
                     </div>
                 </div>
 
+                <!-- Gráficos e estatísticas -->
                 <div class="row mt-4">
+                    <!-- Gráfico de chamados -->
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-body">
@@ -90,6 +109,7 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Lista de últimos chamados -->
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-body">
@@ -101,13 +121,16 @@
                 </div>
             </div>
 
+            <!-- Área direita (resumo e ações rápidas) -->
             <div class="col-md-4">
+                <!-- Estatísticas gerais do sistema -->
                 <div class="card">
                     <div class="card-body">
                         <h5>Resumo do Sistema</h5>
                         <ul class="list-group" id="estatisticas-gerais"></ul>
                     </div>
                 </div>
+                <!-- Botões de ação rápida -->
                 <div class="card mt-4">
                     <div class="card-body">
                         <h5>Ações Rápidas</h5>
@@ -119,7 +142,7 @@
         </div>
     </div>
 
-    <!-- Modal para detalhes do cliente -->
+    <!-- Modal: Detalhes do cliente -->
     <div class="modal fade" id="clienteModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -128,7 +151,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="detalhes-cliente">
-                    <!-- Detalhes serão carregados aqui -->
+                    <!-- Informações do cliente serão inseridas dinamicamente via JavaScript -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
@@ -137,7 +160,7 @@
         </div>
     </div>
 
-    <!-- Modal para detalhes do chamado -->
+    <!-- Modal: Detalhes do chamado -->
     <div class="modal fade" id="chamadoModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -146,7 +169,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body" id="detalhes-chamado">
-                    <!-- Detalhes serão carregados aqui -->
+                    <!-- Informações do chamado serão inseridas dinamicamente via JavaScript -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
@@ -155,7 +178,80 @@
         </div>
     </div>
 
-    <!-- Modal para aviso de sessão -->
+    <!-- Modal: Criação de novo agendamento -->
+    <div class="modal fade" id="agendamentoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Agendar Visita Técnica</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="agendamentoForm">
+                        <div class="mb-3">
+                            <label for="busca-chamado" class="form-label">Buscar Chamado:</label>
+                            <input type="text" 
+                                   id="busca-chamado" 
+                                   class="form-control" 
+                                   placeholder="Digite protocolo, assunto ou nome do cliente...">
+                            <div id="lista-chamados" class="list-group mt-2 chamados-dropdown">
+                                <!-- Resultados da busca de chamados aparecem aqui -->
+                            </div>
+                            <div id="chamado-selecionado" class="mt-2 p-2 border rounded d-none">
+                                <!-- Resumo do chamado selecionado aparece aqui após escolha -->
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="data_agendamento" class="form-label">Data Inicial:</label>
+                            <input type="datetime-local" class="form-control" id="data_agendamento" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="data_final_agendamento" class="form-label">Data Final:</label>
+                            <input type="datetime-local" class="form-control" id="data_final_agendamento" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="observacoes_agendamento" class="form-label">Observações:</label>
+                            <textarea class="form-control" id="observacoes_agendamento" rows="3" 
+                                      placeholder="Observações adicionais para este agendamento..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="salvarAgendamento">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Finalização de ordem de serviço -->
+    <div class="modal fade" id="finalizarChamadoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Finalizar Ordem de Serviço</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="finalizarChamadoForm">
+                        <div class="mb-3">
+                            <label for="relatorio_visita_modal" class="form-label">Relatório da Visita:</label>
+                            <textarea class="form-control" id="relatorio_visita_modal" rows="3" required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="excluirAgendamentoAtual()">
+                        <i class="bi bi-trash"></i> Excluir Agendamento
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="salvarFinalizacao">Finalizar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Aviso de expiração da sessão -->
     <div class="modal fade" id="sessionWarningModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -177,7 +273,100 @@
         </div>
     </div>
 
-    <!-- Rodapé da página -->
+    <!-- Modal: Visualização detalhada de agendamento -->
+    <div class="modal fade" id="agendamentoDetalhesModal" tabindex="-1" aria-labelledby="agendamentoDetalhesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="agendamentoDetalhesModalLabel">Detalhes do Agendamento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Seção: Informações gerais do agendamento -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Informações do Agendamento</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Protocolo:</strong> <span id="detalhe-protocolo"></span></p>
+                                    <p><strong>Cliente:</strong> <span id="detalhe-cliente"></span></p>
+                                    <p><strong>Assunto:</strong> <span id="detalhe-assunto"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Telefone:</strong> <span id="detalhe-telefone"></span></p>
+                                    <p><strong>Endereço:</strong> <span id="detalhe-endereco"></span></p>
+                                    <p><strong>Status:</strong> <span id="detalhe-status"></span></p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Data Início:</strong> <span id="detalhe-data"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Data Fim:</strong> <span id="detalhe-data-fim"></span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seção: Descrição original do chamado -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">Descrição do Chamado</h5>
+                        </div>
+                        <div class="card-body">
+                            <p id="detalhe-descricao"></p>
+                        </div>
+                    </div>
+
+                    <!-- Seção: Observações específicas do agendamento -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">Observações do Agendamento</h5>
+                        </div>
+                        <div class="card-body">
+                            <p id="detalhe-observacoes"></p>
+                        </div>
+                    </div>
+
+                    <!-- Seção: Formulário para finalização do chamado (visível apenas para chamados abertos) -->
+                    <div id="detalhe-section-finalizacao" class="card mb-3">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Finalizar Ordem de Serviço</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="relatorio_visita_detalhe" class="form-label">Relatório da Visita:</label>
+                                <textarea class="form-control" id="relatorio_visita" rows="4" 
+                                          placeholder="Descreva detalhadamente o relatório da visita técnica (campo obrigatório)..."></textarea>
+                                <div class="form-text text-danger fw-bold">Atenção: Este campo é obrigatório para finalizar o agendamento.</div>
+                            </div>
+                            <input type="hidden" id="detalhe-chamado-id">
+                            <input type="hidden" id="detalhe-agendamento-id">
+                        </div>
+                    </div>
+
+                    <!-- Mensagem informativa para chamados já finalizados -->
+                    <div id="detalhe-finalizado-msg" class="alert alert-info" style="display: none;">
+                        <i class="bi bi-info-circle"></i> Este chamado já foi finalizado.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="excluirAgendamentoModal()">
+                        <i class="bi bi-trash"></i> Excluir Agendamento
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button id="detalhe-btn-finalizar" type="button" class="btn btn-success" onclick="finalizarOrdemServicoModal()">
+                        Finalizar Ordem de Serviço
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rodapé com informações de copyright e contato -->
     <footer>
         <div class="container">
             <p>&copy; 2025 HelpHub. Todos os direitos reservados.<br>
@@ -185,18 +374,24 @@
         </div>
     </footer>
 
-    <!-- Div para exibir mensagens de alerta -->
+    <!-- Sistema de notificação para feedback ao usuário -->
     <div id="mensagem" class="alert" style="display: none;"></div>
-    <!-- Div para exibir a tela de carregamento -->
+    
+    <!-- Indicador de carregamento (spinner) -->
     <div id="loading" class="loading" style="display: none;">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Carregando...</span>
         </div>
     </div>
 
-    <!-- Scripts JavaScript -->
+    <!-- Carregamento de scripts externos -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/locales-all.min.js"></script>
+    <script src="https://unpkg.com/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://unpkg.com/tippy.js@6.3.7/dist/tippy-bundle.umd.min.js"></script>
+    <!-- Script principal da aplicação -->
     <script src="script.js"></script>
 </body>
 </html>
