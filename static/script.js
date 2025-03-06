@@ -22,7 +22,7 @@ let totalPaginasClientes = 1; // Total de páginas de clientes
 let sessionCheckInterval;
 let lastUserActivity = Date.now();
 const SESSION_WARNING_TIME = 30;  // 30 minutos
-const SESSION_TIMEOUT = 480;   // 8 horas em minutos
+const SESSION_TIMEOUT = 480;   // 8 horas (480 minutos)
 
 // Monitora atividade do usuário
 document.addEventListener('mousemove', updateUserActivity);
@@ -40,7 +40,7 @@ function updateUserActivity() {
  * Inicia o monitoramento de sessão do usuário
  */
 function startSessionMonitor() {
-    sessionCheckInterval = setInterval(checkSession, 60000); // Verifica a cada minuto
+    sessionCheckInterval = setInterval(checkSession, 60000); // Verifica a cada 1 minutos
 }
 
 /**
@@ -48,18 +48,21 @@ function startSessionMonitor() {
  */
 function checkSession() {
     const timeSinceLastActivity = (Date.now() - lastUserActivity) / (60 * 1000); // Em minutos
+    console.log(`Tempo desde última atividade: ${timeSinceLastActivity.toFixed(2)} minutos`);
 
-    // Avisa quando faltar 30 minutos para expirar
+    // Avisa quando faltar 30 segundos para expirar
     if (timeSinceLastActivity >= (SESSION_TIMEOUT - SESSION_WARNING_TIME)) {
-        const timeLeft = SESSION_TIMEOUT - timeSinceLastActivity;
-        if (timeLeft > 0) {
-            const warningModal = new bootstrap.Modal(document.getElementById('sessionWarningModal'));
-            document.getElementById('timeLeft').textContent = Math.ceil(timeLeft);
-            warningModal.show();
-        } else {
-            // Se o tempo acabou, força o logout
-            window.location.href = '/auth/logout';
+        // Obtém o modal ou cria uma nova instância se não existir
+        let sessionWarningModal = bootstrap.Modal.getInstance(document.getElementById('sessionWarningModal'));
+        if (!sessionWarningModal) {
+            sessionWarningModal = new bootstrap.Modal(document.getElementById('sessionWarningModal'));
         }
+        
+        // Atualiza o texto do tempo restante
+        document.getElementById('timeLeft').textContent = SESSION_WARNING_TIME.toFixed(1);
+        
+        // Exibe o modal
+        sessionWarningModal.show();
     }
 
     // Se passou do tempo limite, força logout
@@ -75,20 +78,53 @@ async function renewSession() {
     try {
         const response = await fetch('/auth/renew-session', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin'
         });
+        const data = await response.json();
         
-        if (response.ok) {
-            lastUserActivity = Date.now(); // Atualiza o timestamp da última atividade
-            const warningModal = bootstrap.Modal.getInstance(document.getElementById('sessionWarningModal'));
-            warningModal.hide();
-        } else {
-            // Se a renovação falhar, redireciona para o logout
-            window.location.href = '/auth/logout';
+        // Atualiza o timestamp da última atividade
+        lastUserActivity = Date.now();
+        
+        // Fecha o modal usando a API do Bootstrap
+        const sessionWarningModal = bootstrap.Modal.getInstance(document.getElementById('sessionWarningModal'));
+        if (sessionWarningModal) {
+            sessionWarningModal.hide();
         }
+        
+        // Limpa qualquer backdrop (fundo escuro) que possa ter permanecido
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+            backdrop.remove();
+        }
+        
+        // Remove a classe modal-open do body para restaurar o scroll e comportamento normal
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+        
+        return data.success;
     } catch (error) {
-        console.error('Erro ao renovar sessão:', error);
-        window.location.href = '/auth/logout';
+        console.error("Erro ao renovar sessão:", error);
+        
+        // Mesmo em caso de erro, devemos fechar o modal e remover elementos residuais
+        const sessionWarningModal = bootstrap.Modal.getInstance(document.getElementById('sessionWarningModal'));
+        if (sessionWarningModal) {
+            sessionWarningModal.hide();
+        }
+        
+        // Limpa backdrop e restaura o body
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+            backdrop.remove();
+        }
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+        
+        return false;
     }
 }
 
@@ -118,7 +154,10 @@ function exibirMensagem(mensagem, tipo = 'sucesso') {
  * @param {string} selected - Identificador do menu a ser ativado
  */
 function updateActiveMenu(selected) {
-    const menus = ['menu-home', 'menu-clientes', 'menu-chamados', 'menu-usuarios', 'menu-agenda'];
+    // Atualiza o controle da página atual para o sistema de atualizações
+    paginaAtual = selected;
+    
+    const menus = ['menu-home', 'menu-clientes', 'menu-chamados', 'menu-usuarios', 'menu-agenda', 'menu-backups'];
     menus.forEach(function(id) {
         const element = document.getElementById(id);
         if (element) {
@@ -136,6 +175,7 @@ function updateActiveMenu(selected) {
  */
 function carregarHome() {
     updateActiveMenu('home'); // Atualiza o menu ativo
+    
     document.getElementById('conteudo').innerHTML = `
         <div class="row">
             <div class="col-md-8">
@@ -193,8 +233,10 @@ function carregarHome() {
             </div>
         </div>
     `;
-    carregarEstatisticas(); // Carrega as estatísticas na página inicial
-    configurarBuscaClientes(); // Configura a busca de clientes na página inicial
+    
+    // Carrega as estatísticas apenas uma vez ao entrar na página inicial
+    carregarEstatisticas(); 
+    configurarBuscaClientes();
 }
 
 /**
@@ -591,6 +633,12 @@ function carregarChamadosAbertos() {
             <div class="col-md-12">
                 <h2 class="mb-4">Chamados Abertos</h2>
                 
+                <!-- Nova caixa de pesquisa para chamados -->
+                <div class="modern-search mb-3">
+                    <input type="text" id="pesquisa-chamados-aberto" class="form-control" 
+                           placeholder="Pesquisar por cliente, protocolo ou assunto...">
+                </div>
+                
                 <!-- Toolbar moderna -->
                 <div class="modern-toolbar">
                     <button id="btn-abrir" class="btn btn-info" onclick="abrirDetalhesChamado(selectedChamadoId)" disabled>
@@ -637,6 +685,9 @@ function carregarChamadosAbertos() {
         </div>
     `;
     carregarChamados('Aberto'); // Carrega os chamados com status "Aberto"
+    
+    // Configurar a pesquisa de chamados abertos
+    configurarPesquisaChamados('aberto');
 }
 
 /**
@@ -647,6 +698,12 @@ function carregarChamadosFinalizados() {
         <div class="row">
             <div class="col-md-12">
                 <h2 class="mb-4">Chamados Finalizados</h2>
+                
+                <!-- Nova caixa de pesquisa para chamados -->
+                <div class="modern-search mb-3">
+                    <input type="text" id="pesquisa-chamados-finalizado" class="form-control" 
+                           placeholder="Pesquisar por cliente, protocolo ou assunto...">
+                </div>
                 
                 <!-- Toolbar moderna -->
                 <div class="modern-toolbar">
@@ -694,6 +751,9 @@ function carregarChamadosFinalizados() {
         </div>
     `;
     carregarChamados('Finalizado'); // Carrega os chamados com status "Finalizado"
+    
+    // Configurar a pesquisa de chamados finalizados
+    configurarPesquisaChamados('finalizado');
 }
 
 /**
@@ -1595,46 +1655,67 @@ function carregarDetalhesCliente(cliente) {
  */
 async function carregarEstatisticas() {
     try {
-        const resposta = await fetch('http://localhost:5000/estatisticas');
-        const dados = await resposta.json();
+        // Verificar se estamos na página inicial antes de carregar as estatísticas
+        const graficoElement = document.getElementById('grafico-chamados');
+        const totaisElement = document.getElementById('total-abertos');
+        
+        // Se não encontrar os elementos essenciais da página inicial, não carrega estatísticas
+        if (!graficoElement || !totaisElement) {
+            return;
+        }
+        
+        const dados = await fetchWithLoading('/estatisticas');
 
-        // Atualiza estatísticas gerais (Resumo do Sistema)
-        const estatisticasGerais = document.getElementById('estatisticas-gerais');
-        if (estatisticasGerais) {
-            estatisticasGerais.innerHTML = `
-                <li class="list-group-item">Total de Clientes: ${dados.total_clientes}</li>
-                <li class="list-group-item">Chamados Abertos: ${dados.chamados_status.Aberto || 0}</li>
-                <li class="list-group-item">Chamados Finalizados: ${dados.chamados_status.Finalizado || 0}</li>
+        // Atualiza os números de chamados em aberto/fechados
+        document.getElementById('total-abertos').textContent = dados.chamados_status.Aberto || 0;
+        document.getElementById('total-fechados').textContent = dados.chamados_status.Finalizado || 0;
+
+        // Inicializa o gráfico de chamados
+        inicializarGrafico(dados);
+
+        // Atualiza as estatísticas gerais com ícones
+        const estatisticasDiv = document.getElementById('estatisticas-gerais');
+        if (estatisticasDiv) {
+            estatisticasDiv.innerHTML = `
+                <li class="list-group-item"><i class="bi bi-people-fill"></i> Total de Clientes: ${dados.total_clientes}</li>
+                <li class="list-group-item"><i class="bi bi-headset"></i> Chamados Abertos: ${dados.chamados_status.Aberto || 0}</li>
+                <li class="list-group-item"><i class="bi bi-check-circle-fill"></i> Chamados Finalizados: ${dados.chamados_status.Finalizado || 0}</li>
             `;
         }
 
-        // Atualiza contadores na seção do gráfico
-        const totalAbertos = document.getElementById('total-abertos');
-        const totalFechados = document.getElementById('total-fechados');
-        if (totalAbertos) totalAbertos.textContent = dados.chamados_status.Aberto || 0;
-        if (totalFechados) totalFechados.textContent = dados.chamados_status.Finalizado || 0;
-
-        // Atualiza últimos chamados
-        const ultimosChamados = document.getElementById('ultimos-chamados');
-        if (ultimosChamados) {
-            const ultimosChamadosHTML = dados.ultimos_chamados.map(chamado => `
-                <div class="list-group-item">
-                    <strong>#${chamado[0]}</strong> - ${chamado[2].substring(0, 30)}...
-                    <span class="badge bg-${chamado[3] === 'Aberto' ? 'warning' : 'success'} float-end">
-                        ${chamado[3]}
-                    </span>
-                </div>
-            `).join('');
-            ultimosChamados.innerHTML = ultimosChamadosHTML;
-        }
-
-        // Inicializa o gráfico apenas se o elemento canvas existir
-        const canvas = document.getElementById('grafico-chamados');
-        if (canvas) {
-            inicializarGrafico(dados);
+        // Lista os últimos chamados com ícones
+        const ultimosChamadosDiv = document.getElementById('ultimos-chamados');
+        if (ultimosChamadosDiv) {
+            ultimosChamadosDiv.innerHTML = '';
+            
+            if (dados.ultimos_chamados && dados.ultimos_chamados.length > 0) {
+                dados.ultimos_chamados.forEach(chamado => {
+                    const dataFormatada = formatarData(chamado[4]);
+                    const statusClass = chamado[3] === 'Aberto' ? 'text-danger' : 'text-success';
+                    const statusIcon = chamado[3] === 'Aberto' ? 'bi-exclamation-circle-fill' : 'bi-check-circle-fill';
+                    
+                    ultimosChamadosDiv.innerHTML += `
+                        <a href="#" class="list-group-item list-group-item-action" onclick="abrirDetalhesChamado(${chamado[0]})">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1"><i class="bi bi-hash"></i> ${chamado[6]}</h6>
+                                <small><i class="bi bi-calendar-date"></i> ${dataFormatada}</small>
+                            </div>
+                            <p class="mb-1"><i class="bi bi-person"></i> ${chamado[9]}</p>
+                            <div class="d-flex justify-content-between">
+                                <small><i class="bi bi-chat-text"></i> ${chamado[7] || 'Sem assunto'}</small>
+                                <small class="${statusClass}"><i class="bi ${statusIcon}"></i> ${chamado[3]}</small>
+                            </div>
+                        </a>
+                    `;
+                });
+            } else {
+                ultimosChamadosDiv.innerHTML = '<p class="text-center text-muted mt-3"><i class="bi bi-info-circle"></i> Nenhum chamado registrado.</p>';
+            }
         }
     } catch (erro) {
         console.error('Erro ao carregar estatísticas:', erro);
+        // Removida a mensagem de erro para evitar notificações repetitivas
+        // A falha será registrada apenas no console
     }
 }
 
@@ -1694,7 +1775,14 @@ function hideLoading() {
  * @returns {Promise<object>} Dados da resposta
  */
 async function fetchWithLoading(url, options = {}) {
-    showLoading();
+    // Apenas mostrar o spinner para requisições longas (como salvar/excluir)
+    // Para atualizações automáticas de estatísticas, não mostramos o spinner
+    const showSpinner = !url.includes('/estatisticas') || (options.method && options.method !== 'GET');
+    
+    if (showSpinner) {
+        showLoading();
+    }
+    
     try {
         const response = await fetch(url, options);
         if (!response.ok) {
@@ -1703,10 +1791,15 @@ async function fetchWithLoading(url, options = {}) {
         }
         return await response.json();
     } catch (error) {
-        exibirMensagem(error.message, 'erro');
+        // Para estatísticas, não exibimos mensagens de erro pop-up
+        if (!url.includes('/estatisticas')) {
+            exibirMensagem(error.message, 'erro');
+        }
         throw error;
     } finally {
-        hideLoading();
+        if (showSpinner) {
+            hideLoading();
+        }
     }
 }
 
@@ -1741,16 +1834,23 @@ function paginaAnteriorChamados(status = 'Aberto') {
     }
 }
 
+// Declara a variável refreshInterval globalmente
+let refreshInterval;
+let paginaAtual = 'home'; // Variável para rastrear a página atual
+
 /**
  * Inicia o ciclo de atualização automática das estatísticas
  */
 function startAutoRefresh() {
     stopAutoRefresh();
+    
+    // Usa um intervalo mais longo (2 minutos = 120000ms) para reduzir requisições frequentes
     refreshInterval = setInterval(() => {
-        if (document.visibilityState === 'visible') {
+        // Apenas atualiza se a página estiver visível para o usuário e se estiver na página inicial
+        if (document.visibilityState === 'visible' && paginaAtual === 'home') {
             carregarEstatisticas();
         }
-    }, 30000); // Atualiza a cada 30 segundos
+    }, 120000); // Intervalo ajustado para 2 minutos
 }
 
 /**
@@ -1759,6 +1859,7 @@ function startAutoRefresh() {
 function stopAutoRefresh() {
     if (refreshInterval) {
         clearInterval(refreshInterval);
+        refreshInterval = null;
     }
 }
 
@@ -1777,7 +1878,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
+    if (document.visibilityState === 'visible' && paginaAtual === 'home') {
         carregarEstatisticas();
     }
 });
@@ -2752,10 +2853,20 @@ async function mostrarDetalhesCliente(clienteId) {
  * Verifica se o usuário é administrador após o login
  */
 async function checkAdminStatus() {
-    const response = await fetch('/auth/check-role');
-    const data = await response.json();
-    if (data.role === 'admin') {
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+    try {
+        const response = await fetch('/auth/check-role');
+        const data = await response.json();
+        
+        // Armazena o papel do usuário em sessionStorage para uso posterior
+        sessionStorage.setItem('userRole', data.role);
+        
+        if (data.role === 'admin') {
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.display = 'block';
+            });
+        }
+    } catch (error) {
+        console.error('Erro ao verificar papel do usuário:', error);
     }
 }
 
@@ -3112,6 +3223,12 @@ function carregarChamadosFinalizados() {
             <div class="col-md-12">
                 <h2 class="mb-4">Chamados Finalizados</h2>
                 
+                <!-- Nova caixa de pesquisa para chamados -->
+                <div class="modern-search mb-3">
+                    <input type="text" id="pesquisa-chamados-finalizado" class="form-control" 
+                           placeholder="Pesquisar por cliente, protocolo ou assunto...">
+                </div>
+                
                 <!-- Toolbar moderna -->
                 <div class="modern-toolbar">
                     <button id="btn-abrir" class="btn btn-info" onclick="abrirDetalhesChamado(selectedChamadoId)" disabled>
@@ -3158,6 +3275,9 @@ function carregarChamadosFinalizados() {
         </div>
     `;
     carregarChamados('Finalizado');
+    
+    // Configurar a pesquisa de chamados finalizados
+    configurarPesquisaChamados('finalizado');
 }
 
 if (status === 'Finalizado') {
@@ -4234,3 +4354,518 @@ document.addEventListener('DOMContentLoaded', function() {
     }   
 
 });
+
+// Função para exibir notificação de backup
+function exibirNotificacaoBackup(backupInfo) {
+    if (!backupInfo) return;
+    
+    const mensagemDiv = document.getElementById('mensagem');
+    const tipo = backupInfo.realizado ? 'success' : 'info';
+    const icone = backupInfo.realizado ? 'check-circle' : 'info-circle';
+    
+    // Se foi realizado backup, exibe uma mensagem mais destacada
+    if (backupInfo.realizado) {
+        mensagemDiv.innerHTML = `
+            <i class="bi bi-${icone}"></i> 
+            <strong>Backup do sistema:</strong> ${backupInfo.mensagem}
+        `;
+        mensagemDiv.className = `alert alert-${tipo}`;
+        mensagemDiv.style.display = 'block';
+        
+        // Mantém a mensagem por 6 segundos
+        setTimeout(() => {
+            mensagemDiv.style.display = 'none';
+        }, 6000);
+    } else {
+        // Se o backup não foi feito, registra no console
+        console.info('Sistema de backup:', backupInfo.mensagem);
+    }
+}
+
+/**
+ * Carrega as informações dos backups do sistema (apenas para administradores)
+ */
+async function carregarInfoBackups() {
+    try {
+        const response = await fetch('/system/backups');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            return data;
+        } else {
+            console.error('Erro ao carregar informações de backup:', data.error);
+            return null;
+        }
+    } catch (error) {
+        console.error('Erro ao carregar informações de backup:', error);
+        return null;
+    }
+}
+
+// Modifica a função auth_login original para processar a resposta de backup
+document.addEventListener('DOMContentLoaded', () => {
+    // Aplicação do tema atual
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+    }
+    
+    carregarHome();
+    startAutoRefresh();
+    exibirInfoUsuario();
+    checkAdminStatus();
+    startSessionMonitor();
+});
+
+// Modificar a página de login para processar informações de backup após o login bem-sucedido
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const loginButton = document.getElementById('login-button');
+    const errorDiv = document.getElementById('login-error');
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    
+    // Validação básica
+    if (!username || !password) {
+        errorDiv.textContent = 'Usuário e senha são obrigatórios';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    try {
+        loginButton.disabled = true;
+        loginButton.textContent = 'Entrando...';
+        errorDiv.style.display = 'none';
+
+        const response = await fetch('/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Armazena informações de backup se houver
+            if (data.backup_info) {
+                localStorage.setItem('backup_info', JSON.stringify(data.backup_info));
+            }
+            // Redireciona para a página principal
+            window.location.href = '/';
+        } else {
+            errorDiv.textContent = data.error || 'Credenciais inválidas';
+            errorDiv.style.display = 'block';
+            // Limpa apenas a senha em caso de erro
+            document.getElementById('password').value = '';
+        }
+    } catch (error) {
+        console.error('Erro de login:', error);
+        errorDiv.textContent = 'Erro ao conectar com o servidor';
+        errorDiv.style.display = 'block';
+    } finally {
+        loginButton.disabled = false;
+        loginButton.textContent = 'Entrar';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.removeEventListener('submit', handleLogin); // Remove handler anterior se existir
+        loginForm.addEventListener('submit', handleLogin); // Adiciona o novo handler
+    }
+    
+});
+
+
+// Adicionar às funções executadas após o carregamento do DOM
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar se há informações de backup no localStorage
+    const backupInfo = localStorage.getItem('backup_info');
+    if (backupInfo) {
+        // Exibe a notificação e remove a informação do localStorage
+        exibirNotificacaoBackup(JSON.parse(backupInfo));
+        localStorage.removeItem('backup_info');
+    }
+    
+});
+
+// Adicionar seção de backups à área de administração
+function carregarBackupsPage() {
+    // Verifica o papel do usuário usando session storage em vez de session.get
+    const userRole = sessionStorage.getItem('userRole');
+    
+    if (userRole !== 'admin') {
+        exibirMensagem('Acesso restrito a administradores', 'erro');
+        return;
+    }
+    
+    updateActiveMenu('backups');
+    document.getElementById('conteudo').innerHTML = `
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="mb-4">Gerenciamento de Backups</h2>
+                
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Informações de Backup do Sistema</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3">O sistema realiza automaticamente um backup diário do banco de dados durante o primeiro login do dia.</p>
+                        <p class="mb-3">São mantidos os backups dos últimos 14 dias no servidor.</p>
+                        <div id="backup-info" class="mt-4">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Carregando informações de backup...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Carregar informações dos backups
+    carregarInfoBackups().then(data => {
+        if (!data) {
+            document.getElementById('backup-info').innerHTML = `
+                <div class="alert alert-danger">
+                    Não foi possível carregar as informações de backup.
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div class="backup-summary mb-3">
+                <p><strong>Total de backups:</strong> ${data.total_backups}</p>
+                <p><strong>Diretório:</strong> ${data.diretorio}</p>
+            </div>
+            
+            <h5>Backups Disponíveis:</h5>
+            <div class="table-responsive">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Arquivo</th>
+                            <th>Data de Criação</th>
+                            <th>Tamanho</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        if (data.backups.length === 0) {
+            html += `
+                <tr>
+                    <td colspan="3" class="text-center">Nenhum backup encontrado</td>
+                </tr>
+            `;
+        } else {
+            data.backups.forEach(backup => {
+                html += `
+                    <tr>
+                        <td>${backup.nome}</td>
+                        <td>${backup.data_criacao}</td>
+                        <td>${backup.tamanho}</td>
+                    </tr>
+                `;
+            });
+        }
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        document.getElementById('backup-info').innerHTML = html;
+    });
+}
+
+/**
+ * Gerencia o login do usuário
+ * @param {Event} e - Evento do formulário
+ */
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const loginButton = document.getElementById('login-button');
+    const errorDiv = document.getElementById('login-error');
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    
+    // Validação básica
+    if (!username || !password) {
+        errorDiv.textContent = 'Usuário e senha são obrigatórios';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    try {
+        loginButton.disabled = true;
+        loginButton.textContent = 'Entrando...';
+        errorDiv.style.display = 'none';
+
+        const response = await fetch('/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Armazena informações de backup se houver
+            if (data.backup_info) {
+                localStorage.setItem('backup_info', JSON.stringify(data.backup_info));
+            }
+            // Redireciona para a página principal
+            window.location.href = '/';
+        } else {
+            errorDiv.textContent = data.error || 'Credenciais inválidas';
+            errorDiv.style.display = 'block';
+            // Limpa apenas a senha em caso de erro
+            document.getElementById('password').value = '';
+        }
+    } catch (error) {
+        console.error('Erro de login:', error);
+        errorDiv.textContent = 'Erro ao conectar com o servidor';
+        errorDiv.style.display = 'block';
+    } finally {
+        loginButton.disabled = false;
+        loginButton.textContent = 'Entrar';
+    }
+}
+
+// Adiciona o event listener para o formulário de login quando a página for carregada
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.removeEventListener('submit', handleLogin); // Limpa listeners duplicados
+        loginForm.addEventListener('submit', handleLogin);
+    }
+    
+    // Verificar se há informações de backup no localStorage para exibir
+    const backupInfo = localStorage.getItem('backup_info');
+    if (backupInfo) {
+        // Exibe a notificação e remove a informação do localStorage
+        exibirNotificacaoBackup(JSON.parse(backupInfo));
+        localStorage.removeItem('backup_info');
+    }
+    
+    // Resto do código para inicialização
+    if (document.body.classList.contains('index-page')) {
+        // Aplica o tema salvo se existir
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+        
+        carregarHome();
+        startAutoRefresh();
+        exibirInfoUsuario();
+        checkAdminStatus();
+        startSessionMonitor();
+    }
+});
+
+/**
+ * Exibe notificação sobre o backup do sistema
+ * @param {Object} backupInfo - Informações do backup
+ */
+function exibirNotificacaoBackup(backupInfo) {
+    if (!backupInfo) return;
+    
+    const mensagemDiv = document.getElementById('mensagem');
+    if (!mensagemDiv) return;
+    
+    const tipo = backupInfo.realizado ? 'success' : 'info';
+    const icone = backupInfo.realizado ? 'check-circle' : 'info-circle';
+    
+    // Se foi realizado backup, exibe uma mensagem mais destacada
+    if (backupInfo.realizado) {
+        mensagemDiv.innerHTML = `
+            <i class="bi bi-${icone}"></i> 
+            <strong>Backup do sistema:</strong> ${backupInfo.mensagem}
+        `;
+        mensagemDiv.className = `alert alert-${tipo}`;
+        mensagemDiv.style.display = 'block';
+        
+        // Mantém a mensagem por 6 segundos
+        setTimeout(() => {
+            if (mensagemDiv) mensagemDiv.style.display = 'none';
+        }, 6000);
+    } else {
+        // Se o backup não foi feito, registra no console
+        console.info('Sistema de backup:', backupInfo.mensagem);
+    }
+}
+
+/**
+ * Configura o campo de pesquisa para filtrar chamados em tempo real
+ * @param {string} tipo - Tipo de chamados ('aberto' ou 'finalizado')
+ */
+function configurarPesquisaChamados(tipo) {
+    const inputId = `pesquisa-chamados-${tipo}`;
+    const input = document.getElementById(inputId);
+    
+    if (!input) return;
+    
+    let timeoutId;
+    
+    input.addEventListener('input', function() {
+        // Limpa o timeout anterior para evitar múltiplas pesquisas
+        clearTimeout(timeoutId);
+        
+        // Define um novo timeout para filtrar apenas quando o usuário parar de digitar
+        timeoutId = setTimeout(() => {
+            const termo = input.value.toLowerCase().trim();
+            
+            if (termo.length === 0) {
+                // Se o campo estiver vazio, recarrega a listagem normal
+                const status = tipo === 'aberto' ? 'Aberto' : 'Finalizado';
+                if (status === 'Aberto') {
+                    paginaAtualChamadosAbertos = 1;
+                } else {
+                    paginaAtualChamadosFinalizados = 1;
+                }
+                carregarChamados(status);
+                
+                // Mostrar controles de paginação normais
+                document.getElementById(`btn-anterior-chamados-${tipo}`).style.display = '';
+                document.getElementById(`btn-proximo-chamados-${tipo}`).style.display = '';
+                document.getElementById(`pagina-atual-chamados-${tipo}`).style.display = '';
+            } else {
+                // Se tiver termo de busca, faz busca no servidor
+                buscarChamadosPorTermo(termo, tipo);
+            }
+        }, 300); // 300ms de delay
+    });
+}
+
+/**
+ * Busca chamados no servidor com base no termo de pesquisa
+ * @param {string} termo - Termo de pesquisa
+ * @param {string} tipo - Tipo de chamados ('aberto' ou 'finalizado')
+ */
+async function buscarChamadosPorTermo(termo, tipo) {
+    try {
+        const status = tipo === 'aberto' ? 'Aberto' : 'Finalizado';
+        const tableId = tipo === 'aberto' ? 'chamados-list' : 'chamados-finalizados';
+        
+        // Mostrar indicador de carregamento
+        document.getElementById(tableId).innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Buscando...</span>
+                    </div>
+                </td>
+            </tr>
+        `;
+        
+        // Fazer requisição à API para buscar chamados em todas as páginas
+        const response = await fetch(`/chamados/buscar?termo=${encodeURIComponent(termo)}&status=${status}`);
+        
+        if (!response.ok) {
+            throw new Error('Erro na busca de chamados');
+        }
+        
+        const data = await response.json();
+        
+        // Esconder controles de paginação durante a busca
+        document.getElementById(`btn-anterior-chamados-${tipo}`).style.display = 'none';
+        document.getElementById(`btn-proximo-chamados-${tipo}`).style.display = 'none';
+        document.getElementById(`pagina-atual-chamados-${tipo}`).style.display = 'none';
+        
+        // Renderizar os resultados da busca
+        renderizarResultadosBusca(data.chamados, tipo);
+        
+    } catch (error) {
+        console.error('Erro ao buscar chamados:', error);
+        exibirMensagem('Erro ao buscar chamados: ' + error.message, 'erro');
+    }
+}
+
+/**
+ * Renderiza os resultados da busca de chamados na tabela
+ * @param {Array} chamados - Lista de chamados encontrados
+ * @param {string} tipo - Tipo de chamados ('aberto' ou 'finalizado')
+ */
+function renderizarResultadosBusca(chamados, tipo) {
+    const tableId = tipo === 'aberto' ? 'chamados-list' : 'chamados-finalizados';
+    const tbody = document.getElementById(tableId);
+    
+    // Se não encontrou resultados
+    if (chamados.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center">
+                    Nenhum chamado encontrado. Tente outro termo de pesquisa.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Gerar HTML com os resultados encontrados
+    if (tipo === 'aberto') {
+        tbody.innerHTML = chamados.map(chamado => `
+            <tr data-id="${chamado[0]}" style="cursor:pointer;">
+                <td>${chamado[6] || 'N/A'}</td>
+                <td>${chamado[0]}</td>
+                <td>${chamado[9] || 'Cliente removido'}</td>
+                <td>${formatarData(chamado[4])}</td>
+                <td>${chamado[7] || ''}</td>
+                <td><span class="badge status-badge status-${chamado[3].toLowerCase()}">${chamado[3]}</span></td>
+            </tr>
+        `).join('');
+    } else {
+        tbody.innerHTML = chamados.map(chamado => `
+            <tr data-id="${chamado[0]}" style="cursor:pointer;">
+                <td>${chamado[6] || 'N/A'}</td>
+                <td>${chamado[9] || 'Cliente removido'}</td>
+                <td>${formatarData(chamado[4])}</td>
+                <td>${chamado[7] || ''}</td>
+                <td>${formatarData(chamado[5])}</td>
+                <td><span class="badge status-badge status-${chamado[3].toLowerCase()}">${chamado[3]}</span></td>
+            </tr>
+        `).join('');
+    }
+    
+    // Adicionar event listeners para selecionar linhas
+    const tabelaId = tipo === 'aberto' ? 'chamados-list' : 'chamados-finalizados';
+    document.querySelectorAll(`#${tabelaId} tr`).forEach(row => {
+        row.addEventListener('click', function() {
+            // Remover seleção anterior
+            document.querySelectorAll(`#${tabelaId} tr`).forEach(r => r.classList.remove('table-warning'));
+            
+            // Adicionar seleção à linha clicada
+            this.classList.add('table-warning');
+            
+            // Armazenar ID do chamado selecionado
+            selectedChamadoId = this.getAttribute('data-id');
+            
+            // Habilitar botões de ação
+            const btnPrefix = tipo === 'aberto' ? '' : '';
+            document.getElementById('btn-abrir').disabled = false;
+            if (tipo === 'aberto') {
+                document.getElementById('btn-finalizar').disabled = false;
+                document.getElementById('btn-excluir').disabled = false;
+            } else {
+                document.getElementById('btn-reabrir').disabled = false;
+                document.getElementById('btn-excluir').disabled = false;
+            }
+        });
+    });
+}
