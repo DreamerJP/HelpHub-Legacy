@@ -43,11 +43,40 @@ body {
 
 /* Rodapé fixado na parte inferior da página */
 footer {
-    margin-top: auto;
-    padding: 10px 0;
-    text-align: center;
-    background-color: #343a40;
-    color: white;
+    background-color: transparent;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    height: 22px;
+    z-index: 1000;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(8px);
+}
+
+footer .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    max-width: 1200px;
+}
+
+footer p {
+    margin: 0;
+    font-size: 0.7rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+footer p i {
+    margin-right: 3px;
+    font-size: 0.65rem;
+}
+
+footer p i.bi-envelope {
+    margin-left: 10px;
 }
 
 /* Componente de mensagem de notificação flutuante */
@@ -95,7 +124,12 @@ body.dark-mode .navbar {
 
 /* Rodapé no tema escuro */
 body.dark-mode footer {
-    background-color: #212529;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: rgba(33, 37, 41, 0.7);
+}
+
+body.dark-mode footer p {
+    color: rgba(255, 255, 255, 0.5);
 }
 
 /* ========================================================
@@ -923,6 +957,54 @@ body.dark-mode .modern-search input {
 body.dark-mode .modern-search input:focus {
     border-color: #90caf9;
     box-shadow: 0 0 0 4px rgba(144, 202, 249, 0.1);
+}
+
+/* Estilo para o campo de pesquisa de chamados */
+.modern-search {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.modern-search input {
+    border-radius: 20px;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    width: 100%;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.modern-search input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+.modern-search::before {
+    content: "\f52a";
+    font-family: "bootstrap-icons";
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    pointer-events: none;
+}
+
+/* Adaptação para tema escuro */
+body.dark-mode .modern-search input {
+    background-color: #333;
+    border-color: #444;
+    color: #fff;
+}
+
+body.dark-mode .modern-search input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+body.dark-mode .modern-search::before {
+    color: #adb5bd;
 }
 
 /* ========================================================
