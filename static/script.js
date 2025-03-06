@@ -50,7 +50,7 @@ function checkSession() {
     const timeSinceLastActivity = (Date.now() - lastUserActivity) / (60 * 1000); // Em minutos
     console.log(`Tempo desde última atividade: ${timeSinceLastActivity.toFixed(2)} minutos`);
 
-    // Avisa quando faltar 30 segundos para expirar
+    // Avisa quando faltar 30 minutos para expirar
     if (timeSinceLastActivity >= (SESSION_TIMEOUT - SESSION_WARNING_TIME)) {
         // Obtém o modal ou cria uma nova instância se não existir
         let sessionWarningModal = bootstrap.Modal.getInstance(document.getElementById('sessionWarningModal'));
