@@ -213,7 +213,7 @@ def get_or_generate_secret_key():
 app.secret_key = get_or_generate_secret_key()
 
 # Configuração do tempo da sessão
-app.permanent_session_lifetime = timedelta(hours=8)  # Sessão dura 8 horas
+app.permanent_session_lifetime = timedelta(minutes=480)  # Sessão dura 8 horas
 
 # Hook executado antes de cada requisição para manter a sessão ativa
 @app.before_request
@@ -445,6 +445,68 @@ def atualizar_chamados_sem_protocolo():
 
 # Executa a atualização dos protocolos de chamados ao iniciar o aplicativo
 atualizar_chamados_sem_protocolo()
+
+# ========================================================
+# SISTEMA DE BACKUP DE BANCO DE DADOS
+# ========================================================
+
+import shutil
+import glob
+import os
+from datetime import datetime, timedelta
+
+# Define o diretório para os backups
+BACKUP_DIR = os.path.join(BASE_DIR, 'backups')
+
+# Garante que o diretório de backups existe
+if not os.path.exists(BACKUP_DIR):
+    try:
+        os.makedirs(BACKUP_DIR)
+        app_logger.info(f"Diretório de backups criado em {BACKUP_DIR}")
+    except Exception as e:
+        app_logger.error(f"Erro ao criar diretório de backups: {e}")
+
+def realizar_backup_diario():
+    """
+    Realiza um backup do banco de dados e mantém apenas os últimos 14 backups
+    Retorna: (bool, str) - (sucesso, mensagem)
+    """
+    try:
+        # Verifica se o diretório de backups existe, se não, cria
+        if not os.path.exists(BACKUP_DIR):
+            os.makedirs(BACKUP_DIR)
+            app_logger.info(f"Diretório de backups criado em {BACKUP_DIR}")
+        
+        # Cria o nome do arquivo de backup com timestamp
+        timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        backup_file = os.path.join(BACKUP_DIR, f'backup_{timestamp}.db')
+        
+        # Realiza o backup (cópia do arquivo)
+        shutil.copy2(DATABASE, backup_file)
+        
+        app_logger.info(f"Backup realizado com sucesso: {backup_file}")
+        
+        # Lista e ordena todos os backups existentes por data de criação (mais antigo primeiro)
+        todos_backups = sorted(
+            glob.glob(os.path.join(BACKUP_DIR, 'backup_*.db')),
+            key=lambda x: os.path.getctime(x)
+        )
+        
+        # Se houver mais de 14 backups, remove os mais antigos
+        if len(todos_backups) > 14:
+            backups_para_remover = todos_backups[:-14]  # Pega todos exceto os 14 mais recentes
+            for arquivo in backups_para_remover:
+                try:
+                    os.remove(arquivo)
+                    app_logger.info(f"Backup antigo removido: {arquivo}")
+                except Exception as e:
+                    app_logger.error(f"Erro ao remover backup antigo {arquivo}: {e}")
+                
+        return True, f"Backup realizado com sucesso em {timestamp}"
+    except Exception as e:
+        erro_msg = f"Erro ao realizar backup: {str(e)}"
+        app_logger.error(erro_msg)
+        return False, erro_msg
 
 # ========================================================
 # ROTAS ESTÁTICAS - INTERFACE DO USUÁRIO
@@ -1182,6 +1244,64 @@ def obter_chamado(id):
         # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro ao obter detalhes do chamado'}), 500
 
+# Rota para buscar chamados com base em um termo de pesquisa e status
+@app.route('/chamados/buscar', methods=['GET'])
+def buscar_chamados():
+    try:
+        # Obtém o termo de pesquisa e o status da query string
+        termo = request.args.get('termo', '')
+        status = request.args.get('status', 'Aberto')
+        
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Query SQL para buscar chamados com base no termo de pesquisa e status
+            # Busca em vários campos: protocolo, assunto, nome do cliente
+            query = '''
+                SELECT 
+                    c.id,
+                    c.cliente_id,
+                    c.descricao,
+                    c.status,
+                    c.data_abertura,
+                    c.data_fechamento,
+                    c.protocolo,
+                    c.assunto,
+                    c.telefone,
+                    cl.nome as cliente_nome
+                FROM chamados c
+                LEFT JOIN clientes cl ON c.cliente_id = cl.id
+                WHERE c.status = ? AND (
+                    c.protocolo LIKE ? OR
+                    c.assunto LIKE ? OR
+                    cl.nome LIKE ? OR
+                    c.descricao LIKE ?
+                )
+                ORDER BY c.data_abertura DESC
+            '''
+            
+            # Define o termo de pesquisa com curingas para busca parcial
+            search_term = f'%{termo}%'
+            
+            # Executa a query para buscar os chamados que correspondem ao termo
+            cursor.execute(query, (status, search_term, search_term, search_term, search_term))
+            chamados = cursor.fetchall()
+            
+            # Registra operação no log
+            app_logger.info(f"Busca de chamados realizada - Status: {status}, Termo: {termo}")
+            
+            # Retorna os chamados encontrados
+            return jsonify({
+                'chamados': chamados,
+                'total': len(chamados)
+            })
+    except Exception as e:
+        # Registra falha no log
+        app_logger.error(f"Erro na busca de chamados: {e}")
+        
+        # Retorna mensagem de erro genérica
+        return jsonify({'erro': 'Erro na busca de chamados'}), 500
+
 # ========================================================
 # API DE ESTATÍSTICAS
 # ========================================================
@@ -1265,56 +1385,67 @@ def login_required(f):
 @app.route('/auth/login', methods=['POST'])
 def auth_login():
     try:
-        # Obtém os dados de login do corpo da requisição
-        data = request.json
-        username = data.get('username', '').strip()
+        dados = request.json
+        username = dados.get('username', '')
+        password = dados.get('password', '')
         
-        # Validação básica dos dados recebidos
-        if not username:
-            auth_logger.warning(f'Tentativa de login sem username: {request.remote_addr}')
-            return jsonify({'error': 'Username required'}), 400
-            
-        auth_logger.info(f'Tentativa de login: {username} de {request.remote_addr}')
-        
-        # Validação mais rigorosa
-        password = data.get('password', '').strip()
         if not username or not password:
-            return jsonify({
-                'success': False,
-                'error': 'Username and password are required'
-            }), 400
-            
+            auth_logger.warning(f"Tentativa de login sem usuário ou senha")
+            return jsonify({'success': False, 'error': 'Usuário e senha são obrigatórios'}), 400
+        
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute('SELECT id, username, password, role FROM usuarios WHERE username = ? AND username != ""', (username,))
-            user = cursor.fetchone()
+            # Busca o usuário no banco de dados
+            cursor.execute('SELECT id, username, password, role FROM usuarios WHERE username = ?', (username,))
+            usuario = cursor.fetchone()
             
-            if user and check_password_hash(user[2], password):
-                session.clear()
-                session.permanent = True  # Sessão dura 31 dias
-                session['user_id'] = user[0]
-                session['username'] = user[1]
-                session['role'] = user[3]
+            # Verifica se o usuário existe e se a senha está correta
+            if usuario and check_password_hash(usuario[2], password):
+                # Armazena os dados do usuário na sessão
+                session['user_id'] = usuario[0]
+                session['username'] = usuario[1]
+                session['role'] = usuario[3]
+                session.permanent = True
+                
+                auth_logger.info(f"Login bem-sucedido para o usuário {username}")
+                
+                # Verifica se é necessário fazer backup
+                backup_info = None
+                hoje = datetime.now().strftime('%Y-%m-%d')
+                
+                # Verifica se já foi feito backup hoje
+                arquivos_hoje = glob.glob(os.path.join(BACKUP_DIR, f'backup_{hoje}_*.db'))
+                
+                if not arquivos_hoje:
+                    # Nenhum backup feito hoje, então realiza o backup
+                    sucesso, mensagem = realizar_backup_diario()
+                    backup_info = {
+                        'realizado': sucesso,
+                        'mensagem': mensagem
+                    }
+                    app_logger.info(f"Verificação de backup após login: {mensagem}")
+                else:
+                    backup_info = {
+                        'realizado': False,
+                        'mensagem': f"Backup já realizado hoje ({len(arquivos_hoje)} arquivo(s))"
+                    }
+                    app_logger.info(f"Verificação de backup após login: já realizado hoje")
                 
                 return jsonify({
-                    'success': True,
-                    'message': 'Login successful',
-                    'role': user[3]
+                    'success': True, 
+                    'user': {
+                        'username': usuario[1],
+                        'role': usuario[3]
+                    },
+                    'backup_info': backup_info
                 })
-            
-            # Tempo de espera para dificultar força bruta
-            sleep(1)
-            return jsonify({
-                'success': False,
-                'error': 'Invalid credentials'
-            }), 401
-            
+            else:
+                auth_logger.warning(f"Tentativa de login malsucedida para o usuário {username}")
+                return jsonify({'success': False, 'error': 'Credenciais inválidas'}), 401
+                
     except Exception as e:
-        auth_logger.error(f'Erro no login: {str(e)}', exc_info=True)
-        return jsonify({
-            'success': False,
-            'error': 'Server error'
-        }), 500
+        auth_logger.error(f"Erro no login: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # Rota para logout de usuários
 @app.route('/auth/logout')
@@ -1345,6 +1476,48 @@ def renew_session():
         return jsonify({'success': True})
     app_logger.warning("Tentativa de renovar sessão sem user_id na sessão.")
     return jsonify({'success': False}), 401
+
+# Rota para obter informações sobre os backups
+@app.route('/system/backups', methods=['GET'])
+@login_required
+def obter_info_backups():
+    try:
+        # Apenas administradores podem ver informações detalhadas dos backups
+        if session.get('role') != 'admin':
+            return jsonify({
+                'success': False,
+                'error': 'Acesso não autorizado'
+            }), 403
+            
+        # Lista todos os arquivos de backup
+        todos_backups = sorted(glob.glob(os.path.join(BACKUP_DIR, 'backup_*.db')))
+        
+        # Obtém informações detalhadas de cada backup
+        backups_info = []
+        for arquivo in todos_backups:
+            nome_arquivo = os.path.basename(arquivo)
+            tamanho = os.path.getsize(arquivo) / (1024 * 1024)  # Tamanho em MB
+            data_criacao = datetime.fromtimestamp(os.path.getctime(arquivo)).strftime('%Y-%m-%d %H:%M:%S')
+            
+            backups_info.append({
+                'nome': nome_arquivo,
+                'tamanho': f"{tamanho:.2f} MB",
+                'data_criacao': data_criacao
+            })
+            
+        return jsonify({
+            'success': True,
+            'total_backups': len(backups_info),
+            'backups': backups_info,
+            'diretorio': BACKUP_DIR
+        })
+        
+    except Exception as e:
+        app_logger.error(f"Erro ao obter informações de backup: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f"Erro ao obter informações de backup: {str(e)}"
+        }), 500
 
 # ========================================================
 # GERENCIAMENTO DE USUÁRIOS
@@ -1403,7 +1576,7 @@ def criar_usuario():
         # Validação básica dos dados recebidos
         if not username or not password:
             app_logger.warning("Tentativa de criar usuário sem username ou password.")
-            return jsonify({'error': 'Username and password are required'}), 400
+            return jsonify({'error': 'Username e password são obrigatórios'}), 400
 
         with get_db_connection() as conn:
             cursor = conn.cursor()
