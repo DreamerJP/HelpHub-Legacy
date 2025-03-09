@@ -50,7 +50,7 @@ function checkSession() {
     const timeSinceLastActivity = (Date.now() - lastUserActivity) / (60 * 1000); // Em minutos
     console.log(`Tempo desde última atividade: ${timeSinceLastActivity.toFixed(2)} minutos`);
 
-    // Avisa quando faltar 30 minutos para expirar
+    // Avisa quando faltar 30 segundos para expirar
     if (timeSinceLastActivity >= (SESSION_TIMEOUT - SESSION_WARNING_TIME)) {
         // Obtém o modal ou cria uma nova instância se não existir
         let sessionWarningModal = bootstrap.Modal.getInstance(document.getElementById('sessionWarningModal'));
@@ -465,40 +465,35 @@ function carregarAbrirChamado() {
         document.getElementById('chamados-content').innerHTML = `
             <div class="row">
                 <div class="col-md-12">
-                    <h2>Abrir Chamado</h2>
-                    <div class="card">
-                        <div class="card-body">
-                            <form id="chamado-form">
-                                <div class="mb-3">
-                                    <label for="protocolo" class="form-label">Protocolo:</label>
-                                    <input type="text" id="protocolo" class="form-control" readonly>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="assunto" class="form-label">Assunto:</label>
-                                    <input type="text" id="assunto" class="form-control" placeholder="Digite o assunto">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="cliente_busca" class="form-label">Buscar Cliente:</label>
-                                    <div class="input-group">
-                                        <input type="text" id="cliente_busca" class="form-control" 
-                                               placeholder="Digite ID ou nome do cliente">
-                                        <input type="hidden" id="cliente_id">
-                                    </div>
-                                    <div id="resultados_cliente" class="list-group mt-2" style="max-height: 200px; overflow-y: auto;">
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="telefone_chamado" class="form-label">Telefone:</label>
-                                    <input type="text" id="telefone_chamado" class="form-control" placeholder="Telefone automatizado">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="descricao" class="form-label">Descrição:</label>
-                                    <textarea id="descricao" class="form-control" rows="3" required></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Abrir Chamado</button>
-                            </form>
+                    <h2 class="mb-4">Abrir Novo Chamado</h2>
+                    <form id="chamado-form">
+                        <div class="mb-3">
+                            <label for="cliente_busca" class="form-label">Cliente:</label>
+                            <input type="text" class="form-control" id="cliente_busca" 
+                                   placeholder="Digite para buscar cliente...">
+                            <input type="hidden" id="cliente_id">
+                            <div id="resultados_cliente" class="list-group mt-2"></div>
                         </div>
-                    </div>
+                        <!-- Solicitante -->
+                        <div class="mb-3">
+                            <label for="solicitante" class="form-label">Solicitante:</label>
+                            <input type="text" class="form-control" id="solicitante" 
+                                   placeholder="Nome do solicitante">
+                        </div>
+                        <div class="mb-3">
+                            <label for="telefone_chamado" class="form-label">Telefone:</label>
+                            <input type="text" class="form-control" id="telefone_chamado">
+                        </div>
+                        <div class="mb-3">
+                            <label for="assunto" class="form-label">Assunto:</label>
+                            <input type="text" class="form-control" id="assunto">
+                        </div>
+                        <div class="mb-3">
+                            <label for="descricao" class="form-label">Descrição:</label>
+                            <textarea class="form-control" id="descricao" rows="5"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Abrir Chamado</button>
+                    </form>
                 </div>
             </div>
         `;
@@ -587,6 +582,7 @@ function configurarFormularioChamado() {
         const cliente_id = document.getElementById('cliente_id').value; // Obtém o ID do cliente
         const telefone = document.getElementById('telefone_chamado').value; // Obtém o telefone
         const descricao = document.getElementById('descricao').value; // Obtém a descrição
+        const solicitante = document.getElementById('solicitante').value;
         
         if (!cliente_id) {
             exibirMensagem('Selecione um cliente', 'erro'); // Exibe a mensagem de erro
@@ -598,7 +594,8 @@ function configurarFormularioChamado() {
             assunto,
             cliente_id: parseInt(cliente_id),
             telefone,
-            descricao
+            descricao,
+            solicitante
         };
 
         try {
@@ -883,7 +880,7 @@ function carregarChamados(status = 'Aberto') {
                         container.innerHTML = chamadosArray.map(chamado => { // Renderiza os chamados na tabela
                             const protocolo = chamado[6] ? chamado[6].replace(/\D/g, '') : 'N/A'; // Obtém o protocolo
                             const clienteId = chamado[1] || 'N/A'; // Obtém o ID do cliente
-                            const clienteNome = chamado[9] || 'Cliente removido'; // Obtém o nome do cliente (vindo do JOIN)
+                            const clienteNome = chamado[10] || 'Cliente removido'; // Obtém o nome do cliente (vindo do JOIN)
                             const dataAbertura = chamado[4]; // Obtém a data de abertura
                             const assunto = chamado[7] || ''; // Obtém o assunto
                             return `<tr data-id="${chamado[0]}" style="cursor:pointer;">
@@ -922,7 +919,7 @@ function carregarChamados(status = 'Aberto') {
                     if (container) {
                         container.innerHTML = chamadosArray.map(chamado => { // Renderiza os chamados na tabela
                             const protocolo = chamado[6] ? chamado[6].replace(/\D/g, '') : 'N/A'; // Obtém o protocolo
-                            const clienteNome = chamado[9] || 'Cliente removido'; // Obtém o nome do cliente (vindo do JOIN)
+                            const clienteNome = chamado[10] || 'Cliente removido'; // Obtém o nome do cliente (vindo do JOIN)
                             const dataAbertura = chamado[4]; // Obtém a data de abertura
                             const dataFechamento = chamado[5] || ''; // Obtém a data de fechamento
                             const assunto = chamado[7] || ''; // Obtém o assunto
@@ -1700,7 +1697,7 @@ async function carregarEstatisticas() {
                                 <h6 class="mb-1"><i class="bi bi-hash"></i> ${chamado[6]}</h6>
                                 <small><i class="bi bi-calendar-date"></i> ${dataFormatada}</small>
                             </div>
-                            <p class="mb-1"><i class="bi bi-person"></i> ${chamado[9]}</p>
+                            <p class="mb-1"><i class="bi bi-person"></i> ${chamado[10]}</p>
                             <div class="d-flex justify-content-between">
                                 <small><i class="bi bi-chat-text"></i> ${chamado[7] || 'Sem assunto'}</small>
                                 <small class="${statusClass}"><i class="bi ${statusIcon}"></i> ${chamado[3]}</small>
@@ -2155,6 +2152,11 @@ async function carregarDetalhesChamadoPage(id) {
                             <input type="text" id="assunto" class="form-control" value="${chamado.assunto || ''}" ${isFinalizado ? 'readonly' : ''}>
                         </div>
                         ${clienteHTML}
+                        <div class="mb-3 col-md-6">
+                            <label for="solicitante" class="form-label">Solicitante:</label>
+                            <input type="text" id="solicitante" class="form-control" 
+                                   value="${chamado.solicitante || ''}" ${isFinalizado ? 'readonly' : ''}>
+                        </div>
                         <!-- Container para a seção de descrição e andamentos -->
                         <div id="description-and-andamentos-container" style="display: flex; overflow: hidden; width: 100%;">
                             <!-- Seção de Descrição Principal -->
@@ -2188,9 +2190,17 @@ async function carregarDetalhesChamadoPage(id) {
                             <label for="data_fechamento" class="form-label">Data de Fechamento:</label>
                             <input type="text" id="data_fechamento" class="form-control" value="${chamado.data_fechamento || ''}" readonly>
                         </div>
-                        ${!isFinalizado ? `
-                        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
-                        ` : ''}
+                        <div class="d-flex mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Salvar Alterações
+                            </button>
+                            ${chamado.status === 'Aberto' ? `
+                                <button type="button" class="btn btn-success ms-2" onclick="finalizarEAtualizar(${id})">
+                                    <i class="bi bi-check-circle"></i> Finalizar Chamado
+                                </button>
+                            ` : ''}
+                        </div>
+                        <input type="hidden" id="chamado_id" value="${chamado.id}">
                     </form>
                 </div>
             </div>
@@ -2323,34 +2333,74 @@ async function carregarDetalhesChamadoPage(id) {
         if (!isFinalizado) {
             document.getElementById('detalhes-chamado-form').onsubmit = async (e) => {
                 e.preventDefault();
-                const chamadoAtualizado = {
+                
+                const chamadoId = document.getElementById('chamado_id').value;
+                const dadosAtualizados = {
                     assunto: document.getElementById('assunto').value,
-                    descricao: document.getElementById('descricao').value,
-                    telefone: document.getElementById('telefone_chamado').value,
-                    status: chamado.status
+                    solicitante: document.getElementById('solicitante').value,
+                    status: document.getElementById('status').value,
+                    descricao: document.getElementById('descricao').value
                 };
+            
                 try {
-                    const resposta = await fetch(`http://localhost:5000/chamados/${chamado.id}`, {
+                    const response = await fetch(`/chamados/${chamadoId}`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(chamadoAtualizado)
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(dadosAtualizados)
                     });
-                    if (response.ok) {
-                        exibirMensagem('Chamado atualizado com sucesso!');
-                        carregarChamadosPage();
-                    } else {
-                        const erro = await resposta.json();
-                        exibirMensagem(`Erro: ${erro.erro}`, 'erro');
+            
+                    if (!response.ok) {
+                        throw new Error('Erro ao atualizar chamado');
                     }
+            
+                    const result = await response.json();
+                    exibirMensagem(result.mensagem || 'Chamado atualizado com sucesso!', 'sucesso');
+                    
+                    // Fecha o modal após salvar
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('chamadoModal'));
+                    modal.hide();
+                    
+                    // Recarrega a lista de chamados
+                    carregarChamados(dadosAtualizados.status);
+                    
                 } catch (erro) {
                     console.error('Erro ao atualizar chamado:', erro);
-                    exibirMensagem('Erro ao atualizar chamado', 'erro');
                 }
             };
         }
     } catch (erro) {
         console.error('Erro ao carregar detalhes do chamado:', erro);
         exibirMensagem('Erro ao carregar detalhes do chamado', 'erro');
+    }
+}
+
+// Adicionar esta nova função para finalizar e atualizar a interface
+async function finalizarEAtualizar(id) {
+    try {
+        await finalizarChamado(id);
+        // Recarrega os detalhes do chamado após finalizar
+        const response = await fetch(`/chamados/${id}`);
+        const chamado = await response.json();
+        
+        // Desabilita todos os campos do formulário
+        const form = document.getElementById('detalhes-chamado-form');
+        const campos = form.querySelectorAll('input, textarea, select, button[type="submit"]');
+        campos.forEach(campo => campo.disabled = true);
+        
+        // Remove o botão de finalizar
+        const btnFinalizar = form.querySelector('button[onclick^="finalizarEAtualizar"]');
+        if (btnFinalizar) {
+            btnFinalizar.remove();
+        }
+        
+        // Exibe mensagem de sucesso
+        exibirMensagem('Chamado finalizado com sucesso!', 'sucesso');
+        
+    } catch (erro) {
+        console.error('Erro:', erro);
+        exibirMensagem('Erro ao finalizar chamado', 'erro');
     }
 }
 
@@ -4824,7 +4874,7 @@ function renderizarResultadosBusca(chamados, tipo) {
             <tr data-id="${chamado[0]}" style="cursor:pointer;">
                 <td>${chamado[6] || 'N/A'}</td>
                 <td>${chamado[0]}</td>
-                <td>${chamado[9] || 'Cliente removido'}</td>
+                <td>${chamado[10] || 'Cliente removido'}</td>
                 <td>${formatarData(chamado[4])}</td>
                 <td>${chamado[7] || ''}</td>
                 <td><span class="badge status-badge status-${chamado[3].toLowerCase()}">${chamado[3]}</span></td>
@@ -4834,7 +4884,7 @@ function renderizarResultadosBusca(chamados, tipo) {
         tbody.innerHTML = chamados.map(chamado => `
             <tr data-id="${chamado[0]}" style="cursor:pointer;">
                 <td>${chamado[6] || 'N/A'}</td>
-                <td>${chamado[9] || 'Cliente removido'}</td>
+                <td>${chamado[10] || 'Cliente removido'}</td>
                 <td>${formatarData(chamado[4])}</td>
                 <td>${chamado[7] || ''}</td>
                 <td>${formatarData(chamado[5])}</td>
@@ -4867,5 +4917,310 @@ function renderizarResultadosBusca(chamados, tipo) {
                 document.getElementById('btn-excluir').disabled = false;
             }
         });
+    });
+}
+
+// Adicionar à função carregarBackupsPage
+function carregarBackupsPage() {
+    updateActiveMenu('backups');
+    document.getElementById('conteudo').innerHTML = `
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="mb-4">Gerenciamento de Backups</h2>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-gear-fill"></i> Configurações</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="config-backup-form">
+                            <div class="mb-3">
+                                <label for="backup-dir" class="form-label">Diretório para salvar backups:</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="backup-dir" placeholder="/caminho/para/backups">
+                                    <button class="btn btn-primary" type="submit">Salvar</button>
+                                </div>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i> O caminho deve ser um diretório válido com permissões de escrita.
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informações sobre Backups</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-primary">
+                            <h6><i class="bi bi-clock-history"></i> Como funciona o backup automático:</h6>
+                            <ul>
+                                <li>O sistema realiza automaticamente um backup diário do banco de dados durante o primeiro login do dia.</li>
+                                <li>São mantidos os backups dos últimos 14 dias no servidor, sendo os mais antigos substituídos pelos novos.</li>
+                                <li>Cada backup é um arquivo completo do banco de dados, contendo todos os dados do sistema no momento em que foi gerado.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-archive-fill"></i> Backups Disponíveis</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="backup-info">
+                                <i class="bi bi-folder"></i> Diretório atual: <span id="backup-dir-atual">Carregando...</span>
+                            </div>
+                            <button class="btn btn-success" onclick="realizarBackupManual()">
+                                <i class="bi bi-cloud-arrow-up"></i> Realizar Backup Agora
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome do Arquivo</th>
+                                        <th>Data de Criação</th>
+                                        <th>Tamanho</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lista-backups">
+                                    <tr>
+                                        <td colspan="3" class="text-center">Carregando backups...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Carregar as informações de backup
+    carregarInfoBackups();
+
+    // Configurar o formulário de configuração de backup
+    document.getElementById('config-backup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const diretorio = document.getElementById('backup-dir').value.trim();
+        if (!diretorio) {
+            exibirMensagem('Por favor, informe um diretório válido', 'erro');
+            return;
+        }
+        await salvarConfiguracaoBackup(diretorio);
+    });
+}
+
+/**
+ * Carrega as configurações atuais de backup
+ */
+async function carregarConfiguracoesBackup() {
+    try {
+        const response = await fetchWithLoading('/system/backup-config');
+        if (response.success) {
+            document.getElementById('backup-dir').value = response.diretorio_atual;
+            document.getElementById('backup-dir-atual').textContent = response.diretorio_atual;
+        } else {
+            exibirMensagem('Erro ao carregar configurações de backup', 'erro');
+        }
+    } catch (error) {
+        console.error('Erro ao carregar configurações de backup:', error);
+        exibirMensagem('Erro ao carregar configurações de backup', 'erro');
+    }
+}
+
+/**
+ * Salva uma nova configuração de diretório de backup
+ * @param {string} diretorio - Novo diretório para salvar backups
+ */
+async function salvarConfiguracaoBackup(diretorio) {
+    try {
+        const response = await fetchWithLoading('/system/backup-config', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ diretorio })
+        });
+
+        if (response.success) {
+            exibirMensagem('Configuração de backup atualizada com sucesso', 'sucesso');
+            document.getElementById('backup-dir-atual').textContent = response.diretorio_atual;
+            // Recarrega a lista de backups com o novo diretório
+            carregarInfoBackups();
+        } else {
+            exibirMensagem(response.error || 'Erro ao salvar configuração', 'erro');
+        }
+    } catch (error) {
+        console.error('Erro ao salvar configuração de backup:', error);
+        exibirMensagem('Erro ao salvar configuração de backup', 'erro');
+    }
+}
+
+/**
+ * Carrega as informações dos backups existentes
+ */
+async function carregarInfoBackups() {
+    try {
+        const response = await fetchWithLoading('/system/backups');
+        
+        if (response.success) {
+            const backups = response.backups;
+            const diretorio = response.diretorio;
+            const totalBackups = response.total_backups;
+            
+            // Atualiza o diretório exibido
+            document.getElementById('backup-dir-atual').textContent = diretorio;
+            document.getElementById('backup-dir').value = diretorio;
+            
+            // Renderiza a lista de backups
+            const listaBackups = document.getElementById('lista-backups');
+            if (backups.length === 0) {
+                listaBackups.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center">Nenhum backup encontrado</td>
+                    </tr>
+                `;
+            } else {
+                listaBackups.innerHTML = backups.map(backup => `
+                    <tr>
+                        <td>${backup.nome}</td>
+                        <td>${backup.data_criacao}</td>
+                        <td>${backup.tamanho}</td>
+                    </tr>
+                `).join('');
+            }
+            
+        } else {
+            exibirMensagem('Erro ao carregar informações de backup', 'erro');
+        }
+    } catch (error) {
+        console.error('Erro ao carregar informações de backup:', error);
+        exibirMensagem('Erro ao carregar informações de backup', 'erro');
+    }
+}
+
+/**
+ * Realiza um backup manual do sistema
+ */
+async function realizarBackupManual() {
+    try {
+        exibirMensagem('Realizando backup. Por favor, aguarde...', 'sucesso');
+        
+        // Realiza o backup manual via API
+        const response = await fetchWithLoading('/system/backup/manual', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.success) {
+            exibirMensagem(`Backup realizado com sucesso!`, 'sucesso');
+            // Recarrega a lista após o backup bem-sucedido
+            carregarInfoBackups();
+        } else {
+            exibirMensagem(`Erro ao realizar backup: ${response.error || 'Erro desconhecido'}`, 'erro');
+        }
+    } catch (error) {
+        console.error('Erro ao realizar backup manual:', error);
+        exibirMensagem('Erro ao realizar backup', 'erro');
+    }
+}
+
+// Adicionar à função carregarBackupsPage
+function carregarBackupsPage() {
+    updateActiveMenu('backups');
+    document.getElementById('conteudo').innerHTML = `
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="mb-4">Gerenciamento de Backups</h2>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-gear-fill"></i> Configurações</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="config-backup-form">
+                            <div class="mb-3">
+                                <label for="backup-dir" class="form-label">Diretório para salvar backups:</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="backup-dir" placeholder="/caminho/para/backups">
+                                    <button class="btn btn-primary" type="submit">Salvar</button>
+                                </div>
+                                <div class="form-text">
+                                    <i class="bi bi-info-circle"></i> O caminho deve ser um diretório válido com permissões de escrita.
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informações sobre Backups</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-primary">
+                            <h6><i class="bi bi-clock-history"></i> Como funciona o backup automático:</h6>
+                            <ul>
+                                <li>O sistema realiza automaticamente um backup diário do banco de dados durante o primeiro login do dia.</li>
+                                <li>São mantidos os backups dos últimos 14 dias no servidor, sendo os mais antigos substituídos pelos novos.</li>
+                                <li>Cada backup é um arquivo completo do banco de dados, contendo todos os dados do sistema no momento em que foi gerado.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-archive-fill"></i> Backups Disponíveis</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="backup-info">
+                                <i class="bi bi-folder"></i> Diretório atual: <span id="backup-dir-atual">Carregando...</span>
+                            </div>
+                            <button class="btn btn-success" onclick="realizarBackupManual()">
+                                <i class="bi bi-cloud-arrow-up"></i> Realizar Backup Agora
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome do Arquivo</th>
+                                        <th>Data de Criação</th>
+                                        <th>Tamanho</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lista-backups">
+                                    <tr>
+                                        <td colspan="3" class="text-center">Carregando backups...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Carregar as informações de backup
+    carregarInfoBackups();
+
+    // Configurar o formulário de configuração de backup
+    document.getElementById('config-backup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const diretorio = document.getElementById('backup-dir').value.trim();
+        if (!diretorio) {
+            exibirMensagem('Por favor, informe um diretório válido', 'erro');
+            return;
+        }
+        await salvarConfiguracaoBackup(diretorio);
     });
 }
