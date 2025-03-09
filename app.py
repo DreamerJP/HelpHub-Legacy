@@ -61,6 +61,12 @@ CORS(app)
 # CONFIGURAÇÃO DE LOGGING
 # ========================================================
 
+# Classe de filtro personalizado para logs de autenticação
+class AuthFilter(logging.Filter):
+    def filter(self, record):
+        # Verifica se o registro vem do logger 'auth'
+        return record.name == 'auth'
+
 # Configuração avançada dos handlers de log com rotação de arquivos e formatação personalizada
 def setup_logging():
     try:
@@ -89,8 +95,10 @@ def setup_logging():
             backupCount=5,
             encoding='utf-8'
         )
-        security_handler.setLevel(logging.WARNING)
+        security_handler.setLevel(logging.INFO)
         security_handler.setFormatter(file_formatter)
+        # Adiciona filtro para garantir que apenas logs de autenticação sejam registrados
+        security_handler.addFilter(AuthFilter())
 
         # Handler para acesso - registra requisições e operações normais
         access_handler = RotatingFileHandler(
@@ -115,19 +123,17 @@ def setup_logging():
         for handler in root_logger.handlers[:]:
             root_logger.removeHandler(handler)
 
-        # Adiciona novos handlers
-        handlers = {
+        # Adiciona handlers no root logger (EXCETO o security_handler)
+        root_logger.addHandler(error_handler)
+        root_logger.addHandler(access_handler)
+        root_logger.addHandler(console_handler)
+
+        return {
             'error': error_handler,
             'security': security_handler,
             'access': access_handler,
             'console': console_handler
         }
-
-        # Configura handlers no root logger
-        for handler in handlers.values():
-            root_logger.addHandler(handler)
-
-        return handlers
 
     except Exception as e:
         critical_logger.critical(f"Erro fatal na configuração de logging: {e}")
@@ -141,6 +147,8 @@ try:
     auth_logger = logging.getLogger('auth')
     auth_logger.setLevel(logging.INFO)
     auth_logger.addHandler(handlers['security'])
+    # Adiciona handler de erro para capturar também erros de autenticação
+    auth_logger.addHandler(handlers['error'])
     auth_logger.propagate = False  # Evita duplicação de logs
 
     # Logger para operações de banco de dados
@@ -321,6 +329,7 @@ def criar_tabelas():
             protocolo TEXT NOT NULL,
             assunto TEXT,
             telefone TEXT,
+            solicitante TEXT,
             FOREIGN KEY(cliente_id) REFERENCES clientes(id) ON DELETE SET NULL
         )''')
         
@@ -353,6 +362,22 @@ def criar_tabelas():
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )''')
         
+        # Tabela configurações - armazena parâmetros globais do sistema
+        cursor.execute('''CREATE TABLE IF NOT EXISTS configuracoes (
+            chave TEXT PRIMARY KEY,
+            valor TEXT NOT NULL,
+            descricao TEXT,
+            data_modificacao DATETIME DEFAULT CURRENT_TIMESTAMP
+        )''')
+        
+        # Verifica se já existe configuração para o diretório de backup
+        cursor.execute('SELECT valor FROM configuracoes WHERE chave = "backup_dir"')
+        if not cursor.fetchone():
+            # Se não existir, insere o valor padrão
+            caminho_padrao = os.path.join(BASE_DIR, 'backups')
+            cursor.execute('INSERT INTO configuracoes (chave, valor, descricao) VALUES (?, ?, ?)',
+                        ('backup_dir', caminho_padrao, 'Diretório para armazenar backups do sistema'))
+        
         # Verifica se já existe um usuário admin e cria se necessário
         cursor.execute('SELECT COUNT(*) FROM usuarios WHERE username = "admin"')
         if cursor.fetchone()[0] == 0:
@@ -366,50 +391,6 @@ def criar_tabelas():
 
 # Executa a criação das tabelas ao iniciar o aplicativo
 criar_tabelas()
-
-# Adiciona colunas à tabela chamados que podem não existir em instalações antigas
-def adicionar_colunas():
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        # Obtém informações sobre a estrutura atual da tabela chamados
-        cursor.execute("PRAGMA table_info(chamados)")
-        colunas = [info[1] for info in cursor.fetchall()]
-        
-        # Adiciona cada coluna nova, se necessário
-        if 'protocolo' not in colunas:
-            cursor.execute('ALTER TABLE chamados ADD COLUMN protocolo TEXT')
-        if 'data_fechamento' not in colunas:
-            cursor.execute('ALTER TABLE chamados ADD COLUMN data_fechamento TEXT')
-        if 'assunto' not in colunas:
-            cursor.execute('ALTER TABLE chamados ADD COLUMN assunto TEXT')
-        if 'telefone' not in colunas:
-            cursor.execute('ALTER TABLE chamados ADD COLUMN telefone TEXT')
-        
-        # Salva as alterações
-        conn.commit()
-
-# Executa a adição de colunas ao iniciar o aplicativo
-adicionar_colunas()
-
-# Adiciona colunas à tabela agendamentos que podem não existir em instalações antigas
-def adicionar_colunas_agendamentos():
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        # Obtém informações sobre a estrutura atual da tabela agendamentos
-        cursor.execute("PRAGMA table_info(agendamentos)")
-        colunas = [info[1] for info in cursor.fetchall()]
-        
-        # Adiciona cada coluna nova, se necessário
-        if 'observacoes' not in colunas:
-            cursor.execute('ALTER TABLE agendamentos ADD COLUMN observacoes TEXT')
-        if 'status' not in colunas:
-            cursor.execute('ALTER TABLE agendamentos ADD COLUMN status TEXT DEFAULT "Aberto"')
-            
-        # Salva as alterações
-        conn.commit()
-
-# Executa a adição de colunas na tabela agendamentos
-adicionar_colunas_agendamentos()
 
 # Atualiza os chamados existentes que não possuem protocolo definido
 # Formato do protocolo: ddmmyyyyHHMM + ID do cliente
@@ -466,12 +447,51 @@ if not os.path.exists(BACKUP_DIR):
     except Exception as e:
         app_logger.error(f"Erro ao criar diretório de backups: {e}")
 
+def obter_diretorio_backup():
+    """
+    Obtém o diretório de backup das configurações do sistema
+    """
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT valor FROM configuracoes WHERE chave = "backup_dir"')
+            resultado = cursor.fetchone()
+            
+            backup_dir = resultado[0] if resultado else os.path.join(BASE_DIR, 'backups')
+            
+            # Verifica se o diretório existe, se não, tenta criá-lo
+            if not os.path.exists(backup_dir):
+                try:
+                    os.makedirs(backup_dir)
+                    app_logger.info(f"Diretório de backups criado em {backup_dir}")
+                except Exception as e:
+                    app_logger.error(f"Erro ao criar diretório de backups: {e}")
+                    # Se falhar ao criar, usa o diretório padrão
+                    backup_dir = os.path.join(BASE_DIR, 'backups')
+                    if not os.path.exists(backup_dir):
+                        os.makedirs(backup_dir)
+            
+            return backup_dir
+    except Exception as e:
+        app_logger.error(f"Erro ao obter diretório de backup: {e}")
+        # Em caso de erro, retorna o diretório padrão
+        return os.path.join(BASE_DIR, 'backups')
+
+# Modifique a definição do diretório de backup para usar a função
+# Substitua a linha existente:
+# BACKUP_DIR = os.path.join(BASE_DIR, 'backups')
+# Por:
+BACKUP_DIR = obter_diretorio_backup()
+
 def realizar_backup_diario():
     """
     Realiza um backup do banco de dados e mantém apenas os últimos 14 backups
     Retorna: (bool, str) - (sucesso, mensagem)
     """
     try:
+        # Obtém o diretório de backup atual
+        BACKUP_DIR = obter_diretorio_backup()
+        
         # Verifica se o diretório de backups existe, se não, cria
         if not os.path.exists(BACKUP_DIR):
             os.makedirs(BACKUP_DIR)
@@ -616,15 +636,16 @@ def cadastrar_cliente():
         with get_db_connection() as conn:
             cursor = conn.cursor()
             
-            # Prepara a query SQL com todos os campos do cliente
+            # Prepara a query SQL com todos os campos do cliente, incluindo endereço
             cursor.execute('''
                 INSERT INTO clientes (
                     nome, nome_fantasia, email, telefone, ativo, tipo_cliente, cnpj_cpf,
                     ie_rg, contribuinte_icms, rg_orgao_emissor, nacionalidade, naturalidade,
                     estado_nascimento, data_nascimento, sexo, profissao, estado_civil,
-                    inscricao_municipal
+                    inscricao_municipal, cep, rua, numero, complemento, bairro, cidade,
+                    estado, pais
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 dados['nome'].strip(),
                 dados.get('nome_fantasia', '').strip(),
@@ -643,7 +664,15 @@ def cadastrar_cliente():
                 dados.get('sexo', '').strip(),
                 dados.get('profissao', '').strip(),
                 dados.get('estado_civil', '').strip(),
-                dados.get('inscricao_municipal', '').strip()
+                dados.get('inscricao_municipal', '').strip(),
+                dados.get('cep', '').strip(),
+                dados.get('rua', '').strip(),
+                dados.get('numero', '').strip(),
+                dados.get('complemento', '').strip(),
+                dados.get('bairro', '').strip(),
+                dados.get('cidade', '').strip(),
+                dados.get('estado', '').strip(),
+                dados.get('pais', '').strip()
             ))
             
             # Confirma a transação
@@ -859,16 +888,17 @@ def abrir_chamado():
             cursor.execute('''
                 INSERT INTO chamados (
                     cliente_id, descricao, data_abertura, protocolo,
-                    assunto, telefone
+                    assunto, telefone, solicitante
                 )
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             ''', (
                 dados['cliente_id'], 
                 dados['descricao'], 
                 data_abertura, 
                 protocolo,
                 dados.get('assunto', ''),
-                dados.get('telefone', '')
+                dados.get('telefone', ''),
+                dados.get('solicitante', '')
             ))
             
             # Salva as alterações no banco de dados
@@ -915,6 +945,7 @@ def listar_chamados():
                     c.protocolo,
                     c.assunto,
                     c.telefone,
+                    c.solicitante,
                     cl.nome as cliente_nome
                 FROM chamados c
                 LEFT JOIN clientes cl ON c.cliente_id = cl.id
@@ -930,10 +961,10 @@ def listar_chamados():
             chamados_processados = []
             for chamado in chamados:
                 chamado_dict = list(chamado)  # Converte a tupla em lista para poder modificar
-                if chamado[9]:  # Se tem nome do cliente
-                    chamado_dict[9] = chamado[9]  # Usa o nome do cliente
+                if chamado[10]:  # Se tem nome do cliente
+                    chamado_dict[10] = chamado[10]  # Usa o nome do cliente
                 else:
-                    chamado_dict[9] = "Cliente removido"  # Caso o cliente tenha sido excluído
+                    chamado_dict[10] = "Cliente removido"  # Caso o cliente tenha sido excluído
                 chamados_processados.append(chamado_dict)
 
             # Registra operação no log
@@ -958,10 +989,11 @@ def listar_chamados():
 @app.route('/chamados/<int:id>', methods=['PUT'])
 def editar_chamado(id):
     try:
-        # Obtém os dados do chamado do corpo da requisição
+# Obtém os dados do chamado do corpo da requisição
         dados = request.json
+        app_logger.debug(f"Dados recebidos para edição do chamado {id}: {dados}")  # Log dos dados recebidos
         
-        # Validação básica dos dados recebidos
+# Validação básica dos dados recebidos
         if not dados:
             app_logger.warning(f"Tentativa de editar chamado {id} com dados inválidos")
             return jsonify({'erro': 'Dados inválidos'}), 400
@@ -969,57 +1001,64 @@ def editar_chamado(id):
         with get_db_connection() as conn:
             cursor = conn.cursor()
             
-            # Constrói a query dinamicamente baseado nos campos recebidos
+            # Lista para armazenar os campos e valores a serem atualizados
             campos_atualizacao = []
             valores = []
             
-            if 'descricao' in dados:
-                campos_atualizacao.append('descricao=?')
-                valores.append(dados['descricao'])
+            # Mapeia todos os campos que podem ser atualizados
+            campos_permitidos = {
+                'descricao': 'descricao',
+                'assunto': 'assunto',
+                'telefone': 'telefone',
+                'solicitante': 'solicitante',
+                'status': 'status'
+            }
             
-            if 'assunto' in dados:
-                campos_atualizacao.append('assunto=?')
-                valores.append(dados['assunto'])
-                
-            if 'telefone' in dados:
-                campos_atualizacao.append('telefone=?')
-                valores.append(dados['telefone'])
+            # Processa cada campo permitido
+            for campo, coluna in campos_permitidos.items():
+                if campo in dados:
+                    campos_atualizacao.append(f'{coluna}=?')
+                    valores.append(dados[campo])
+                    app_logger.debug(f"Campo {campo} será atualizado para: {dados[campo]}")
             
-            if 'status' in dados:
-                campos_atualizacao.append('status=?')
-                valores.append(dados['status'])
-                
-                # Se estiver reabrindo o chamado, limpa a data de fechamento
-                if dados['status'] == 'Aberto':
-                    campos_atualizacao.append('data_fechamento=NULL')
-                
+            # Se estiver alterando o status para 'Aberto', limpa a data de fechamento
+            if dados.get('status') == 'Aberto':
+                campos_atualizacao.append('data_fechamento=NULL')
+            
+            # Se não houver campos para atualizar, retorna erro
+            if not campos_atualizacao:
+                app_logger.warning(f"Nenhum campo válido para atualização no chamado {id}")
+                return jsonify({'erro': 'Nenhum campo válido para atualização'}), 400
+            
             # Adiciona o ID do chamado aos valores
             valores.append(id)
             
             # Monta e executa a query
             query = f"UPDATE chamados SET {', '.join(campos_atualizacao)} WHERE id=?"
+
+            # Log da query para depuração
+            app_logger.debug(f"Query de atualização: {query}")
+            app_logger.debug(f"Valores: {valores}")
+            
             cursor.execute(query, valores)
             
-            # Verifica se o chamado foi encontrado
             if cursor.rowcount == 0:
                 app_logger.warning(f"Chamado não encontrado para edição: {id}")
                 return jsonify({'erro': 'Chamado não encontrado'}), 404
-                
-            # Confirma a transação
+            
             conn.commit()
             
-            # Registra sucesso no log
-            app_logger.info(f"Chamado atualizado com sucesso! ID: {id}")
+            # Consulta os dados atualizados para confirmar
+            cursor.execute('SELECT * FROM chamados WHERE id = ?', (id,))
+            chamado_atualizado = cursor.fetchone()
+            app_logger.debug(f"Dados após atualização: {chamado_atualizado}")
             
-            # Retorna confirmação
+            app_logger.info(f"Chamado {id} atualizado com sucesso")
             return jsonify({'mensagem': 'Chamado atualizado com sucesso!'})
             
     except Exception as e:
-        # Registra falha no log
-        app_logger.error(f"Erro ao editar chamado: {e}")
-        
-        # Retorna mensagem de erro genérica
-        return jsonify({'erro': 'Erro ao editar chamado'}), 500
+        app_logger.error(f"Erro ao editar chamado: {str(e)}", exc_info=True)
+        return jsonify({'erro': f'Erro ao editar chamado: {str(e)}'}), 500
 
 # Rota para finalizar um chamado existente
 @app.route('/chamados/<int:id>/finalizar', methods=['PUT'])
@@ -1193,7 +1232,7 @@ def obter_chamado(id):
             # Seleciona os dados do chamado, incluindo o nome do cliente através de um JOIN
             cursor.execute('''
                 SELECT ch.id, ch.cliente_id, ch.descricao, ch.status, ch.data_abertura, 
-                       ch.data_fechamento, ch.protocolo, ch.assunto, ch.telefone,
+                       ch.data_fechamento, ch.protocolo, ch.assunto, ch.telefone, ch.solicitante,
                        cl.nome as cliente_nome
                 FROM chamados ch
                 LEFT JOIN clientes cl ON ch.cliente_id = cl.id
@@ -1234,8 +1273,9 @@ def obter_chamado(id):
                 'protocolo': chamado[6],
                 'assunto': chamado[7],
                 'telefone': chamado[8],
-                'cliente_nome': chamado[9],
-                'andamentos': andamentos_list  # Inclui a lista de andamentos
+                'solicitante': chamado[9],
+                'cliente_nome': chamado[10],
+                'andamentos': andamentos_list
             })
     except Exception as e:
         # Registra falha no log
@@ -1268,6 +1308,7 @@ def buscar_chamados():
                     c.protocolo,
                     c.assunto,
                     c.telefone,
+                    c.solicitante,
                     cl.nome as cliente_nome
                 FROM chamados c
                 LEFT JOIN clientes cl ON c.cliente_id = cl.id
@@ -1389,8 +1430,11 @@ def auth_login():
         username = dados.get('username', '')
         password = dados.get('password', '')
         
+        # Obtém o IP do cliente
+        client_ip = request.remote_addr
+        
         if not username or not password:
-            auth_logger.warning(f"Tentativa de login sem usuário ou senha")
+            auth_logger.warning(f"Tentativa de login sem usuário ou senha - IP: {client_ip}")
             return jsonify({'success': False, 'error': 'Usuário e senha são obrigatórios'}), 400
         
         with get_db_connection() as conn:
@@ -1407,7 +1451,7 @@ def auth_login():
                 session['role'] = usuario[3]
                 session.permanent = True
                 
-                auth_logger.info(f"Login bem-sucedido para o usuário {username}")
+                auth_logger.info(f"Login bem-sucedido para o usuário {username} - IP: {client_ip}")
                 
                 # Verifica se é necessário fazer backup
                 backup_info = None
@@ -1437,14 +1481,14 @@ def auth_login():
                         'username': usuario[1],
                         'role': usuario[3]
                     },
-                    'backup_info': backup_info
+                    'backup': backup_info
                 })
             else:
-                auth_logger.warning(f"Tentativa de login malsucedida para o usuário {username}")
+                auth_logger.warning(f"Tentativa de login malsucedida para o usuário {username} - IP: {client_ip}")
                 return jsonify({'success': False, 'error': 'Credenciais inválidas'}), 401
                 
     except Exception as e:
-        auth_logger.error(f"Erro no login: {e}")
+        auth_logger.error(f"Erro no login: {e} - IP: {client_ip}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # Rota para logout de usuários
@@ -1489,6 +1533,9 @@ def obter_info_backups():
                 'error': 'Acesso não autorizado'
             }), 403
             
+        # Obtém o diretório atual de backups
+        BACKUP_DIR = obter_diretorio_backup()
+            
         # Lista todos os arquivos de backup
         todos_backups = sorted(glob.glob(os.path.join(BACKUP_DIR, 'backup_*.db')))
         
@@ -1517,6 +1564,133 @@ def obter_info_backups():
         return jsonify({
             'success': False,
             'error': f"Erro ao obter informações de backup: {str(e)}"
+        }), 500
+
+# Adicionar rota para configuração do diretório de backup
+@app.route('/system/backup-config', methods=['GET', 'POST'])
+@login_required
+def configurar_backup():
+    # Verifica se o usuário é administrador
+    if session.get('role') != 'admin':
+        return jsonify({
+            'success': False,
+            'error': 'Acesso não autorizado'
+        }), 403
+    
+    # Se for método GET, retorna a configuração atual
+    if request.method == 'GET':
+        try:
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute('SELECT valor FROM configuracoes WHERE chave = "backup_dir"')
+                resultado = cursor.fetchone()
+                
+                return jsonify({
+                    'success': True,
+                    'diretorio_atual': resultado[0] if resultado else os.path.join(BASE_DIR, 'backups')
+                })
+        except Exception as e:
+            app_logger.error(f"Erro ao obter configuração de backup: {e}")
+            return jsonify({
+                'success': False,
+                'error': f"Erro ao obter configuração: {str(e)}"
+            }), 500
+    
+    # Se for método POST, atualiza a configuração
+    try:
+        dados = request.json
+        novo_diretorio = dados.get('diretorio')
+        
+        if not novo_diretorio or not isinstance(novo_diretorio, str):
+            return jsonify({
+                'success': False,
+                'error': 'Diretório inválido'
+            }), 400
+        
+        # Verifica se o diretório é válido
+        try:
+            # Normaliza o caminho para o sistema atual
+            novo_diretorio = os.path.normpath(novo_diretorio)
+            
+            # Testa se é possível criar o diretório se não existir
+            if not os.path.exists(novo_diretorio):
+                os.makedirs(novo_diretorio)
+                app_logger.info(f"Novo diretório de backup criado: {novo_diretorio}")
+            
+            # Testa permissões de escrita
+            test_file = os.path.join(novo_diretorio, 'test_permissions.tmp')
+            with open(test_file, 'w') as f:
+                f.write('test')
+            os.remove(test_file)
+        except Exception as e:
+            return jsonify({
+                'success': False,
+                'error': f"Diretório inválido ou sem permissões: {str(e)}"
+            }), 400
+        
+        # Atualiza a configuração no banco de dados
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE configuracoes 
+                SET valor = ?, data_modificacao = CURRENT_TIMESTAMP
+                WHERE chave = "backup_dir"
+            ''', (novo_diretorio,))
+            
+            if cursor.rowcount == 0:
+                cursor.execute('''
+                    INSERT INTO configuracoes (chave, valor, descricao)
+                    VALUES (?, ?, ?)
+                ''', ('backup_dir', novo_diretorio, 'Diretório para armazenar backups do sistema'))
+            
+            conn.commit()
+        
+        # Atualiza a variável global para o novo diretório
+        global BACKUP_DIR
+        BACKUP_DIR = novo_diretorio
+        
+        app_logger.info(f"Diretório de backup atualizado para: {novo_diretorio}")
+        
+        return jsonify({
+            'success': True,
+            'diretorio_atual': novo_diretorio,
+            'mensagem': 'Configuração atualizada com sucesso!'
+        })
+    except Exception as e:
+        app_logger.error(f"Erro ao configurar diretório de backup: {e}")
+        return jsonify({
+            'success': False,
+            'error': f"Erro ao atualizar configuração: {str(e)}"
+        }), 500
+
+# Rota para realizar backup manual
+@app.route('/system/backup/manual', methods=['POST'])
+@login_required
+def realizar_backup_manual():
+    """
+    Endpoint para realizar um backup manual do banco de dados
+    """
+    try:
+        # Verifica se o usuário é administrador
+        if session.get('role') != 'admin':
+            return jsonify({
+                'success': False,
+                'error': 'Acesso não autorizado'
+            }), 403
+        
+        # Realiza o backup
+        sucesso, mensagem = realizar_backup_diario()
+        
+        # Retorna o resultado
+        return jsonify({
+            'success': sucesso,
+            'mensagem': mensagem
+        })
+    except Exception as e:
+        app_logger.error(f"Erro ao realizar backup manual: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f"Erro ao realizar backup manual: {str(e)}"
         }), 500
 
 # ========================================================
