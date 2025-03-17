@@ -7,10 +7,12 @@ from datetime import datetime, timedelta
 import logging
 from logging.handlers import RotatingFileHandler
 from contextlib import contextmanager
+import time
 from time import sleep
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 import secrets
+import threading
 
 # ========================================================
 # INICIALIZAÇÃO E CONFIGURAÇÃO BÁSICA
@@ -55,7 +57,7 @@ except Exception as e:
 
 # Inicializa o aplicativo Flask com suporte a CORS (Cross-Origin Resource Sharing)
 app = Flask(__name__)
-CORS(app)
+CORS(app, allow_private_network=False)  # Desativa explicitamente o cabeçalho Access-Control-Allow-Private-Network
 
 # ========================================================
 # CONFIGURAÇÃO DE LOGGING
@@ -78,33 +80,32 @@ def setup_logging():
             '%(asctime)s - %(levelname)s - %(message)s'
         )
 
-        # Handler para erros - armazena apenas mensagens de erro e fatais
+        # Handler para erros - mantém 2 arquivos de 5MB cada
         error_handler = RotatingFileHandler(
             os.path.join(LOGS_DIR, 'error.log'),
             maxBytes=5*1024*1024,  # 5MB por arquivo
-            backupCount=5,  # Mantém até 5 arquivos de backup
+            backupCount=1,  # Mantém 1 arquivo de backup (total de 2 arquivos)
             encoding='utf-8'
         )
         error_handler.setLevel(logging.ERROR)
         error_handler.setFormatter(file_formatter)
 
-        # Handler para segurança - registra eventos relacionados à autenticação e autorização
+        # Handler para segurança - mantém 2 arquivos de 5MB cada
         security_handler = RotatingFileHandler(
             os.path.join(LOGS_DIR, 'security.log'),
             maxBytes=5*1024*1024,
-            backupCount=5,
+            backupCount=1,
             encoding='utf-8'
         )
         security_handler.setLevel(logging.INFO)
         security_handler.setFormatter(file_formatter)
-        # Adiciona filtro para garantir que apenas logs de autenticação sejam registrados
         security_handler.addFilter(AuthFilter())
 
-        # Handler para acesso - registra requisições e operações normais
+        # Handler para acesso - mantém 2 arquivos de 5MB cada
         access_handler = RotatingFileHandler(
             os.path.join(LOGS_DIR, 'access.log'),
             maxBytes=5*1024*1024,
-            backupCount=5,
+            backupCount=1,
             encoding='utf-8'
         )
         access_handler.setLevel(logging.INFO)
@@ -447,9 +448,20 @@ if not os.path.exists(BACKUP_DIR):
     except Exception as e:
         app_logger.error(f"Erro ao criar diretório de backups: {e}")
 
+def normalize_path(path):
+    """
+    Normaliza o caminho para ser compatível com o sistema operacional atual.
+    Converte caminhos relativos para absolutos com base no diretório base.
+    """
+    # Se o caminho for relativo, converte para absoluto com base no BASE_DIR
+    if not os.path.isabs(path):
+        path = os.path.join(BASE_DIR, path)
+    # Normaliza o caminho para o formato correto do sistema operacional
+    return os.path.normpath(path)
+
 def obter_diretorio_backup():
     """
-    Obtém o diretório de backup das configurações do sistema
+    Obtém o diretório de backup das configurações do sistema e normaliza o caminho.
     """
     try:
         with get_db_connection() as conn:
@@ -459,6 +471,9 @@ def obter_diretorio_backup():
             
             backup_dir = resultado[0] if resultado else os.path.join(BASE_DIR, 'backups')
             
+            # Normaliza o caminho para o sistema atual
+            backup_dir = normalize_path(backup_dir)
+            
             # Verifica se o diretório existe, se não, tenta criá-lo
             if not os.path.exists(backup_dir):
                 try:
@@ -467,7 +482,7 @@ def obter_diretorio_backup():
                 except Exception as e:
                     app_logger.error(f"Erro ao criar diretório de backups: {e}")
                     # Se falhar ao criar, usa o diretório padrão
-                    backup_dir = os.path.join(BASE_DIR, 'backups')
+                    backup_dir = normalize_path(os.path.join(BASE_DIR, 'backups'))
                     if not os.path.exists(backup_dir):
                         os.makedirs(backup_dir)
             
@@ -475,12 +490,9 @@ def obter_diretorio_backup():
     except Exception as e:
         app_logger.error(f"Erro ao obter diretório de backup: {e}")
         # Em caso de erro, retorna o diretório padrão
-        return os.path.join(BASE_DIR, 'backups')
+        return normalize_path(os.path.join(BASE_DIR, 'backups'))
 
 # Modifique a definição do diretório de backup para usar a função
-# Substitua a linha existente:
-# BACKUP_DIR = os.path.join(BASE_DIR, 'backups')
-# Por:
 BACKUP_DIR = obter_diretorio_backup()
 
 def realizar_backup_diario():
@@ -547,6 +559,15 @@ def index():
 def static_files(path):
     app_logger.info(f"Acessando arquivo estático: {path}")
     return send_from_directory('static', path)
+
+# ========================================================
+# ROTA PARA O EASTER EGG (JOGO SNAKE)
+# ========================================================
+
+@app.route('/snake.html')
+def snake_game():
+    app_logger.info("Easter Egg Acessado: Jogo Snake")
+    return send_from_directory('static', 'snake.html')
 
 # ========================================================
 # API DE CLIENTES
@@ -2494,4 +2515,6 @@ def obter_cliente(id):
 # ========================================================
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    # Esta parte é usada apenas quando você executa o arquivo diretamente
+    # para desenvolvimento, não quando usando Gunicorn
+    app.run(host='0.0.0.0', port=5000, debug=True)
