@@ -1066,6 +1066,22 @@ body.dark-mode .btn-outline-secondary:hover {
     border-color: #0a58ca;
 }
 
+/* Estilo para o botão de rota do Google Maps */
+.btn i.bi-map {
+    margin-right: 5px;
+}
+
+/* Ajuste para tema escuro */
+body.dark-mode .btn-primary {
+    background-color: #375a7f;
+    border-color: #375a7f;
+}
+
+body.dark-mode .btn-primary:hover {
+    background-color: #2b4764;
+    border-color: #2b4764;
+}
+
 /* ========================================================
    TABELA ESPECÍFICA PARA CHAMADOS DE CLIENTE
    ======================================================== */
