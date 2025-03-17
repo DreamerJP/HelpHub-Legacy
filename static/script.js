@@ -1160,7 +1160,12 @@ function carregarEditarClientePage(cliente) {
                                 <label for="pais" class="form-label">País:</label>
                                 <input type="text" id="pais" class="form-control" value="${cliente[26] || ''}">
                             </div>
-                            <button type="submit" class="btn btn-primary">Atualizar Endereço</button>
+                            <!-- Novo botão para rota no Google Maps -->
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-primary" onclick="abrirRotaGoogleMaps()">
+                                    <i class="bi bi-map"></i> Ver Rota no Google Maps
+                                </button>
+                            </div>
                         </form>
                     </div>
                     <div class="tab-pane fade" id="chamados-cliente" role="tabpanel">
@@ -1872,6 +1877,7 @@ document.addEventListener('DOMContentLoaded', () => {
     exibirInfoUsuario();
     checkAdminStatus();
     startSessionMonitor();
+    setupKonamiCode(); // Adiciona o detector do código Konami
 });
 
 document.addEventListener('visibilitychange', () => {
@@ -5223,4 +5229,442 @@ function carregarBackupsPage() {
         }
         await salvarConfiguracaoBackup(diretorio);
     });
+}
+
+/**
+ * Implementação do detector do código Konami para acessar o easter egg
+ * Sequência: ↑ ↑ ↓ ↓ ← → ← → B A
+ */
+function setupKonamiCode() {
+    // Sequência do código Konami
+    const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+    // Índice atual na sequência
+    let konamiIndex = 0;
+
+    // Adiciona o event listener para detectar o código Konami
+    document.addEventListener('keydown', function(e) {
+        // Converte a tecla pressionada para minúsculo para comparação
+        const key = e.key.toLowerCase();
+
+        // Verifica se a tecla corresponde à sequência esperada
+        if (key === konamiCode[konamiIndex].toLowerCase()) {
+            konamiIndex++;
+            
+            // Se completou toda a sequência
+            if (konamiIndex === konamiCode.length) {
+                // Reseta o índice
+                konamiIndex = 0;
+                // Redireciona para o jogo Snake
+                window.open('/snake.html', '_blank');
+                // Alternativa: window.location.href = '/snake.html';
+            }
+        } else {
+            // Reseta o índice se errar a sequência
+            konamiIndex = 0;
+        }
+    });
+}
+
+// Adicione a chamada para configurar o detector de código Konami
+// à lista de funções executadas quando o DOM estiver carregado
+document.addEventListener('DOMContentLoaded', () => {
+    // Aplica o tema salvo se existir
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('theme-toggle').innerHTML = '<i class="bi bi-moon"></i>';
+    }
+    carregarHome();
+    startAutoRefresh();
+    exibirInfoUsuario();
+    checkAdminStatus();
+    startSessionMonitor();
+    setupKonamiCode(); // Adiciona o detector do código Konami
+});
+
+/**
+ * Gerencia o login do usuário
+ * @param {Event} e - Evento do formulário
+ */
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const loginButton = document.getElementById('login-button');
+    const errorDiv = document.getElementById('login-error');
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    
+    // Validação básica
+    if (!username || !password) {
+        errorDiv.textContent = 'Usuário e senha são obrigatórios';
+        errorDiv.style.display = 'block';
+        return;
+    }
+    
+    try {
+        loginButton.disabled = true;
+        loginButton.textContent = 'Entrando...';
+        errorDiv.style.display = 'none';
+
+        const response = await fetch('/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            // Armazena informações de backup se houver
+            if (data.backup_info) {
+                localStorage.setItem('backup_info', JSON.stringify(data.backup_info));
+            }
+            // Redireciona para a página principal
+            window.location.href = '/';
+        } else {
+            errorDiv.textContent = data.error || 'Credenciais inválidas';
+            errorDiv.style.display = 'block';
+            // Limpa apenas a senha em caso de erro
+            document.getElementById('password').value = '';
+        }
+    } catch (error) {
+        console.error('Erro de login:', error);
+        errorDiv.textContent = 'Erro ao conectar com o servidor';
+        errorDiv.style.display = 'block';
+    } finally {
+        loginButton.disabled = false;
+        loginButton.textContent = 'Entrar';
+    }
+}
+
+// Adiciona o event listener para o formulário de login quando a página for carregada
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.removeEventListener('submit', handleLogin); // Limpa listeners duplicados
+        loginForm.addEventListener('submit', handleLogin);
+    }
+    
+    // Verificar se há informações de backup no localStorage para exibir
+    const backupInfo = localStorage.getItem('backup_info');
+    if (backupInfo) {
+        // Exibe a notificação e remove a informação do localStorage
+        exibirNotificacaoBackup(JSON.parse(backupInfo));
+        localStorage.removeItem('backup_info');
+    }
+    
+    // Resto do código para inicialização
+    if (document.body.classList.contains('index-page')) {
+        // Aplica o tema salvo se existir
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+        
+        carregarHome();
+        startAutoRefresh();
+        exibirInfoUsuario();
+        checkAdminStatus();
+        startSessionMonitor();
+    }
+});
+
+/**
+ * Exibe notificação sobre o backup do sistema
+ * @param {Object} backupInfo - Informações do backup
+ */
+function exibirNotificacaoBackup(backupInfo) {
+    if (!backupInfo) return;
+    
+    const mensagemDiv = document.getElementById('mensagem');
+    if (!mensagemDiv) return;
+    
+    const tipo = backupInfo.realizado ? 'success' : 'info';
+    const icone = backupInfo.realizado ? 'check-circle' : 'info-circle';
+    
+    // Se foi realizado backup, exibe uma mensagem mais destacada
+    if (backupInfo.realizado) {
+        mensagemDiv.innerHTML = `
+            <i class="bi bi-${icone}"></i> 
+            <strong>Backup do sistema:</strong> ${backupInfo.mensagem}
+        `;
+        mensagemDiv.className = `alert alert-${tipo}`;
+        mensagemDiv.style.display = 'block';
+        
+        // Mantém a mensagem por 6 segundos
+        setTimeout(() => {
+            if (mensagemDiv) mensagemDiv.style.display = 'none';
+        }, 6000);
+    } else {
+        // Se o backup não foi feito, registra no console
+        console.info('Sistema de backup:', backupInfo.mensagem);
+    }
+}
+
+/**
+ * Configura o campo de pesquisa para filtrar chamados em tempo real
+ * @param {string} tipo - Tipo de chamados ('aberto' ou 'finalizado')
+ */
+function configurarPesquisaChamados(tipo) {
+    const inputId = `pesquisa-chamados-${tipo}`;
+    const input = document.getElementById(inputId);
+    
+    if (!input) return;
+    
+    let timeoutId;
+    
+    input.addEventListener('input', function() {
+        // Limpa o timeout anterior para evitar múltiplas pesquisas
+        clearTimeout(timeoutId);
+        
+        // Define um novo timeout para filtrar apenas quando o usuário parar de digitar
+        timeoutId = setTimeout(() => {
+            const termo = input.value.toLowerCase().trim();
+            
+            if (termo.length === 0) {
+                // Se o campo estiver vazio, recarrega a listagem normal
+                const status = tipo === 'aberto' ? 'Aberto' : 'Finalizado';
+                if (status === 'Aberto') {
+                    paginaAtualChamadosAbertos = 1;
+                } else {
+                    paginaAtualChamadosFinalizados = 1;
+                }
+                carregarChamados(status);
+                
+                // Mostrar controles de paginação normais
+                document.getElementById(`btn-anterior-chamados-${tipo}`).style.display = '';
+                document.getElementById(`btn-proximo-chamados-${tipo}`).style.display = '';
+                document.getElementById(`pagina-atual-chamados-${tipo}`).style.display = '';
+            } else {
+                // Se tiver termo de busca, faz busca no servidor
+                buscarChamadosPorTermo(termo, tipo);
+            }
+        }, 300); // 300ms de delay
+    });
+}
+
+/**
+ * Busca chamados no servidor com base no termo de pesquisa
+ * @param {string} termo - Termo de pesquisa
+ * @param {string} tipo - Tipo de chamados ('aberto' ou 'finalizado')
+ */
+async function buscarChamadosPorTermo(termo, tipo) {
+    try {
+        const status = tipo === 'aberto' ? 'Aberto' : 'Finalizado';
+        const tableId = tipo === 'aberto' ? 'chamados-list' : 'chamados-finalizados';
+        
+        // Mostrar indicador de carregamento
+        document.getElementById(tableId).innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Buscando...</span>
+                    </div>
+                </td>
+            </tr>
+        `;
+        
+        // Fazer requisição à API para buscar chamados em todas as páginas
+        const response = await fetch(`/chamados/buscar?termo=${encodeURIComponent(termo)}&status=${status}`);
+        
+        if (!response.ok) {
+            throw new Error('Erro na busca de chamados');
+        }
+        
+        const data = await response.json();
+        
+        // Esconder controles de paginação durante a busca
+        document.getElementById(`btn-anterior-chamados-${tipo}`).style.display = 'none';
+        document.getElementById(`btn-proximo-chamados-${tipo}`).style.display = 'none';
+        document.getElementById(`pagina-atual-chamados-${tipo}`).style.display = 'none';
+        
+        // Renderizar os resultados da busca
+        renderizarResultadosBusca(data.chamados, tipo);
+        
+    } catch (error) {
+        console.error('Erro ao buscar chamados:', error);
+        exibirMensagem('Erro ao buscar chamados: ' + error.message, 'erro');
+    }
+}
+
+/**
+ * Renderiza os resultados da busca de chamados na tabela
+ * @param {Array} chamados - Lista de chamados encontrados
+ * @param {string} tipo - Tipo de chamados ('aberto' ou 'finalizado')
+ */
+function renderizarResultadosBusca(chamados, tipo) {
+    const tableId = tipo === 'aberto' ? 'chamados-list' : 'chamados-finalizados';
+    const tbody = document.getElementById(tableId);
+    
+    // Se não encontrou resultados
+    if (chamados.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center">
+                    Nenhum chamado encontrado. Tente outro termo de pesquisa.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    // Gerar HTML com os resultados encontrados
+    if (tipo === 'aberto') {
+        tbody.innerHTML = chamados.map(chamado => `
+            <tr data-id="${chamado[0]}" style="cursor:pointer;">
+                <td>${chamado[6] || 'N/A'}</td>
+                <td>${chamado[0]}</td>
+                <td>${chamado[10] || 'Cliente removido'}</td>
+                <td>${formatarData(chamado[4])}</td>
+                <td>${chamado[7] || ''}</td>
+                <td><span class="badge status-badge status-${chamado[3].toLowerCase()}">${chamado[3]}</span></td>
+            </tr>
+        `).join('');
+    } else {
+        tbody.innerHTML = chamados.map(chamado => `
+            <tr data-id="${chamado[0]}" style="cursor:pointer;">
+                <td>${chamado[6] || 'N/A'}</td>
+                <td>${chamado[10] || 'Cliente removido'}</td>
+                <td>${formatarData(chamado[4])}</td>
+                <td>${chamado[7] || ''}</td>
+                <td>${formatarData(chamado[5])}</td>
+                <td><span class="badge status-badge status-${chamado[3].toLowerCase()}">${chamado[3]}</span></td>
+            </tr>
+        `).join('');
+    }
+    
+    // Adicionar event listeners para selecionar linhas
+    const tabelaId = tipo === 'aberto' ? 'chamados-list' : 'chamados-finalizados';
+    document.querySelectorAll(`#${tabelaId} tr`).forEach(row => {
+        row.addEventListener('click', function() {
+            // Remover seleção anterior
+            document.querySelectorAll(`#${tabelaId} tr`).forEach(r => r.classList.remove('table-warning'));
+            
+            // Adicionar seleção à linha clicada
+            this.classList.add('table-warning');
+            
+            // Armazenar ID do chamado selecionado
+            selectedChamadoId = this.getAttribute('data-id');
+            
+            // Habilitar botões de ação
+            const btnPrefix = tipo === 'aberto' ? '' : '';
+            document.getElementById('btn-abrir').disabled = false;
+            if (tipo === 'aberto') {
+                document.getElementById('btn-finalizar').disabled = false;
+                document.getElementById('btn-excluir').disabled = false;
+            } else {
+                document.getElementById('btn-reabrir').disabled = false;
+                document.getElementById('btn-excluir').disabled = false;
+            }
+        });
+    });
+}
+
+/**
+ * Abre o Google Maps com a rota para o endereço do cliente
+ * usando a localização atual do usuário como ponto de partida
+ */
+function abrirRotaGoogleMaps() {
+    // Exibe um indicador de carregamento
+    const loadingElement = document.createElement('div');
+    loadingElement.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); 
+                  display: flex; align-items: center; justify-content: center; z-index: 9999;">
+            <div style="background: white; padding: 20px; border-radius: 8px; text-align: center;">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">Obtendo sua localização...</p>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(loadingElement);
+
+    // Captura os valores dos campos de endereço
+    const rua = document.getElementById('rua').value;
+    const numero = document.getElementById('numero').value;
+    const bairro = document.getElementById('bairro').value;
+    const cidade = document.getElementById('cidade').value;
+    const estado = document.getElementById('estado').value;
+    
+    // Monta o endereço completo
+    const enderecoCompleto = `${rua}, ${numero} - ${bairro}, ${cidade} - ${estado}`;
+    
+    // Codifica o endereço para URL
+    const enderecoURL = encodeURIComponent(enderecoCompleto);
+    
+    // Verifica se o navegador suporta geolocalização
+    if (navigator.geolocation) {
+        // Define um timeout para a obtenção da localização
+        const geoOptions = {
+            enableHighAccuracy: true,
+            timeout: 10000,        // 10 segundos
+            maximumAge: 0          // Sempre obter uma posição nova
+        };
+        
+        // Tenta obter a localização atual
+        navigator.geolocation.getCurrentPosition(
+            // Sucesso na obtenção da localização
+            function(position) {
+                // Remove o indicador de carregamento
+                document.body.removeChild(loadingElement);
+                
+                // Obtém as coordenadas
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                // Define a origem como as coordenadas obtidas
+                const origin = `${lat},${lng}`;
+                
+                // Abre o Google Maps com as coordenadas exatas e o destino
+                window.open(`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${enderecoURL}&travelmode=driving`, '_blank');
+            },
+            // Erro na obtenção da localização
+            function(error) {
+                // Remove o indicador de carregamento
+                document.body.removeChild(loadingElement);
+                
+                console.warn("Erro ao obter localização:", error.message);
+                
+                // Exibe mensagem de erro adequada
+                let mensagemErro;
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        mensagemErro = "Você negou a permissão para obter sua localização. Utilizando modo de rota padrão.";
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        mensagemErro = "Informações de localização indisponíveis. Utilizando modo de rota padrão.";
+                        break;
+                    case error.TIMEOUT:
+                        mensagemErro = "Tempo esgotado ao tentar obter sua localização. Utilizando modo de rota padrão.";
+                        break;
+                    default:
+                        mensagemErro = "Erro desconhecido ao obter sua localização. Utilizando modo de rota padrão.";
+                }
+                
+                // Exibe a mensagem de erro para o usuário
+                if (typeof exibirMensagem === 'function') {
+                    exibirMensagem(mensagemErro, 'erro');
+                } else {
+                    alert(mensagemErro);
+                }
+                
+                // Abre o Google Maps sem origem específica
+                window.open(`https://www.google.com/maps/dir/?api=1&destination=${enderecoURL}&travelmode=driving`, '_blank');
+            },
+            geoOptions
+        );
+    } else {
+        // Remove o indicador de carregamento
+        document.body.removeChild(loadingElement);
+        
+        // Navegador não suporta geolocalização
+        const mensagem = "Seu navegador não suporta geolocalização. Utilizando modo de rota padrão.";
+        
+        if (typeof exibirMensagem === 'function') {
+            exibirMensagem(mensagem, 'erro');
+        } else {
+            alert(mensagem);
+        }
+        
+        // Abre o Google Maps sem origem específica
+        window.open(`https://www.google.com/maps/dir/?api=1&destination=${enderecoURL}&travelmode=driving`, '_blank');
+    }
 }
