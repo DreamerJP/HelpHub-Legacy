@@ -13,6 +13,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 import secrets
 import threading
+import re
 
 # ========================================================
 # INICIALIZAÇÃO E CONFIGURAÇÃO BÁSICA
@@ -390,6 +391,21 @@ def criar_tabelas():
         # Salva as alterações no banco de dados
         conn.commit()
 
+        # Adiciona a coluna 'notas' à tabela clientes se ela não existir
+        cursor.execute('''
+            SELECT COUNT(*) FROM pragma_table_info('clientes') WHERE name='notas'
+        ''')
+        if cursor.fetchone()[0] == 0:
+            cursor.execute('ALTER TABLE clientes ADD COLUMN notas TEXT')
+            
+        # Tabela notas_clientes - armazena as notas dos clientes
+        cursor.execute('''CREATE TABLE IF NOT EXISTS notas_clientes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cliente_id INTEGER NOT NULL,
+            notas TEXT,
+            FOREIGN KEY(cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
+        )''')
+            
 # Executa a criação das tabelas ao iniciar o aplicativo
 criar_tabelas()
 
@@ -813,6 +829,9 @@ def excluir_cliente(id):
                 WHERE cliente_id = ?
             """, (data_fechamento, id))
             
+            # Excluir as notas associadas ao cliente
+            cursor.execute('DELETE FROM notas_clientes WHERE cliente_id = ?', (id,))
+            
             # Em seguida, exclui o cliente
             cursor.execute("DELETE FROM clientes WHERE id=?", (id,))
             
@@ -874,6 +893,64 @@ def buscar_clientes():
         
         # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro na busca'}), 500
+
+# Novos endpoints para gerenciar notas dos clientes
+@app.route('/clientes/<int:id>/notas', methods=['GET'])
+def obter_notas_cliente(id):
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT notas FROM notas_clientes WHERE cliente_id = ?', (id,))
+            resultado = cursor.fetchone()
+            
+            if not resultado:
+                return jsonify({'notas': ''})
+            
+            return jsonify({'notas': resultado[0] or ''})
+            
+    except Exception as e:
+        app_logger.error(f"Erro ao obter notas do cliente: {e}")
+        return jsonify({'erro': 'Erro ao obter notas do cliente'}), 500
+
+@app.route('/clientes/<int:id>/notas', methods=['POST'])
+def salvar_notas_cliente(id):
+    try:
+        dados = request.json
+        notas = dados.get('notas', '')
+        
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Verifica se o cliente existe
+            cursor.execute('SELECT id FROM clientes WHERE id = ?', (id,))
+            if not cursor.fetchone():
+                return jsonify({'success': False, 'error': 'Cliente não encontrado'}), 404
+            
+            # Verifica se já existe nota para este cliente
+            cursor.execute('SELECT id FROM notas_clientes WHERE cliente_id = ?', (id,))
+            nota_existente = cursor.fetchone()
+            
+            if nota_existente:
+                # Se as notas estiverem vazias, exclui o registro para economizar espaço
+                if not notas.strip():
+                    cursor.execute('DELETE FROM notas_clientes WHERE cliente_id = ?', (id,))
+                    app_logger.info(f'Notas excluídas para o cliente {id}')
+                else:
+                    # Atualiza as notas existentes
+                    cursor.execute('UPDATE notas_clientes SET notas = ? WHERE cliente_id = ?', (notas, id))
+                    app_logger.info(f'Notas atualizadas para o cliente {id}')
+            else:
+                # Só insere se as notas não estiverem vazias
+                if notas.strip():
+                    cursor.execute('INSERT INTO notas_clientes (cliente_id, notas) VALUES (?, ?)', (id, notas))
+                    app_logger.info(f'Notas adicionadas para o cliente {id}')
+            
+            conn.commit()
+            return jsonify({'success': True, 'message': 'Notas atualizadas com sucesso'})
+            
+    except Exception as e:
+        app_logger.error(f"Erro ao salvar notas do cliente: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ========================================================
 # API DE CHAMADOS
@@ -1373,59 +1450,104 @@ def buscar_chamados():
 @retry_db_operation
 def obter_estatisticas():
     try:
+        periodo = request.args.get('periodo', 'total')
+        
+        # Definir consulta SQL com base no período
+        query_filtro = ''
+        
+        if periodo == 'diario':
+            # Filtrar apenas para o dia atual
+            today = datetime.now().strftime('%Y-%m-%d')
+            query_filtro = f" WHERE date(data_abertura) = '{today}'"
+        elif periodo == 'semanal':
+            # Filtrar para a semana atual (últimos 7 dias)
+            today = datetime.now()
+            week_ago = (today - timedelta(days=7)).strftime('%Y-%m-%d')
+            today_str = today.strftime('%Y-%m-%d')
+            query_filtro = f" WHERE date(data_abertura) BETWEEN '{week_ago}' AND '{today_str}'"
+        elif periodo == 'mensal':
+            # Filtrar para o mês atual
+            today = datetime.now()
+            first_day = today.replace(day=1).strftime('%Y-%m-%d')
+            today_str = today.strftime('%Y-%m-%d')
+            query_filtro = f" WHERE date(data_abertura) BETWEEN '{first_day}' AND '{today_str}'"
+        
         with get_db_connection() as conn:
             cursor = conn.cursor()
             
-            stats = {
-                'total_clientes': 0,
-                'chamados_status': {},
-                'ultimos_chamados': [],
-                'chamados_por_mes': []
-            }
-
-            # Total de clientes
-            cursor.execute('SELECT COUNT(*) FROM clientes')
-            stats['total_clientes'] = cursor.fetchone()[0]
-
-            # Chamados por status
-            cursor.execute('''
-                SELECT status, COUNT(*) 
-                FROM chamados 
-                GROUP BY status
-            ''')
-            stats['chamados_status'] = dict(cursor.fetchall())
-
-            # Últimos chamados com dados do cliente
-            cursor.execute('''
-                SELECT ch.*, cl.nome as cliente_nome
-                FROM chamados ch
-                JOIN clientes cl ON ch.cliente_id = cl.id
-                ORDER BY ch.data_abertura DESC
-                LIMIT 5
-            ''')
-            stats['ultimos_chamados'] = cursor.fetchall()
-
-            # Chamados por mês
-            cursor.execute('''
-                SELECT strftime('%Y-%m', data_abertura) as mes, COUNT(*)
-                FROM chamados
-                GROUP BY mes
-                ORDER BY mes DESC
-                LIMIT 6
-            ''')
-            stats['chamados_por_mes'] = cursor.fetchall()
-
-            # Registra sucesso no log
-            app_logger.info("Estatísticas obtidas com sucesso")
+            # Contar total de clientes (não filtrado por período)
+            cursor.execute("SELECT COUNT(*) FROM clientes")
+            total_clientes = cursor.fetchone()[0]
             
-            # Retorna as estatísticas
-            return jsonify(stats)
+            # Contar chamados abertos com o filtro de período
+            cursor.execute(f"SELECT COUNT(*) FROM chamados WHERE status = 'Aberto'{query_filtro}")
+            chamados_abertos = cursor.fetchone()[0]
+            
+            # Contar chamados fechados com o filtro de período
+            cursor.execute(f"SELECT COUNT(*) FROM chamados WHERE status = 'Finalizado'{query_filtro}")
+            chamados_fechados = cursor.fetchone()[0]
+            
+            # Obter média diária de chamados (cálculo pode variar dependendo do período)
+            if periodo == 'total':
+                # Para período total, calcular ao longo de todo o tempo
+                cursor.execute("SELECT MIN(date(data_abertura)), MAX(date(data_abertura)) FROM chamados")
+                data_min, data_max = cursor.fetchone()
+                
+                if data_min and data_max:
+                    data_min = datetime.strptime(data_min, '%Y-%m-%d')
+                    data_max = datetime.strptime(data_max, '%Y-%m-%d')
+                    dias = max(1, (data_max - data_min).days + 1)  # Evitar divisão por zero
+                    
+                    cursor.execute("SELECT COUNT(*) FROM chamados")
+                    total_chamados = cursor.fetchone()[0]
+                    media_diaria = round(total_chamados / dias, 1)
+                else:
+                    media_diaria = 0
+            else:
+                # Para períodos específicos, calcular com base nos dias do período
+                cursor.execute(f"SELECT COUNT(*) FROM chamados{query_filtro}")
+                total_chamados_periodo = cursor.fetchone()[0]
+                
+                # Calcular número de dias no período
+                if periodo == 'diario':
+                    dias = 1
+                elif periodo == 'semanal':
+                    dias = 7
+                else:  # mensal
+                    today = datetime.now()
+                    first_day = today.replace(day=1)
+                    dias = (today - first_day).days + 1
+                
+                media_diaria = round(total_chamados_periodo / dias, 1)
+            
+            # Obter os últimos 5 chamados (não filtrados por período para sempre mostrar os mais recentes)
+            cursor.execute("""
+                SELECT c.id, c.assunto, c.data_abertura, c.status, cl.nome 
+                FROM chamados c
+                LEFT JOIN clientes cl ON c.cliente_id = cl.id
+                ORDER BY c.data_abertura DESC
+                LIMIT 5
+            """)
+            ultimos_chamados = []
+            for row in cursor.fetchall():
+                ultimos_chamados.append({
+                    'id': row[0],
+                    'assunto': row[1],
+                    'data_abertura': row[2],
+                    'status': row[3],
+                    'cliente_nome': row[4] or 'Cliente não encontrado'
+                })
+            
+            return jsonify({
+                'total_clientes': total_clientes,
+                'chamados_abertos': chamados_abertos,
+                'chamados_fechados': chamados_fechados,
+                'media_diaria_chamados': media_diaria,
+                'ultimos_chamados': ultimos_chamados
+            })
     except Exception as e:
-        # Registra falha no log
         app_logger.error(f"Erro ao obter estatísticas: {e}")
-        
-        # Retorna mensagem de erro genérica
-        return jsonify({'erro': 'Erro ao obter estatísticas'}), 500
+        return jsonify({'error': str(e)}), 500
 
 # ========================================================
 # AUTENTICAÇÃO E AUTORIZAÇÃO
@@ -2509,6 +2631,214 @@ def obter_cliente(id):
         
         # Retorna mensagem de erro genérica
         return jsonify({'erro': 'Erro ao obter cliente'}), 500
+
+# ========================================================
+# ADMINISTRAÇÃO DO BANCO DE DADOS - NOVOS ENDPOINTS
+# ========================================================
+
+@app.route('/admin/database/stats')
+@login_required
+def database_stats():
+    """
+    Obtém estatísticas gerais do banco de dados
+    """
+    if session.get('role') != 'admin':
+        return jsonify({'error': 'Acesso negado'}), 403
+
+    try:
+        # Obtém o tamanho do arquivo de banco de dados
+        db_size = os.path.getsize(DATABASE)
+        size_in_mb = db_size / (1024 * 1024)
+        
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Obtém a lista de tabelas
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            tables = [row[0] for row in cursor.fetchall()]
+            
+            # Remove tabelas do sistema SQLite
+            tables = [table for table in tables if not table.startswith('sqlite_')]
+            
+            return jsonify({
+                'total_size': f'{size_in_mb:.2f} MB',
+                'raw_size': db_size,
+                'table_count': len(tables),
+                'tables': tables
+            })
+    except Exception as e:
+        app_logger.error(f"Erro ao obter estatísticas do banco de dados: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/admin/database/tables')
+@login_required
+def list_tables():
+    """
+    Lista todas as tabelas do banco de dados
+    """
+    if session.get('role') != 'admin':
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+            tables = [row[0] for row in cursor.fetchall() if not row[0].startswith('sqlite_')]
+            return jsonify(tables)
+    except Exception as e:
+        app_logger.error(f"Erro ao listar tabelas: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/admin/database/tables/<table_name>/data')
+@login_required
+def table_data(table_name):
+    """
+    Obtém dados de uma tabela específica
+    """
+    if session.get('role') != 'admin':
+        return jsonify({'error': 'Acesso negado'}), 403
+    
+    try:
+        # Sanitizar nome da tabela para evitar SQL injection
+        # Os nomes de tabela SQLite não podem conter caracteres especiais, apenas letras, números e underscores
+        if not re.match(r'^[a-zA-Z0-9_]+$', table_name):
+            return jsonify({'error': 'Nome de tabela inválido'}), 400
+        
+        with get_db_connection() as conn:
+            # Tornar o dicionário acessível por nome de coluna
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            
+            # Verificar se a tabela existe
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+            if not cursor.fetchone():
+                return jsonify({'error': 'Tabela não encontrada'}), 404
+            
+            # Obter informações sobre colunas
+            cursor.execute(f"PRAGMA table_info({table_name})")
+            columns = [row['name'] for row in cursor.fetchall()]
+            
+            # Obter todos os registros
+            cursor.execute(f"SELECT * FROM {table_name}")
+            records = [dict(row) for row in cursor.fetchall()]
+            
+            # Estimar tamanho da tabela
+            estimated_size = 0
+            for record in records:
+                for key, value in record.items():
+                    if value is not None:
+                        if isinstance(value, str):
+                            estimated_size += len(value.encode('utf-8'))
+                        else:
+                            estimated_size += 8  # Estimativa para números e outros tipos
+            
+            # Converter para KB ou MB
+            size_text = ''
+            if estimated_size > 1024 * 1024:
+                size_text = f"{estimated_size / (1024 * 1024):.2f} MB"
+            elif estimated_size > 1024:
+                size_text = f"{estimated_size / 1024:.2f} KB"
+            else:
+                size_text = f"{estimated_size} bytes"
+            
+            # Registra acesso no log
+            app_logger.info(f"Administrador {session.get('username')} visualizou dados da tabela {table_name}")
+            
+            return jsonify({
+                'columns': columns,
+                'records': records,
+                'count': len(records),
+                'size': size_text
+            })
+    except Exception as e:
+        app_logger.error(f"Erro ao obter dados da tabela {table_name}: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/admin/database/tables/<table_name>/import', methods=['POST'])
+@login_required
+def import_table_data(table_name):
+    """
+    Importa dados para uma tabela específica do banco de dados
+    """
+    if session.get('role') != 'admin':
+        return jsonify({'success': False, 'error': 'Acesso negado'}), 403
+    
+    try:
+        # Sanitizar nome da tabela para evitar SQL injection
+        if not re.match(r'^[a-zA-Z0-9_]+$', table_name):
+            return jsonify({'success': False, 'error': 'Nome de tabela inválido'}), 400
+        
+        # Obter os dados enviados
+        dados = request.json
+        if not dados or not isinstance(dados.get('data'), list) or not dados.get('columns'):
+            return jsonify({'success': False, 'error': 'Dados de importação inválidos'}), 400
+        
+        # Verificar se a tabela existe
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+            if not cursor.fetchone():
+                return jsonify({'success': False, 'error': 'Tabela não encontrada'}), 404
+            
+            # Obter informações sobre colunas da tabela
+            cursor.execute(f"PRAGMA table_info({table_name})")
+            tabela_colunas = [row[1] for row in cursor.fetchall()]
+            
+            # Verificar modo de importação
+            import_mode = dados.get('mode', 'append')
+            
+            # Para o modo 'replace', excluir registros existentes
+            if import_mode == 'replace':
+                try:
+                    cursor.execute(f"DELETE FROM {table_name}")
+                    app_logger.warning(f"Administrador {session.get('username')} excluiu todos os registros da tabela {table_name} para importação")
+                except Exception as e:
+                    return jsonify({'success': False, 'error': f'Erro ao limpar tabela: {str(e)}'}), 500
+            
+            # Validar colunas enviadas contra colunas da tabela
+            colunas_importacao = dados.get('columns', [])
+            colunas_validas = [col for col in colunas_importacao if col in tabela_colunas]
+            
+            if not colunas_validas:
+                return jsonify({'success': False, 'error': 'Nenhuma coluna válida encontrada para importação'}), 400
+            
+            # Preparar para inserção em lote
+            registros_importados = 0
+            registros_falhos = 0
+            
+            # Criar sql de inserção dinâmico
+            colunas_str = ', '.join(colunas_validas)
+            placeholders = ', '.join(['?' for _ in colunas_validas])
+            sql = f"INSERT INTO {table_name} ({colunas_str}) VALUES ({placeholders})"
+            
+            # Processar lote de registros
+            for registro in dados['data']:
+                try:
+                    # Extrair valores nas colunas válidas
+                    values = [registro.get(col, '') for col in colunas_validas]
+                    
+                    # Inserir registro
+                    cursor.execute(sql, values)
+                    registros_importados += 1
+                except Exception as e:
+                    app_logger.error(f"Erro ao importar registro para tabela {table_name}: {e}")
+                    registros_falhos += 1
+            
+            # Commit das alterações
+            conn.commit()
+            
+            # Registrar no log
+            app_logger.info(f"Administrador {session.get('username')} importou {registros_importados} registros para a tabela {table_name}")
+            
+            # Resultado da importação
+            return jsonify({
+                'success': True,
+                'message': f'Importação concluída. {registros_importados} registros importados com sucesso. {registros_falhos} falhas.'
+            })
+            
+    except Exception as e:
+        app_logger.error(f"Erro geral na importação para {table_name}: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 # ========================================================
 # INICIALIZAÇÃO DO APLICATIVO
