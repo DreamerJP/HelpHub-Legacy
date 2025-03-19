@@ -18,6 +18,9 @@
     <link href="https://unpkg.com/@popperjs/core@2.11.6/dist/umd/popper.min.css" rel="stylesheet">
     <link href="https://unpkg.com/tippy.js@6.3.7/themes/light.css" rel="stylesheet">
     <link href="https://unpkg.com/tippy.js@6.3.7/animations/shift-away.css" rel="stylesheet">
+    
+    <!-- CKEditor 5 -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
 </head>
 <body>
     <!-- Barra de navegação principal usando Bootstrap 5 -->
@@ -56,16 +59,22 @@
                             <i class="bi bi-calendar3"></i> Agenda
                         </a>
                     </li>
-                    <!-- Opção visível apenas para administradores -->
+                    <!-- OOpção para gerenciar usuários (apenas para administradores) -->
                     <li class="nav-item admin-only" style="display: none;">
                         <a id="menu-usuarios" class="nav-link" href="#" onclick="carregarUsuariosPage()">
                             <i class="bi bi-person-badge"></i> Usuários
                         </a>
                     </li>
-                    <!-- Nova opção para gerenciar backups (apenas para administradores) -->
+                    <!-- Opção para gerenciar backups (apenas para administradores) -->
                     <li class="nav-item admin-only" style="display: none;">
                         <a id="menu-backups" class="nav-link" href="#" onclick="carregarBackupsPage()">
                             <i class="bi bi-server"></i> Backups
+                        </a>
+                    </li>
+                    <!-- Opção para visualizar banco de dados (apenas para administradores) -->
+                    <li class="nav-item admin-only" style="display: none;">
+                        <a id="menu-db-viewer" class="nav-link" href="/db-viewer.html" target="_blank">
+                            <i class="bi bi-server"></i> Database Viewer
                         </a>
                     </li>
                 </ul>
@@ -181,26 +190,6 @@
                 </div>
                 <div class="modal-body" id="detalhes-cliente">
                     <!-- Informações do cliente serão inseridas dinamicamente via JavaScript -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle"></i> Fechar
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Detalhes do chamado -->
-    <div class="modal fade" id="chamadoModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-ticket-detailed"></i> Detalhes do Chamado</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" id="detalhes-chamado">
-                    <!-- Informações do chamado serão inseridas dinamicamente via JavaScript -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -448,5 +437,7 @@
     <script src="https://unpkg.com/tippy.js@6.3.7/dist/tippy-bundle.umd.min.js"></script>
     <!-- Script principal da aplicação -->
     <script src="script.js"></script>
+    <!-- Script para funcionalidades adicionais -->
+    <script src="client-notes.js"></script>
 </body>
 </html>
