@@ -177,65 +177,74 @@ function carregarHome() {
     updateActiveMenu('home'); // Atualiza o menu ativo
     
     document.getElementById('conteudo').innerHTML = `
-        <div class="row">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-body">
-                        <h2>Buscar Cliente</h2>
-                        <div class="input-group mb-3">
-                            <input type="text" id="busca-cliente" class="form-control" placeholder="Digite nome ou email...">
-                            <button class="btn btn-primary" onclick="buscarClientes()">Buscar</button>
+        <div class="home-page-container">
+            <!-- Seção superior -->
+            <div class="top-section">
+                <div class="search-card-wrapper">
+                    <div class="card search-card">
+                        <div class="card-body">
+                            <h2><i class="bi bi-search"></i> Buscar Cliente</h2>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="bi bi-person-search"></i></span>
+                                <input type="text" id="busca-cliente" class="form-control" placeholder="Digite nome ou email...">
+                                <button class="btn btn-primary" onclick="buscarClientes()">
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                            </div>
+                            <div id="resultado-busca"></div>
                         </div>
-                        <div id="resultado-busca"></div>
                     </div>
                 </div>
-
-                <div class="row mt-4">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5>Estatísticas de Chamados</h5>
-                                <div class="chart-container">
-                                    <canvas id="grafico-chamados"></canvas>
-                                </div>
-                                <div class="mt-3">
-                                    <p>Total de Chamados Abertos: <span id="total-abertos">0</span></p>
-                                    <p>Total de Chamados Fechados: <span id="total-fechados">0</span></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5>Últimos Chamados</h5>
-                                <div id="ultimos-chamados" class="list-group"></div>
-                            </div>
+                
+                <div class="system-summary-wrapper">
+                    <div class="card home-card">
+                        <div class="card-body">
+                            <h5><i class="bi bi-clipboard-data"></i> Resumo do Sistema</h5>
+                            <ul class="list-group" id="estatisticas-gerais"></ul>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5> Resumo do Sistema</h5>
-                        <ul class="list-group" id="estatisticas-gerais"></ul>
+            <!-- Seção inferior -->
+            <div class="bottom-section">
+                <div class="statistics-wrapper">
+                    <div class="card home-card">
+                        <div class="card-body">
+                            <h5><i class="bi bi-graph-up"></i> Estatísticas de Chamados</h5>
+                            <div class="period-selector">
+                                <select id="periodo-estatisticas" class="form-select form-select-sm">
+                                    <option value="total">Todo o período</option>
+                                    <option value="mensal">Mensal (mês atual)</option>
+                                    <option value="semanal">Semanal (semana atual)</option>
+                                    <option value="diario">Diário (hoje)</option>
+                                </select>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="grafico-chamados"></canvas>
+                            </div>
+                            <div class="stats-summary">
+                                <p><i class="bi bi-hourglass-split"></i> Total de Chamados Abertos: <span id="total-abertos">0</span></p>
+                                <p><i class="bi bi-check-circle"></i> Total de Chamados Fechados: <span id="total-fechados">0</span></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="card mt-4">
-                    <div class="card-body">
-                        <h5>Ações Rápidas</h5>
-                        <button class="btn btn-success mb-2 w-100" onclick="carregarNovoClientePage()">Novo Cliente</button>
-                        <button class="btn btn-primary w-100" onclick="carregarChamadosPage()">Novo Chamado</button>
+                
+                <div class="recent-tickets-wrapper">
+                    <div class="card home-card">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3"><i class="bi bi-clock-history"></i> Últimos Chamados</h5>
+                            <div id="ultimos-chamados" class="recent-tickets-container"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    `;
-    
+    </div>`;
     // Carrega as estatísticas apenas uma vez ao entrar na página inicial
-    carregarEstatisticas(); 
+    carregarEstatisticas('total'); 
+    configurarDropdownPeriodo();
     configurarBuscaClientes();
 }
 
@@ -1030,6 +1039,9 @@ function carregarEditarClientePage(cliente) {
                     <li class="nav-item">
                         <a class="nav-link" id="chamados-tab" data-bs-toggle="tab" href="#chamados-cliente" role="tab">Chamados registrados</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="notas-tab" data-bs-toggle="tab" href="#notas" role="tab">Informações Adicionais</a>
+                    </li>
                 </ul>
                 <div class="tab-content" id="clienteTabsContent">
                     <div class="tab-pane fade show active" id="dados" role="tabpanel">
@@ -1048,11 +1060,14 @@ function carregarEditarClientePage(cliente) {
                             </div>
                             <div class="mb-3">
                                 <label for="email" class="form-label">E-mail:</label>
-                                <input type="email" id="email" class="form-control" value="${cliente[3] || ''}">
+                                <input type="text" id="email" class="form-control" value="${cliente[3] || ''}" 
+                                    placeholder="email@exemplo.com, outro@exemplo.com">
+                                <div class="form-text">Você pode adicionar múltiplos e-mails separados por vírgula ou "/".</div>
                             </div>
                             <div class="mb-3">
                                 <label for="telefone" class="form-label">Telefone:</label>
                                 <input type="text" id="telefone" class="form-control" value="${cliente[4] || ''}">
+                                <div class="form-text">Você pode adicionar múltiplos telefones separados por vírgula ou "/".</div>
                             </div>
                             <div class="mb-3">
                                 <label for="ativo" class="form-label">Ativo:</label>
@@ -1177,6 +1192,16 @@ function carregarEditarClientePage(cliente) {
                                         <span class="visually-hidden">Carregando...</span>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="notas" role="tabpanel">
+                        <div class="notes-container">
+                            <textarea id="cliente-notas"></textarea>
+                            <div class="notes-actions">
+                                <button type="button" class="btn btn-primary" onclick="saveClientNotes(${cliente[0]})">
+                                    <i class="bi bi-save"></i> Salvar Notas
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -1654,70 +1679,104 @@ function carregarDetalhesCliente(cliente) {
 
 /**
  * Carrega as estatísticas do sistema
+ * @param {string} periodo - Período para filtrar estatísticas: 'total', 'mensal', 'semanal', 'diario'
  */
-async function carregarEstatisticas() {
+async function carregarEstatisticas(periodo = 'total') {
     try {
-        // Verificar se estamos na página inicial antes de carregar as estatísticas
-        const graficoElement = document.getElementById('grafico-chamados');
-        const totaisElement = document.getElementById('total-abertos');
-        
-        // Se não encontrar os elementos essenciais da página inicial, não carrega estatísticas
-        if (!graficoElement || !totaisElement) {
-            return;
-        }
-        
-        const dados = await fetchWithLoading('/estatisticas');
+        const response = await fetch(`http://localhost:5000/estatisticas?periodo=${periodo}`);
+        const dados = await response.json();
 
-        // Atualiza os números de chamados em aberto/fechados
-        document.getElementById('total-abertos').textContent = dados.chamados_status.Aberto || 0;
-        document.getElementById('total-fechados').textContent = dados.chamados_status.Finalizado || 0;
+        if (dados) {
+            // Atualiza os contadores
+            document.getElementById('total-abertos').textContent = dados.chamados_abertos || 0;
+            document.getElementById('total-fechados').textContent = dados.chamados_fechados || 0;
 
-        // Inicializa o gráfico de chamados
-        inicializarGrafico(dados);
+            // Atualiza o gráfico
+            inicializarGrafico(dados);
 
-        // Atualiza as estatísticas gerais com ícones
-        const estatisticasDiv = document.getElementById('estatisticas-gerais');
-        if (estatisticasDiv) {
-            estatisticasDiv.innerHTML = `
-                <li class="list-group-item"><i class="bi bi-people-fill"></i> Total de Clientes: ${dados.total_clientes}</li>
-                <li class="list-group-item"><i class="bi bi-headset"></i> Chamados Abertos: ${dados.chamados_status.Aberto || 0}</li>
-                <li class="list-group-item"><i class="bi bi-check-circle-fill"></i> Chamados Finalizados: ${dados.chamados_status.Finalizado || 0}</li>
-            `;
-        }
+            // Atualiza as estatísticas gerais
+            const estatisticasGerais = document.getElementById('estatisticas-gerais');
+            if (estatisticasGerais) {
+                estatisticasGerais.innerHTML = `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Total de Clientes
+                        <span class="badge bg-primary rounded-pill">${dados.total_clientes}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Chamados Abertos
+                        <span class="badge bg-warning rounded-pill">${dados.chamados_abertos}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Chamados Fechados
+                        <span class="badge bg-success rounded-pill">${dados.chamados_fechados}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Média Diária de Chamados
+                        <span class="badge bg-info rounded-pill">${dados.media_diaria_chamados}</span>
+                    </li>
+                `;
+            }
 
-        // Lista os últimos chamados com ícones
-        const ultimosChamadosDiv = document.getElementById('ultimos-chamados');
-        if (ultimosChamadosDiv) {
-            ultimosChamadosDiv.innerHTML = '';
-            
-            if (dados.ultimos_chamados && dados.ultimos_chamados.length > 0) {
-                dados.ultimos_chamados.forEach(chamado => {
-                    const dataFormatada = formatarData(chamado[4]);
-                    const statusClass = chamado[3] === 'Aberto' ? 'text-danger' : 'text-success';
-                    const statusIcon = chamado[3] === 'Aberto' ? 'bi-exclamation-circle-fill' : 'bi-check-circle-fill';
-                    
-                    ultimosChamadosDiv.innerHTML += `
-                        <a href="#" class="list-group-item list-group-item-action" onclick="abrirDetalhesChamado(${chamado[0]})">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1"><i class="bi bi-hash"></i> ${chamado[6]}</h6>
-                                <small><i class="bi bi-calendar-date"></i> ${dataFormatada}</small>
+            // Exibe os últimos chamados
+            const ultimosChamadosContainer = document.getElementById('ultimos-chamados');
+            if (ultimosChamadosContainer) {
+                ultimosChamadosContainer.innerHTML = '';
+
+                if (dados.ultimos_chamados && dados.ultimos_chamados.length > 0) {
+                    dados.ultimos_chamados.forEach(chamado => {
+                        // Usa diretamente os dados que vêm do backend
+                        const protocolo = chamado.protocolo || ''; // Se não existir, fica vazio em vez de gerar um
+                        const cliente = chamado.cliente_nome || chamado.cliente || 'Cliente não informado';
+                        const assunto = chamado.assunto || 'Sem assunto';
+                        const status = chamado.status || 'Aberto';
+                        const dataAbertura = chamado.data_abertura || '';
+                        const id = chamado.id || 0;
+
+                        // Determina o ícone e classe de acordo com o status
+                        let statusIcon = status === 'Aberto' ? 'bi-exclamation-circle' : 'bi-check-circle';
+                        let statusClass = status === 'Aberto' ? 'text-danger' : 'text-success';
+
+                        // Formata a data para exibição
+                        const dataFormatada = formatarData(dataAbertura);
+
+                        // Cria o item da lista com layout melhorado
+                        const item = document.createElement('div');
+                        item.className = 'chamado-item p-2 mb-1 border-bottom';
+
+                        // Condicionalmente inclui a linha do protocolo apenas se existir
+                        const protocoloHTML = protocolo
+                            ? `<small class="chamado-protocolo text-secondary"><i class="bi bi-hash"></i> ${protocolo}</small>`
+                            : '';
+
+                        item.innerHTML = `
+                            <div class="d-flex align-items-center">
+                                <div class="chamado-status me-2">
+                                    <i class="bi ${statusIcon} ${statusClass}" title="${status}"></i>
+                                </div>
+                                <div class="chamado-info flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong class="chamado-cliente text-truncate" style="max-width: 65%;" title="${cliente}">${cliente}</strong>
+                                        <small class="chamado-data text-muted"><i class="bi bi-calendar2"></i> ${dataFormatada}</small>
+                                    </div>
+                                    <p class="chamado-assunto mb-1 text-truncate" title="${assunto}">${assunto}</p>
+                                    <div class="d-flex justify-content-between">
+                                        ${protocoloHTML}
+                                        <button class="btn btn-sm btn-outline-primary py-0" onclick="abrirDetalhesChamado(${id})">
+                                            <i class="bi bi-eye"></i> Visualizar
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                            <p class="mb-1"><i class="bi bi-person"></i> ${chamado[10]}</p>
-                            <div class="d-flex justify-content-between">
-                                <small><i class="bi bi-chat-text"></i> ${chamado[7] || 'Sem assunto'}</small>
-                                <small class="${statusClass}"><i class="bi ${statusIcon}"></i> ${chamado[3]}</small>
-                            </div>
-                        </a>
-                    `;
-                });
-            } else {
-                ultimosChamadosDiv.innerHTML = '<p class="text-center text-muted mt-3"><i class="bi bi-info-circle"></i> Nenhum chamado registrado.</p>';
+                        `;
+                        ultimosChamadosContainer.appendChild(item);
+                    });
+                } else {
+                    ultimosChamadosContainer.innerHTML = '<div class="text-center text-muted p-3"><i class="bi bi-inbox"></i> Nenhum chamado registrado</div>';
+                }
             }
         }
-    } catch (erro) {
-        console.error('Erro ao carregar estatísticas:', erro);
-        // Removida a mensagem de erro para evitar notificações repetitivas
-        // A falha será registrada apenas no console
+    } catch (error) {
+        console.error('Erro ao carregar estatísticas:', error);
     }
 }
 
@@ -1727,33 +1786,77 @@ async function carregarEstatisticas() {
  */
 function inicializarGrafico(dados) {
     const ctx = document.getElementById('grafico-chamados').getContext('2d');
+    
+    // Destrói o gráfico anterior se existir
     if (graficoChamados) {
         graficoChamados.destroy();
     }
-    // Define a cor da legenda com base no status do modo escuro
-    const legendColor = document.body.classList.contains('dark-mode') ? '#ffffff' : '#000000';
+
+    // Prepara os dados para o gráfico
+    const dadosGrafico = {
+        labels: ['Chamados'],
+        datasets: [
+            {
+                label: 'Abertos',
+                data: [dados.chamados_abertos],
+                backgroundColor: 'rgba(255, 193, 7, 0.6)',
+                borderColor: 'rgb(255, 193, 7)',
+                borderWidth: 1
+            },
+            {
+                label: 'Fechados',
+                data: [dados.chamados_fechados],
+                backgroundColor: 'rgba(40, 167, 69, 0.6)',
+                borderColor: 'rgb(40, 167, 69)',
+                borderWidth: 1
+            }
+        ]
+    };
+
+    // Cria um novo gráfico
     graficoChamados = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Abertos', 'Finalizados'],
-            datasets: [{
-                data: [dados.chamados_status.Aberto || 0, dados.chamados_status.Finalizado || 0],
-                backgroundColor: ['#ff6384', '#36a2eb']
-            }]
-        },
+        type: 'bar',
+        data: dadosGrafico,
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            },
             plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        color: legendColor
+                title: {
+                    display: true,
+                    text: getPeriodoText(document.getElementById('periodo-estatisticas')?.value || 'total'),
+                    font: {
+                        size: 14
                     }
                 }
             }
         }
     });
+}
+
+/**
+ * Retorna o texto formatado para o período selecionado
+ * @param {string} periodo - Período selecionado
+ * @returns {string} Texto formatado do período
+ */
+function getPeriodoText(periodo) {
+    switch (periodo) {
+        case 'mensal':
+            return 'Estatísticas do Mês Atual';
+        case 'semanal':
+            return 'Estatísticas da Semana Atual';
+        case 'diario':
+            return 'Estatísticas do Dia Atual';
+        default:
+            return 'Estatísticas de Todo o Período';
+    }
 }
 
 /**
@@ -1878,6 +1981,15 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAdminStatus();
     startSessionMonitor();
     setupKonamiCode(); // Adiciona o detector do código Konami
+
+    // Configurar o link para o Database Viewer
+    const dbViewerLink = document.getElementById('menu-db-viewer');
+    if (dbViewerLink) {
+        dbViewerLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            openDatabaseViewer();
+        });
+    }
 });
 
 document.addEventListener('visibilitychange', () => {
@@ -2124,9 +2236,9 @@ async function carregarDetalhesChamadoPage(id) {
         }
         const isFinalizado = chamado.status === 'Finalizado';
         currentChamadoId = id; // Armazena o ID do chamado atual
-        isDescriptionVisible = true; // Reset to description visible on load
+        isDescriptionVisible = true; // Redefinir para descrição visível ao carregar
 
-        // Replace the cliente input group with this new version
+        // Renderiza o campo de cliente com botão para visualizar detalhes, se disponível
         const clienteHTML = `
             <div class="mb-3 col-md-6">
                 <label for="cliente" class="form-label">Cliente:</label>
@@ -2143,7 +2255,7 @@ async function carregarDetalhesChamadoPage(id) {
             </div>
         `;
 
-        // Update the template to use the new clienteHTML
+        // Atualize o template para usar o novo clienteHTML
         document.getElementById('conteudo').innerHTML = `
             <div class="row">
                 <div class="col-md-12">
@@ -2212,7 +2324,7 @@ async function carregarDetalhesChamadoPage(id) {
             </div>
         `;
 
-        // Function to render progress entries
+        // Função para renderizar entradas de progresso
         function renderAndamentos() {
             const andamentosCarousel = document.getElementById('andamentos-carousel');
             const status = document.getElementById('status').value;
@@ -2830,6 +2942,48 @@ function configurarBuscaClientes() {
 }
 
 /**
+ * Configura o dropdown de período para o gráfico de estatísticas
+ */
+function configurarDropdownPeriodo() {
+    const dropdown = document.getElementById('periodo-estatisticas');
+    if (dropdown) {
+        dropdown.addEventListener('change', function() {
+            carregarEstatisticas(this.value);
+        });
+    }
+}
+
+/**
+ * Retorna o texto formatado para o período selecionado
+ * @param {string} periodo - Período selecionado
+ * @returns {string} Texto formatado do período
+ */
+function getPeriodoText(periodo) {
+    switch (periodo) {
+        case 'mensal':
+            return 'Estatísticas do Mês Atual';
+        case 'semanal':
+            return 'Estatísticas da Semana Atual';
+        case 'diario':
+            return 'Estatísticas do Dia Atual';
+        default:
+            return 'Estatísticas de Todo o Período';
+    }
+}
+
+/**
+ * Configura o dropdown de período para o gráfico de estatísticas
+ */
+function configurarDropdownPeriodo() {
+    const dropdown = document.getElementById('periodo-estatisticas');
+    if (dropdown) {
+        dropdown.addEventListener('change', function() {
+            carregarEstatisticas(this.value);
+        });
+    }
+}
+
+/**
  * Busca clientes na API e exibe os resultados
  * @param {string} termo - Termo a ser buscado
  */
@@ -2917,8 +3071,26 @@ async function checkAdminStatus() {
         sessionStorage.setItem('userRole', data.role);
         
         if (data.role === 'admin') {
+            // Mostrar elementos para administradores
             document.querySelectorAll('.admin-only').forEach(el => {
-                el.style.display = 'block';
+                el.style.display = 'block';  // ou 'list-item' para itens de lista
+            });
+            
+            // Verificar se o link para o Database Viewer existe e configurá-lo
+            const dbViewerLink = document.getElementById('menu-db-viewer');
+            if (dbViewerLink) {
+                dbViewerLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Abrir o Database Viewer em uma nova janela
+                    window.open('/db-viewer.html', '_blank');
+                });
+            }
+            
+            console.log('Configurações de administrador aplicadas');
+        } else {
+            // Esconder elementos admin
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.display = 'none';
             });
         }
     } catch (error) {
@@ -3206,6 +3378,27 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
+ * Abre o visualizador de banco de dados em uma nova janela/aba
+ * Esta função só deve ser acessível por administradores
+ */
+function openDatabaseViewer() {
+    // Verificar se o usuário é admin antes de abrir
+    fetch('/auth/check-role')
+        .then(response => response.json())
+        .then(data => {
+            if (data.role === 'admin') {
+                window.open('/db-viewer.html', '_blank');
+            } else {
+                exibirMensagem('Apenas administradores podem acessar o Database Viewer', 'erro');
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao verificar permissões:', error);
+            exibirMensagem('Erro ao verificar permissões', 'erro');
+        });
+}
+
+/**
  * Realiza o logout do usuário
  */
 async function logout() {
@@ -3279,7 +3472,7 @@ function carregarChamadosFinalizados() {
             <div class="col-md-12">
                 <h2 class="mb-4">Chamados Finalizados</h2>
                 
-                <!-- Nova caixa de pesquisa para chamados -->
+                <!-- Caixa de pesquisa para chamados -->
                 <div class="modern-search mb-3">
                     <input type="text" id="pesquisa-chamados-finalizado" class="form-control" 
                            placeholder="Pesquisar por cliente, protocolo ou assunto...">
@@ -3351,7 +3544,10 @@ if (status === 'Finalizado') {
     });
 }
 
-// Função para mostrar detalhes do cliente em um modal
+/**
+ * Exibe detalhes de um cliente em um modal
+ * @param {number} clienteId - ID do cliente a ser exibido
+ */
 async function mostrarDetalhesCliente(clienteId) {
     try {
         const response = await fetch(`http://localhost:5000/clientes/${clienteId}`);
@@ -3361,7 +3557,7 @@ async function mostrarDetalhesCliente(clienteId) {
         
         const cliente = await response.json();
         
-        // Cria um modal dinamicamente com todos os campos do cliente
+        // Cria um modal dinamicamente com dropdown em vez de tabs
         const modalHtml = `
             <div class="modal fade" id="clienteDetalhesModal" tabindex="-1">
                 <div class="modal-dialog modal-lg">
@@ -3371,30 +3567,21 @@ async function mostrarDetalhesCliente(clienteId) {
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
-                            <ul class="nav nav-tabs" role="tablist">
-                                <li class="nav-item">
-                                    <a class="nav-link active" data-bs-toggle="tab" href="#dados-cliente">
-                                        Dados Principais
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" data-bs-toggle="tab" href="#dados-complementares">
-                                        Dados Complementares
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" data-bs-toggle="tab" href="#documentos">
-                                        Documentos
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" data-bs-toggle="tab" href="#endereco-cliente">
-                                        Endereço
-                                    </a>
-                                </li>
-                            </ul>
-                            <div class="tab-content pt-3">
-                                <div class="tab-pane fade show active" id="dados-cliente">
+                            <!-- Dropdown para selecionar a seção -->
+                            <div class="mb-3">
+                                <select class="form-select" id="cliente-secao-dropdown" onchange="alternarSecaoCliente(this.value)">
+                                    <option value="dados-cliente">Dados Principais</option>
+                                    <option value="dados-complementares">Dados Complementares</option>
+                                    <option value="documentos">Documentos</option>
+                                    <option value="endereco-cliente">Endereço</option>
+                                    <option value="notas">Informações Adicionais</option>
+                                </select>
+                            </div>
+
+                            <!-- Conteúdo das seções -->
+                            <div id="secao-cliente-conteudo">
+                                <!-- Dados Principais (visível por padrão) -->
+                                <div id="dados-cliente" class="secao-cliente">
                                     <div class="row">
                                         <div class="col-md-6 mb-2">
                                             <strong>Razão Social/Nome:</strong><br>
@@ -3423,7 +3610,8 @@ async function mostrarDetalhesCliente(clienteId) {
                                     </div>
                                 </div>
 
-                                <div class="tab-pane fade" id="dados-complementares">
+                                <!-- Dados Complementares (inicialmente oculto) -->
+                                <div id="dados-complementares" class="secao-cliente" style="display: none;">
                                     <div class="row">
                                         <div class="col-md-6 mb-2">
                                             <strong>Nacionalidade:</strong><br>
@@ -3456,7 +3644,8 @@ async function mostrarDetalhesCliente(clienteId) {
                                     </div>
                                 </div>
 
-                                <div class="tab-pane fade" id="documentos">
+                                <!-- Documentos (inicialmente oculto) -->
+                                <div id="documentos" class="secao-cliente" style="display: none;">
                                     <div class="row">
                                         <div class="col-md-6 mb-2">
                                             <strong>CNPJ/CPF:</strong><br>
@@ -3481,7 +3670,8 @@ async function mostrarDetalhesCliente(clienteId) {
                                     </div>
                                 </div>
 
-                                <div class="tab-pane fade" id="endereco-cliente">
+                                <!-- Endereço (inicialmente oculto) -->
+                                <div id="endereco-cliente" class="secao-cliente" style="display: none;">
                                     <div class="row">
                                         <div class="col-md-4 mb-2">
                                             <strong>CEP:</strong><br>
@@ -3515,6 +3705,24 @@ async function mostrarDetalhesCliente(clienteId) {
                                             <strong>País:</strong><br>
                                             ${cliente.pais || ''}
                                         </div>
+                                        <!-- Botão para Google Maps - CORRIGIDO -->
+                                        <div class="col-12 mt-2">
+                                            <button type="button" class="btn btn-sm btn-primary" 
+                                                    onclick="abrirMapaCliente('${cliente.rua || ''} ${cliente.numero || ''}, ${cliente.bairro || ''}, ${cliente.cidade || ''} ${cliente.estado || ''}')">
+                                                <i class="bi bi-map"></i> Ver no Google Maps
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Informações Adicionais (inicialmente oculto) -->
+                                <div id="notas" class="secao-cliente" style="display: none;">
+                                    <div class="notes-container">
+                                        <div class="form-group">
+                                            <div id="cliente-notas-view" class="form-control" style="min-height: 150px; overflow-y: auto;">
+                                                ${cliente.notas || 'Nenhuma informação adicional cadastrada.'}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -3536,6 +3744,28 @@ async function mostrarDetalhesCliente(clienteId) {
         // Adiciona o modal ao documento
         document.body.insertAdjacentHTML('beforeend', modalHtml);
 
+        // Adiciona um atributo data-cliente-id ao modal para o client-notes.js poder acessar
+        document.getElementById('clienteDetalhesModal').setAttribute('data-cliente-id', cliente.id);
+
+        // Adiciona um listener para quando o dropdown for alterado para Informações Adicionais
+        document.getElementById('cliente-secao-dropdown').addEventListener('change', function(e) {
+            if (e.target.value === 'notas') {
+                // Atualiza o conteúdo das notas diretamente (sem usar o editor)
+                fetch(`http://localhost:5000/clientes/${cliente.id}/notas`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const notasView = document.getElementById('cliente-notas-view');
+                        if (notasView) {
+                            // Usar innerHTML para preservar a formatação HTML
+                            notasView.innerHTML = data.notas || 'Nenhuma informação adicional cadastrada.';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao carregar notas:', error);
+                    });
+            }
+        });
+
         // Mostra o modal
         const modal = new bootstrap.Modal(document.getElementById('clienteDetalhesModal'));
         modal.show();
@@ -3544,6 +3774,35 @@ async function mostrarDetalhesCliente(clienteId) {
         console.error('Erro ao carregar detalhes do cliente:', erro);
         exibirMensagem('Erro ao carregar detalhes do cliente', 'erro');
     }
+}
+
+/**
+ * Alterna entre as seções do cliente no modal
+ * @param {string} secaoId - ID da seção a ser exibida
+ */
+function alternarSecaoCliente(secaoId) {
+    // Oculta todas as seções
+    document.querySelectorAll('.secao-cliente').forEach(secao => {
+        secao.style.display = 'none';
+    });
+    
+    // Exibe a seção selecionada
+    document.getElementById(secaoId).style.display = 'block';
+}
+
+/**
+ * Abre o endereço do cliente no Google Maps
+ * @param {string} endereco - Endereço completo do cliente
+ */
+function abrirMapaCliente(endereco) {
+    if (!endereco || endereco.trim() === '') {
+        exibirMensagem('Endereço incompleto para abrir no mapa', 'erro');
+        return;
+    }
+    
+    // Abre uma nova aba com o Google Maps usando o endereço do cliente
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco)}`;
+    window.open(url, '_blank');
 }
 
 /**
