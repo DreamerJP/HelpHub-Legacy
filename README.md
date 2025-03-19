@@ -2,24 +2,27 @@
 HelpHub/
 │
 ├── backend/
-│   ├── requirements.txt   # Imports necessários para Python
-│   ├── app.py             # Código do backend em Flask
-│   ├── secret_key         # Chave secreta para assinar e validar sessões e cookies
-│   ├── database.db        # Arquivo do banco de dados SQLite
-│   ├── start_server.sh    # Comando para iniciar o server com o Gunicorn
-│   ├── gunicorn_config.py # Configuração do servidor Gunicorn
-│   ├── dockerfile         # Arquivo para configuração do docker
+│   ├── requirements.txt    # Imports necessários para Python
+│   ├── app.py              # Código do backend em Flask
+│   ├── secret_key          # Chave secreta para assinar e validar sessões e cookies
+│   ├── database.db         # Arquivo do banco de dados SQLite
+│   ├── start_server.sh     # Comando para iniciar o server com o Gunicorn
+│   ├── gunicorn_config.py  # Configuração do servidor Gunicorn
+│   ├── dockerfile          # Arquivo para configuração do docker
 │   └── static/
-│       ├── login-bg.webp  # Fundo da tela de login
-│       ├── favicon.ico    # Icone
-│       ├── logo.png       # Logo
-│       ├── login.html     # Página principal de login
-│       ├── index.html     # Página principal
-│       ├── snake.html     # Página do Easter Egg
-│       ├── styles.css     # Estilos da página
-│       └── script.js      # JavaScript para interação com backend
+│       ├── client-notes.js # Script de notas dos clientes e funções auxiliares
+│       ├── db-viewer.html  # Página de visualização/import/export do banco de dados
+│       ├── favicon.ico     # Icone
+│       ├── index.html      # Página principal
+│       ├── login.html      # Página principal de login
+│       ├── login-bg.webp   # Fundo da tela de login
+│       ├── logo.png        # Favicon
+│       ├── script.js       # JavaScript para interação com backend
+│       ├── snake.html      # Página do Easter Egg
+│       ├── snake.js        # JavaScript do Easter Egg
+│       └── styles.css      # Estilos da página
 │
-└── README.md              # Instruções do projeto
+└── README.md               # Instruções do projeto
 ```
 
 Modos de iniciar o servidor:
