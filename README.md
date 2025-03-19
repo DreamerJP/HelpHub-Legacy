@@ -19,7 +19,6 @@ HelpHub/
 │       ├── logo.png        # Favicon
 │       ├── script.js       # JavaScript para interação com backend
 │       ├── snake.html      # Página do Easter Egg
-│       ├── snake.js        # JavaScript do Easter Egg
 │       └── styles.css      # Estilos da página
 │
 └── README.md               # Instruções do projeto
