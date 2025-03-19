@@ -132,6 +132,11 @@ body.dark-mode footer p {
     color: rgba(255, 255, 255, 0.5);
 }
 
+/* Ajusta a cor do texto para telefone e email no modo escuro */
+body.dark-mode .text-muted {
+    color: rgba(255, 255, 255, 0.8) !important; /* Lighter color for better readability */
+}
+
 /* ========================================================
    SISTEMA DE NAVEGAÇÃO EM ABAS
    ======================================================== */
@@ -919,10 +924,10 @@ body.dark-mode .modern-toolbar {
 }
 
 /* ========================================================
-   CAMPO DE BUSCA MODERNO
+   CAMPO DE BUSCA
    ======================================================== */
 
-/* Container do campo de busca moderno */
+/* Container do campo de busca */
 .modern-search {
     position: relative;
     margin-bottom: 20px;
@@ -1251,8 +1256,8 @@ body.dark-mode .fc-list-event:hover .fc-list-event-time {
     position: absolute;
     z-index: 4;
     width: 100%;
-    height: 10px !important; /* Aumentado para maior visibilidade */
-    bottom: -2px !important; /* Posicionado um pouco para fora do evento */
+    height: 10px !important;
+    bottom: -2px !important;
     left: 0;
     cursor: s-resize;
     border-bottom: 2px dotted rgba(0, 0, 0, 0.4) !important; /* Linha pontilhada sempre visível */
@@ -1377,4 +1382,388 @@ body.dark-mode .backup-info {
 #lista-backups td {
     vertical-align: middle;
     word-break: break-word;
+}
+
+/* Estilos para a área de notas do cliente */
+.notes-container {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.notes-actions {
+    margin-top: 15px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Tema escuro */
+.dark-mode .notes-container {
+    background-color: #2b2b2b;
+}
+
+.dark-mode .tox .tox-edit-area__iframe {
+    background-color: #2b2b2b !important;
+}
+
+.tox .tox-toolbar {
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+.tox .tox-statusbar {
+    border-top: 1px solid #dee2e6 !important;
+}
+
+.notas-container {
+    margin: 20px 0;
+    background-color: #fff;
+    border-radius: 0.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.notas-label {
+    font-weight: 500;
+    margin-bottom: 10px;
+    color: #495057;
+}
+
+
+.tox .tox-toolbar__group {
+    padding: 4px !important;
+    border-right: 1px solid #dee2e6 !important;
+}
+
+.tox .tox-toolbar {
+    background-color: #f8f9fa !important;
+    padding: 4px !important;
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+body.dark-mode .tox .tox-toolbar,
+body.dark-mode .tox .tox-toolbar__group {
+    background-color: #343a40 !important;
+    border-color: #495057 !important;
+}
+
+body.dark-mode .tox .tox-toolbar-overlord {
+    background-color: #343a40 !important;
+}
+
+/* ========================================================
+   MELHORIAS ESPECÍFICAS PARA O LAYOUT DA HOME PAGE
+   ======================================================== */
+
+/* Variáveis personalizáveis para ajuste manual dos tamanhos dos cards */
+:root {
+    /* Variáveis de tamanho dos cards - largura e altura para cada card */
+    --search-card-width: 70%;
+    --search-card-height: auto;
+    
+    --system-summary-width: 28%;
+    --system-summary-height: auto;
+    
+    --statistics-card-width: 35%; 
+    --statistics-card-height: auto;
+    
+    --recent-tickets-width: 55%;
+    --recent-tickets-height: auto;
+    
+    /* Variáveis de espaçamento */
+    --cards-gap: 1rem;
+    --section-gap: 1.5rem;
+}
+
+/* Layout principal como canvas flexível */
+.home-page-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--section-gap);
+    margin-bottom: 2rem;
+    width: 100%;
+}
+
+/* Seção superior - wrap com flexbox */
+.top-section {
+    display: flex;
+    width: 100%;
+    gap: var(--cards-gap);
+    margin-bottom: var(--cards-gap);
+}
+
+/* Seção inferior - wrap com flexbox */
+.bottom-section {
+    display: flex;
+    width: 100%;
+    gap: var(--cards-gap);
+}
+
+/* Wrappers individuais para cada card com tamanhos independentes */
+.search-card-wrapper {
+    width: var(--search-card-width);
+    height: var(--search-card-height);
+}
+
+.system-summary-wrapper {
+    width: var(--system-summary-width);
+    height: var(--system-summary-height);
+}
+
+.statistics-wrapper {
+    width: var(--statistics-card-width);
+    height: var(--statistics-card-height);
+}
+
+.recent-tickets-wrapper {
+    width: var(--recent-tickets-width);
+    height: var(--recent-tickets-height);
+}
+
+.recent-tickets-wrapper {
+  width: 500px !important;
+  max-width: 500px !important;
+}
+
+/* Cards */
+.home-card, .search-card {
+    height: 100%;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.home-card .card-body, .search-card .card-body {
+    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Espaçamento consistente para títulos de cards */
+.home-card h5 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Gráficos de estatísticas com tamanho responsivo */
+.chart-container {
+    height: auto;
+    min-height: 250px;
+    margin-bottom: 1rem;
+    flex: 1;
+}
+
+/* Lista de últimos chamados */
+#ultimos-chamados.list-group {
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+}
+
+#ultimos-chamados .list-group-item {
+    padding: 0.5rem 0.75rem;
+}
+
+/* Ajusta espaçamento nas estatísticas gerais */
+#estatisticas-gerais.list-group .list-group-item {
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Ajustes para área de busca */
+.search-card {
+    margin-bottom: 0;
+}
+
+.search-card .card-body {
+    padding: 1rem;
+}
+
+.search-card h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Botões de ação rápida */
+.actions-card .btn {
+    margin-bottom: 0.5rem;
+}
+
+.actions-card .btn:last-child {
+    margin-bottom: 0;
+}
+
+/* Ajustes para seletor de período de estatísticas */
+.period-selector {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.75rem;
+}
+
+.period-selector select {
+    max-width: 150px;
+    font-size: 0.85rem;
+}
+
+/* Layout responsivo para telas menores */
+@media (max-width: 992px) {
+    /* Em telas médias, ajustar proporções mas manter layout */
+    :root {
+        --search-card-width: 65%;
+        --system-summary-width: 33%;
+        --statistics-card-width: 40%;
+        --recent-tickets-width: 58%;
+    }
+    
+    .chart-container {
+        min-height: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Em telas pequenas, empilhar todos os elementos */
+    .top-section,
+    .bottom-section {
+        flex-direction: column;
+    }
+    
+    .search-card-wrapper,
+    .system-summary-wrapper,
+    .statistics-wrapper,
+    .recent-tickets-wrapper {
+        width: 100%;
+        margin-bottom: var(--cards-gap);
+    }
+    
+    /* Reordenar elementos para experiência mobile */
+    .home-page-container {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .search-card-wrapper { order: 1; }
+    .statistics-wrapper { order: 2; }
+    .recent-tickets-wrapper { order: 3; }
+    .system-summary-wrapper { order: 4; }
+}
+
+@media (max-width: 576px) {
+    .search-card h2 {
+        font-size: 1.25rem;
+    }
+    
+    .home-card h5 {
+        font-size: 0.95rem;
+    }
+}
+
+/* Ajustes para tema escuro */
+body.dark-mode .home-card,
+body.dark-mode .search-card {
+    background-color: #343a40;
+}
+
+body.dark-mode #estatisticas-gerais.list-group .list-group-item,
+body.dark-mode #ultimos-chamados.list-group .list-group-item {
+    background-color: #343a40;
+    border-color: #495057;
+}
+
+/* Estilo para o componente "Últimos Chamados" */
+#ultimos-chamados {
+  max-height: 350px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  scrollbar-width: thin;
+}
+
+/* Oculta a barra de rolagem no Chrome sem perder a funcionalidade */
+#ultimos-chamados::-webkit-scrollbar {
+  width: 6px;
+}
+
+#ultimos-chamados::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+#ultimos-chamados::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 10px;
+}
+
+body.dark-mode #ultimos-chamados::-webkit-scrollbar-track {
+  background: #343a40;
+}
+
+body.dark-mode #ultimos-chamados::-webkit-scrollbar-thumb {
+  background: #666;
+}
+
+/* Estilo para cada item da lista de chamados */
+.chamado-item {
+  background-color: #ffffff;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  padding: 10px !important;
+  margin-bottom: 8px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #eee !important;
+}
+
+.chamado-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+  border-color: #dee2e6 !important;
+}
+
+/* Estilo para o modo escuro */
+body.dark-mode .chamado-item {
+  background-color: #2c3034;
+  border-color: #495057 !important;
+}
+
+body.dark-mode .chamado-item:hover {
+  background-color: #343a40;
+  border-color: #6c757d !important;
+}
+
+/* Estilos para o texto e elementos dentro dos items */
+.chamado-cliente {
+  font-size: 0.9rem;
+  color: #343a40;
+}
+
+.chamado-assunto {
+  font-size: 0.85rem;
+  color: #495057;
+}
+
+.chamado-protocolo {
+  font-size: 0.75rem;
+}
+
+body.dark-mode .chamado-cliente {
+  color: #e9ecef;
+}
+
+body.dark-mode .chamado-assunto {
+  color: #ced4da;
+}
+
+body.dark-mode .chamado-protocolo {
+  color: #adb5bd;
+}
+
+/* Cor data/hora no Últimos Chamados no modo escuro */
+body.dark-mode .chamado-data {
+  color: #adb5bd !important;
 }
