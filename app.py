@@ -195,6 +195,21 @@ if not test_loggers():
 # Caminho para o arquivo que armazena a chave secreta da aplicação
 SECRET_KEY_FILE = os.path.join(BASE_DIR, 'secret_key')
 
+# Função para obter o IP real do cliente
+def get_real_ip():
+    """
+    Obtém o endereço IP real do cliente, considerando headers de proxy
+    """
+    if request.headers.get('X-Forwarded-For'):
+        # Pega o primeiro IP da cadeia X-Forwarded-For (endereço original do cliente)
+        return request.headers.get('X-Forwarded-For').split(',')[0].strip()
+    elif request.headers.get('X-Real-IP'):
+        # Alguns proxies usam X-Real-IP
+        return request.headers.get('X-Real-IP')
+    else:
+        # Fallback para o endereço remoto padrão
+        return request.remote_addr
+
 # Obtém uma chave secreta existente ou gera uma nova com alta entropia
 def get_or_generate_secret_key():
     try:
@@ -968,6 +983,10 @@ def abrir_chamado():
             app_logger.warning("Tentativa de abrir chamado com dados inválidos")
             return jsonify({'erro': 'Dados inválidos'}), 400
 
+        # Validar tamanho do campo assunto (máximo 70 caracteres)
+        if 'assunto' in dados and dados['assunto'] and len(dados['assunto']) > 70:
+            return jsonify({'erro': 'O assunto deve ter no máximo 70 caracteres'}), 400
+
         with get_db_connection() as conn:
             cursor = conn.cursor()
 
@@ -1091,6 +1110,10 @@ def editar_chamado(id):
         dados = request.json
         app_logger.debug(f"Dados recebidos para edição do chamado {id}: {dados}")  # Log dos dados recebidos
         
+# Validação do tamanho do assunto
+        if 'assunto' in dados and dados['assunto'] and len(dados['assunto']) > 70:
+            return jsonify({'erro': 'O assunto deve ter no máximo 70 caracteres'}), 400
+
 # Validação básica dos dados recebidos
         if not dados:
             app_logger.warning(f"Tentativa de editar chamado {id} com dados inválidos")
@@ -1202,6 +1225,17 @@ def excluir_chamado(id):
         with get_db_connection() as conn:
             cursor = conn.cursor()
             
+            # Primeiro, verifica se existem agendamentos relacionados a este chamado
+            cursor.execute('SELECT COUNT(*) FROM agendamentos WHERE chamado_id = ?', (id,))
+            agendamentos_count = cursor.fetchone()[0]
+            
+            if agendamentos_count > 0:
+                app_logger.warning(f"Tentativa de excluir chamado {id} com agendamentos associados")
+                return jsonify({
+                    'erro': 'Não é possível excluir o chamado porque existem visitas agendadas.',
+                    'detalhes': 'Por favor, cancele os agendamentos relacionados antes de excluir o chamado.'
+                }), 400
+            
             # Query SQL para excluir um chamado existente
             cursor.execute('DELETE FROM chamados WHERE id=?', (id,))
             
@@ -1218,6 +1252,14 @@ def excluir_chamado(id):
             
             # Retorna confirmação
             return jsonify({'mensagem': 'Chamado excluído com sucesso!'})
+    except sqlite3.IntegrityError as e:
+        # Captura especificamente erros de integridade (restrições de chave estrangeira)
+        app_logger.error(f"Erro de integridade ao excluir chamado: {e}")
+        # Retorna mensagem mais explicativa
+        return jsonify({
+            'erro': 'Não é possível excluir o chamado porque existem registros relacionados.',
+            'detalhes': 'Por favor, cancele os agendamentos relacionados antes de excluir o chamado.'
+        }), 400
     except Exception as e:
         # Registra falha no log
         app_logger.error(f"Erro ao excluir chamado: {e}")
@@ -1331,7 +1373,7 @@ def obter_chamado(id):
             cursor.execute('''
                 SELECT ch.id, ch.cliente_id, ch.descricao, ch.status, ch.data_abertura, 
                        ch.data_fechamento, ch.protocolo, ch.assunto, ch.telefone, ch.solicitante,
-                       cl.nome as cliente_nome
+                       cl.nome as cliente_nome, cl.telefone as cliente_telefone
                 FROM chamados ch
                 LEFT JOIN clientes cl ON ch.cliente_id = cl.id
                 WHERE ch.id = ?
@@ -1357,10 +1399,23 @@ def obter_chamado(id):
                 for row in andamentos_data
             ]
 
+            # Busca os agendamentos relacionados ao chamado
+            cursor.execute('''
+                SELECT data_agendamento, data_final_agendamento, observacoes
+                FROM agendamentos
+                WHERE chamado_id = ?
+            ''', (id,))
+            
+            # Obtém os dados do agendamento
+            agendamento = cursor.fetchone()
+            
+            # Converte os dados do agendamento em um dicionário, se existir
+            agendamento_data = dict(zip(['data_agendamento', 'data_final_agendamento', 'observacoes'], agendamento)) if agendamento else None
+
             # Registra sucesso no log
             app_logger.info(f"Detalhes do chamado obtidos com sucesso: {id}")
             
-            # Retorna os dados do chamado e a lista de andamentos
+            # Retorna os dados do chamado, a lista de andamentos e o agendamento (se existir)
             return jsonify({
                 'id': chamado[0],
                 'cliente_id': chamado[1],
@@ -1373,7 +1428,9 @@ def obter_chamado(id):
                 'telefone': chamado[8],
                 'solicitante': chamado[9],
                 'cliente_nome': chamado[10],
-                'andamentos': andamentos_list
+                'cliente_telefone': chamado[11],
+                'andamentos': andamentos_list,
+                'agendamento': agendamento_data
             })
     except Exception as e:
         # Registra falha no log
@@ -1573,8 +1630,8 @@ def auth_login():
         username = dados.get('username', '')
         password = dados.get('password', '')
         
-        # Obtém o IP do cliente
-        client_ip = request.remote_addr
+        # Obtém o IP real do cliente
+        client_ip = get_real_ip()
         
         if not username or not password:
             auth_logger.warning(f"Tentativa de login sem usuário ou senha - IP: {client_ip}")
