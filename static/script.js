@@ -317,7 +317,7 @@ function carregarClientesPage() {
 async function pesquisarClientes() {
     const termo = document.getElementById('pesquisa-cliente').value; // Obtém o termo de pesquisa
     try {
-        const resposta = await fetch(`http://localhost:5000/clientes/buscar?termo=${encodeURIComponent(termo)}`); // Envia a requisição para a API
+        const resposta = await fetch(`/clientes/buscar?termo=${encodeURIComponent(termo)}`); // Envia a requisição para a API
         const clientes = await resposta.json(); // Converte a resposta para JSON
 
         const tbody = document.getElementById('clientes'); // Obtém o corpo da tabela
@@ -379,7 +379,7 @@ function configurarPesquisaClientes() {
  */
 async function buscarClientes(termo) {
     try {
-        const resposta = await fetch(`http://localhost:5000/clientes/buscar?termo=${encodeURIComponent(termo)}`); // Envia a requisição para a API
+        const resposta = await fetch(`/clientes/buscar?termo=${encodeURIComponent(termo)}`); // Envia a requisição para a API
         const clientes = await resposta.json(); // Converte a resposta para JSON
 
         const resultadoHTML = clientes.map(cliente => `
@@ -495,7 +495,9 @@ function carregarAbrirChamado() {
                         </div>
                         <div class="mb-3">
                             <label for="assunto" class="form-label">Assunto:</label>
-                            <input type="text" class="form-control" id="assunto">
+                            <input type="text" class="form-control" id="assunto" 
+                                   placeholder="Resumo do problema" maxlength="70">
+                            <div class="form-text">Máximo 70 caracteres</div>
                         </div>
                         <div class="mb-3">
                             <label for="descricao" class="form-label">Descrição:</label>
@@ -540,7 +542,7 @@ function configurarBuscaClienteChamado() {
             }
 
             try {
-                const resposta = await fetch(`http://localhost:5000/clientes/buscar?termo=${encodeURIComponent(termo)}`); // Envia a requisição para a API
+                const resposta = await fetch(`/clientes/buscar?termo=${encodeURIComponent(termo)}`); // Envia a requisição para a API
                 const clientes = await resposta.json(); // Converte a resposta para JSON
                 
                 resultadosDiv.innerHTML = clientes.map(cliente => `
@@ -608,7 +610,7 @@ function configurarFormularioChamado() {
         };
 
         try {
-            const resposta = await fetch('http://localhost:5000/chamados', { // Envia a requisição para a API
+            const resposta = await fetch('/chamados', { // Envia a requisição para a API
                 method: 'POST', // Define o método como POST
                 headers: { 'Content-Type': 'application/json' }, // Define o cabeçalho como JSON
                 body: JSON.stringify(dadosChamado) // Converte os dados para JSON
@@ -785,7 +787,7 @@ function paginaAnteriorClientes() {
  */
 async function carregarClientes() {
     try {
-        const url = `http://localhost:5000/clientes?pagina=${paginaAtualClientes}&limite=${limitePorPagina}&order_field=${currentSortField}&order_order=${currentSortOrder}`;
+        const url = `/clientes?pagina=${paginaAtualClientes}&limite=${limitePorPagina}&order_field=${currentSortField}&order_order=${currentSortOrder}`;
         const data = await fetchWithLoading(url); // Envia a requisição para a API com tela de carregamento
         
         const tbody = document.getElementById('clientes'); // Obtém o corpo da tabela
@@ -848,7 +850,7 @@ function ordenarClientes(field) {
 function carregarChamados(status = 'Aberto') {
     try {
         const paginaAtual = status === 'Aberto' ? paginaAtualChamadosAbertos : paginaAtualChamadosFinalizados;
-        const url = `http://localhost:5000/chamados?pagina=${paginaAtual}&limite=${limiteChamados}&status=${status}`; // Define a URL da API
+        const url = `/chamados?pagina=${paginaAtual}&limite=${limiteChamados}&status=${status}`; // Define a URL da API
         console.log('Carregando chamados da URL:', url); // log
         fetchWithLoading(url) // Envia a requisição para a API com tela de carregamento
             .then(data => {
@@ -997,7 +999,7 @@ function configurarFormularioCliente() {
         const endereco = document.getElementById('endereco').value;
 
         try {
-            const resposta = await fetch('http://localhost:5000/clientes', {
+            const resposta = await fetch('/clientes', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1025,6 +1027,40 @@ function configurarFormularioCliente() {
  * @param {Array} cliente - Dados do cliente a ser editado
  */
 function carregarEditarClientePage(cliente) {
+
+    // Solução temporária: Buscar o cliente completo novamente
+    if (Array.isArray(cliente) && cliente.length < 25) {
+        // Se o cliente não tem todos os campos esperados, busca novamente do servidor
+        fetch(`/clientes/${cliente[0]}`)
+            .then(response => response.json())
+            .then(clienteCompleto => {
+                // Se o backend retorna um objeto com propriedades nomeadas em vez de um array
+                if (!Array.isArray(clienteCompleto)) {
+                    // Adiciona todos os dados de endereço para o modal
+                    document.getElementById('endereco-cep').textContent = clienteCompleto.cep || 'N/A';
+                    document.getElementById('endereco-rua').textContent = clienteCompleto.rua || 'N/A';
+                    document.getElementById('endereco-numero').textContent = clienteCompleto.numero || 'N/A';
+                    document.getElementById('endereco-complemento').textContent = clienteCompleto.complemento || 'N/A';
+                    document.getElementById('endereco-bairro').textContent = clienteCompleto.bairro || 'N/A';
+                    document.getElementById('endereco-cidade').textContent = clienteCompleto.cidade || 'N/A';
+                    document.getElementById('endereco-estado').textContent = clienteCompleto.estado || 'N/A';
+                    document.getElementById('endereco-pais').textContent = clienteCompleto.pais || 'N/A';
+                    
+                    // Preencher os campos do formulário de endereço
+                    document.getElementById('cep').value = clienteCompleto.cep || '';
+                    document.getElementById('rua').value = clienteCompleto.rua || '';
+                    document.getElementById('numero').value = clienteCompleto.numero || '';
+                    document.getElementById('complemento').value = clienteCompleto.complemento || '';
+                    document.getElementById('bairro').value = clienteCompleto.bairro || '';
+                    document.getElementById('cidade').value = clienteCompleto.cidade || '';
+                    document.getElementById('estado').value = clienteCompleto.estado || '';
+                    document.getElementById('pais').value = clienteCompleto.pais || '';
+                }
+            })
+            .catch(error => {
+                console.error("Erro ao recarregar cliente:", error);
+            });
+    }
     document.getElementById('conteudo').innerHTML = `
         <div class="row">
             <div class="col-md-8 offset-md-2">
@@ -1233,7 +1269,7 @@ function carregarEditarClientePage(cliente) {
             inscricao_municipal: document.getElementById('inscricao_municipal').value
         };
         try {
-            const resposta = await fetch(`http://localhost:5000/clientes/${cliente[0]}`, {
+            const resposta = await fetch(`/clientes/${cliente[0]}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(clienteAtualizado)
@@ -1264,7 +1300,7 @@ function carregarEditarClientePage(cliente) {
             pais: document.getElementById('pais').value
         };
         try {
-            const resposta = await fetch(`http://localhost:5000/clientes/${cliente[0]}/endereco`, {
+            const resposta = await fetch(`/clientes/${cliente[0]}/endereco`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(enderecoAtualizado)
@@ -1461,7 +1497,7 @@ function abrirFormularioEdicaoChamado(id, descricao, status) {
  */
 async function editarChamado(id, descricao, status) {
     try {
-        const resposta = await fetch(`http://localhost:5000/chamados/${id}`, {
+        const resposta = await fetch(`/chamados/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ descricao, status })
@@ -1489,7 +1525,7 @@ async function editarChamado(id, descricao, status) {
  */
 async function editarCliente(id, nome, email, telefone, endereco) {
     try {
-        const resposta = await fetch(`http://localhost:5000/clientes/${id}`, {
+        const resposta = await fetch(`/clientes/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -1516,7 +1552,7 @@ async function editarCliente(id, nome, email, telefone, endereco) {
  */
 async function excluirCliente(id) {
     try {
-        const resposta = await fetch(`http://localhost:5000/clientes/${id}`, {
+        const resposta = await fetch(`/clientes/${id}`, {
             method: 'DELETE',
         });
 
@@ -1548,7 +1584,7 @@ async function carregarClientesSelect() {
                 throw new Error('Elemento select de clientes não encontrado');
             }
 
-            const resposta = await fetch('http://localhost:5000/clientes');
+            const resposta = await fetch('/clientes');
             const data = await resposta.json();
             
             selectClientes.innerHTML = data.clientes.map(cliente => `
@@ -1586,22 +1622,40 @@ async function carregarClientesSelect() {
  * @param {number} id - ID do chamado a ser finalizado
  */
 async function finalizarChamado(id) {
+    // Adiciona confirmação antes de finalizar o chamado
+    if (!confirm("Tem certeza que deseja finalizar este chamado?")) {
+        return; // Se o usuário cancelar, interrompe a execução
+    }
+    
     try {
-        const resposta = await fetch(`http://localhost:5000/chamados/${id}/finalizar`, {
+        showLoading();
+        const response = await fetch(`/chamados/${id}/finalizar`, {
             method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
 
-        if (resposta.ok) {
-            exibirMensagem('Chamado finalizado com sucesso!');
-            carregarChamados(); // Recarrega a lista de chamados abertos
-            carregarChamados('Finalizado'); // Recarrega a lista de chamados finalizados
+        const data = await response.json();
+        hideLoading();
+
+        if (response.ok) {
+            exibirMensagem(data.mensagem || 'Chamado finalizado com sucesso!');
+            
+            // Recarrega a lista de chamados após finalizar
+            if (paginaAtual === 'chamados') {
+                carregarChamados('Aberto');
+                carregarChamados('Finalizado');
+            } else if (paginaAtual === 'detalhesChamado') {
+                carregarDetalhesChamadoPage(id); // Recarrega os detalhes
+            }
         } else {
-            const erro = await resposta.json();
-            exibirMensagem(`Erro: ${erro.erro}`, 'erro');
+            exibirMensagem(data.erro || 'Erro ao finalizar chamado', 'erro');
         }
-    } catch (erro) {
-        console.error('Erro ao finalizar chamado:', erro);
-        exibirMensagem('Erro ao finalizar chamado', 'erro');
+    } catch (error) {
+        hideLoading();
+        console.error('Erro:', error);
+        exibirMensagem('Erro de conexão ao finalizar chamado', 'erro');
     }
 }
 
@@ -1616,21 +1670,28 @@ async function excluirChamado(id) {
     }
 
     try {
-        const resposta = await fetch(`http://localhost:5000/chamados/${id}`, {
+        const resposta = await fetch(`/chamados/${id}`, {
             method: 'DELETE',
         });
+
+        const data = await resposta.json();
 
         if (resposta.ok) {
             exibirMensagem('Chamado excluído com sucesso!');
             carregarChamados('Aberto');
             carregarChamados('Finalizado');
         } else {
-            const erro = await resposta.json();
-            exibirMensagem(`Erro: ${erro.erro}`, 'erro');
+            // Melhorias na exibição do erro
+            let mensagemErro = data.erro || 'Erro ao excluir o chamado';
+            if (data.detalhes) {
+                mensagemErro += `\n\n${data.detalhes}`;
+            }
+            exibirMensagem(`Erro: ${mensagemErro}`, 'erro');
+            console.error('Erro ao excluir chamado:', data);
         }
     } catch (erro) {
         console.error('Erro ao excluir chamado:', erro);
-        exibirMensagem('Erro ao excluir chamado', 'erro');
+        exibirMensagem('Erro ao comunicar com o servidor', 'erro');
     }
 }
 
@@ -1640,7 +1701,7 @@ async function excluirChamado(id) {
 async function buscarClientes() {
     const termo = document.getElementById('busca-cliente').value;
     try {
-        const resposta = await fetch(`http://localhost:5000/clientes/buscar?termo=${encodeURIComponent(termo)}`);
+        const resposta = await fetch(`/clientes/buscar?termo=${encodeURIComponent(termo)}`);
         const clientes = await resposta.json();
 
         const resultadoHTML = clientes.map(cliente => `
@@ -1683,7 +1744,7 @@ function carregarDetalhesCliente(cliente) {
  */
 async function carregarEstatisticas(periodo = 'total') {
     try {
-        const response = await fetch(`http://localhost:5000/estatisticas?periodo=${periodo}`);
+        const response = await fetch(`/estatisticas?periodo=${periodo}`);
         const dados = await response.json();
 
         if (dados) {
@@ -2203,7 +2264,7 @@ function carregarNovoClientePage() {
             pais: document.getElementById('pais').value
         };
         try {
-            const resposta = await fetch('http://localhost:5000/clientes', {
+            const resposta = await fetch('/clientes', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(novoCliente)
@@ -2228,7 +2289,7 @@ function carregarNovoClientePage() {
  */
 async function carregarDetalhesChamadoPage(id) {
     try {
-        const response = await fetch(`http://localhost:5000/chamados/${id}`);
+        const response = await fetch(`/chamados/${id}`);
         const chamado = await response.json();
         if (chamado.erro) {
             exibirMensagem(chamado.erro, 'erro');
@@ -2273,7 +2334,8 @@ async function carregarDetalhesChamadoPage(id) {
                         <div class="mb-3 col-md-6">
                             <label for="solicitante" class="form-label">Solicitante:</label>
                             <input type="text" id="solicitante" class="form-control" 
-                                   value="${chamado.solicitante || ''}" ${isFinalizado ? 'readonly' : ''}>
+                                   value="${chamado.solicitante || ''}" ${isFinalizado ? 'readonly' : ''} maxlength="70">
+                            <div class="form-text">Máximo 70 caracteres</div>
                         </div>
                         <!-- Container para a seção de descrição e andamentos -->
                         <div id="description-and-andamentos-container" style="display: flex; overflow: hidden; width: 100%;">
@@ -2317,6 +2379,9 @@ async function carregarDetalhesChamadoPage(id) {
                                     <i class="bi bi-check-circle"></i> Finalizar Chamado
                                 </button>
                             ` : ''}
+                            <button type="button" class="btn btn-success" onclick="generateServiceOrder(${chamado.id})">
+                                <i class="bi bi-printer"></i> Ordem de Serviço
+                            </button>
                         </div>
                         <input type="hidden" id="chamado_id" value="${chamado.id}">
                     </form>
@@ -2776,7 +2841,7 @@ window.adicionarNovoAndamento = async (chamadoId) => {
     const texto = prompt('Digite o novo andamento:');
     if (texto) {
         try {
-            const response = await fetch(`http://localhost:5000/chamados/${chamadoId}/andamentos`, {
+            const response = await fetch(`/chamados/${chamadoId}/andamentos`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ texto })
@@ -2808,7 +2873,7 @@ window.excluirAndamento = async (andamentoId) => {
 
     if (confirm('Confirma a exclusão deste andamento?')) {
         try {
-            const response = await fetch(`http://localhost:5000/chamados/andamentos/${andamentoId}`, {
+            const response = await fetch(`/chamados/andamentos/${andamentoId}`, {
                 method: 'DELETE'
             });
             if (response.ok) {
@@ -2844,7 +2909,7 @@ async function salvarAndamento(chamadoId, texto) {
 
     try {
         showLoading();
-        const response = await fetch(`http://localhost:5000/chamados/${chamadoId}/andamentos`, {
+        const response = await fetch(`/chamados/${chamadoId}/andamentos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ texto: texto.trim() })
@@ -2988,7 +3053,7 @@ function configurarDropdownPeriodo() {
  * @param {string} termo - Termo a ser buscado
  */
 function buscarClientesAjax(termo) {
-    fetch(`http://localhost:5000/clientes/buscar?termo=${encodeURIComponent(termo)}`)
+    fetch(`/clientes/buscar?termo=${encodeURIComponent(termo)}`)
         .then(response => response.json())
         .then(clientes => {
             const resultadoDiv = document.getElementById('resultado-busca');
@@ -3040,7 +3105,7 @@ function buscarClientes() {
  */
 async function mostrarDetalhesCliente(clienteId) {
     try {
-        const resposta = await fetch(`http://localhost:5000/clientes/${clienteId}`);
+        const resposta = await fetch(`/clientes/${clienteId}`);
         if (!resposta.ok) {
             throw new Error('Cliente não encontrado');
         }
@@ -3441,27 +3506,44 @@ async function exibirInfoUsuario() {
  * @param {number} id - ID do chamado
  */
 async function reabrirChamado(id) {
+    // Adiciona confirmação antes de reabrir o chamado
+    if (!confirm("Tem certeza que deseja reabrir este chamado?")) {
+        return; // Se o usuário cancelar, interrompe a execução
+    }
+    
     try {
-        const resposta = await fetch(`http://localhost:5000/chamados/${id}`, {
+        showLoading();
+        const response = await fetch(`/chamados/${id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
                 status: 'Aberto',
-                data_fechamento: null 
+                data_fechamento: null
             })
         });
 
-        if (resposta.ok) {
+        const data = await response.json();
+        hideLoading();
+
+        if (response.ok) {
             exibirMensagem('Chamado reaberto com sucesso!');
-            carregarChamados('Finalizado');
-            carregarChamados('Aberto');
+            
+            // Recarrega a lista de chamados após reabrir
+            if (paginaAtual === 'chamados') {
+                carregarChamados('Aberto');
+                carregarChamados('Finalizado');
+            } else if (paginaAtual === 'detalhesChamado') {
+                carregarDetalhesChamadoPage(id);
+            }
         } else {
-            const erro = await resposta.json();
-            exibirMensagem(`Erro: ${erro.erro}`, 'erro');
+            exibirMensagem(data.erro || 'Erro ao reabrir chamado', 'erro');
         }
-    } catch (erro) {
-        console.error('Erro ao reabrir chamado:', erro);
-        exibirMensagem('Erro ao reabrir chamado', 'erro');
+    } catch (error) {
+        hideLoading();
+        console.error('Erro:', error);
+        exibirMensagem('Erro de conexão ao reabrir chamado', 'erro');
     }
 }
 
@@ -3550,7 +3632,7 @@ if (status === 'Finalizado') {
  */
 async function mostrarDetalhesCliente(clienteId) {
     try {
-        const response = await fetch(`http://localhost:5000/clientes/${clienteId}`);
+        const response = await fetch(`/clientes/${clienteId}`);
         if (!response.ok) {
             throw new Error('Cliente não encontrado');
         }
@@ -3751,7 +3833,7 @@ async function mostrarDetalhesCliente(clienteId) {
         document.getElementById('cliente-secao-dropdown').addEventListener('change', function(e) {
             if (e.target.value === 'notas') {
                 // Atualiza o conteúdo das notas diretamente (sem usar o editor)
-                fetch(`http://localhost:5000/clientes/${cliente.id}/notas`)
+                fetch(`/clientes/${cliente.id}/notas`)
                     .then(response => response.json())
                     .then(data => {
                         const notasView = document.getElementById('cliente-notas-view');
@@ -4339,7 +4421,7 @@ function abrirModalFinalizarChamado(event) {
 
         try {
             // Adicionar andamento e finalizar chamado
-            const resposta = await fetch(`http://localhost:5000/chamados/${chamadoId}/finalizar-ordem-servico`, {
+            const resposta = await fetch(`/chamados/${chamadoId}/finalizar-ordem-servico`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -4371,7 +4453,7 @@ function abrirModalFinalizarChamado(event) {
 async function excluirAgendamento(agendamentoId) {
     if (confirm('Tem certeza que deseja excluir este agendamento?')) {
         try {
-            const resposta = await fetch(`http://localhost:5000/agendamentos/${agendamentoId}`, {
+            const resposta = await fetch(`/agendamentos/${agendamentoId}`, {
                 method: 'DELETE'
             });
 
