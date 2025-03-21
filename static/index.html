@@ -21,6 +21,10 @@
     
     <!-- CKEditor 5 -->
     <script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
+    
+    <!-- Bibliotecas para exportação -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
     <!-- Barra de navegação principal usando Bootstrap 5 -->
@@ -190,6 +194,15 @@
                 </div>
                 <div class="modal-body" id="detalhes-cliente">
                     <!-- Informações do cliente serão inseridas dinamicamente via JavaScript -->
+                    <h5>Endereço</h5>
+                    <p><strong>CEP:</strong> <span id="endereco-cep">N/A</span></p>
+                    <p><strong>Rua:</strong> <span id="endereco-rua">N/A</span></p>
+                    <p><strong>Número:</strong> <span id="endereco-numero">N/A</span></p>
+                    <p><strong>Complemento:</strong> <span id="endereco-complemento">N/A</span></p>
+                    <p><strong>Bairro:</strong> <span id="endereco-bairro">N/A</span></p>
+                    <p><strong>Cidade:</strong> <span id="endereco-cidade">N/A</span></p>
+                    <p><strong>Estado:</strong> <span id="endereco-estado">N/A</span></p>
+                    <p><strong>País:</strong> <span id="endereco-pais">N/A</span></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -338,15 +351,6 @@
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p><i class="bi bi-calendar-plus"></i> <strong>Data Início:</strong> <span id="detalhe-data"></span></p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><i class="bi bi-calendar-check"></i> <strong>Data Fim:</strong> <span id="detalhe-data-fim"></span></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Seção: Descrição original do chamado -->
                     <div class="card mb-3">
                         <div class="card-header bg-secondary text-white">
@@ -402,6 +406,41 @@
                     </button>
                     <button id="detalhe-btn-finalizar" type="button" class="btn btn-success" onclick="finalizarOrdemServicoModal()">
                         <i class="bi bi-check-circle"></i> Finalizar Ordem de Serviço
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Ordem de Serviço para Impressão -->
+    <div class="modal fade" id="serviceOrderModal" tabindex="-1" aria-labelledby="serviceOrderModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="serviceOrderModalLabel">
+                        <i class="bi bi-file-earmark-text"></i> Ordem de Serviço
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="serviceOrderModalBody">
+                    <!-- O conteúdo da ordem de serviço será injetado aqui via JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <div class="dropdown me-2">
+                        <button class="btn btn-info dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-save"></i> Exportar
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                            <li><a class="dropdown-item" href="#" onclick="exportOrderToPDF()"><i class="bi bi-file-pdf"></i> Exportar como PDF</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="exportOrderToPNG()"><i class="bi bi-file-image"></i> Exportar como PNG</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="exportOrderToJPG()"><i class="bi bi-file-image"></i> Exportar como JPG</a></li>
+                        </ul>
+                    </div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Fechar
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="printServiceOrder()">
+                        <i class="bi bi-printer"></i> Imprimir
                     </button>
                 </div>
             </div>
