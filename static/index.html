@@ -351,6 +351,15 @@
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
+                                    <p><i class="bi bi-calendar-plus"></i> <strong>Data Início:</strong> <span id="detalhe-data"></span></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><i class="bi bi-calendar-check"></i> <strong>Data Fim:</strong> <span id="detalhe-data-fim"></span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Seção: Descrição original do chamado -->
                     <div class="card mb-3">
                         <div class="card-header bg-secondary text-white">
@@ -417,10 +426,8 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="serviceOrderModalLabel">
-                        <i class="bi bi-file-earmark-text"></i> Ordem de Serviço
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="serviceOrderModalLabel">Ordem de Serviço</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
                 <div class="modal-body" id="serviceOrderModalBody">
                     <!-- O conteúdo da ordem de serviço será injetado aqui via JavaScript -->
@@ -462,11 +469,6 @@
     
     <!-- Indicador de carregamento (spinner) -->
     <div id="loading" class="loading" style="display: none;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Carregando...</span>
-        </div>
-    </div>
-
     <!-- Carregamento de scripts externos -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
