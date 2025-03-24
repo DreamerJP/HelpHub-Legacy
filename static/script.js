@@ -57,10 +57,10 @@ function checkSession() {
         if (!sessionWarningModal) {
             sessionWarningModal = new bootstrap.Modal(document.getElementById('sessionWarningModal'));
         }
-        
+
         // Atualiza o texto do tempo restante
         document.getElementById('timeLeft').textContent = SESSION_WARNING_TIME.toFixed(1);
-        
+
         // Exibe o modal
         sessionWarningModal.show();
     }
@@ -84,37 +84,37 @@ async function renewSession() {
             credentials: 'same-origin'
         });
         const data = await response.json();
-        
+
         // Atualiza o timestamp da última atividade
         lastUserActivity = Date.now();
-        
+
         // Fecha o modal usando a API do Bootstrap
         const sessionWarningModal = bootstrap.Modal.getInstance(document.getElementById('sessionWarningModal'));
         if (sessionWarningModal) {
             sessionWarningModal.hide();
         }
-        
+
         // Limpa qualquer backdrop (fundo escuro) que possa ter permanecido
         const backdrop = document.querySelector('.modal-backdrop');
         if (backdrop) {
             backdrop.remove();
         }
-        
+
         // Remove a classe modal-open do body para restaurar o scroll e comportamento normal
         document.body.classList.remove('modal-open');
         document.body.style.overflow = '';
         document.body.style.paddingRight = '';
-        
+
         return data.success;
     } catch (error) {
         console.error("Erro ao renovar sessão:", error);
-        
+
         // Mesmo em caso de erro, devemos fechar o modal e remover elementos residuais
         const sessionWarningModal = bootstrap.Modal.getInstance(document.getElementById('sessionWarningModal'));
         if (sessionWarningModal) {
             sessionWarningModal.hide();
         }
-        
+
         // Limpa backdrop e restaura o body
         const backdrop = document.querySelector('.modal-backdrop');
         if (backdrop) {
@@ -123,13 +123,13 @@ async function renewSession() {
         document.body.classList.remove('modal-open');
         document.body.style.overflow = '';
         document.body.style.paddingRight = '';
-        
+
         return false;
     }
 }
 
 // Configura o botão de sair no modal de aviso de sessão
-document.querySelector('#sessionWarningModal .btn-secondary').onclick = function() {
+document.querySelector('#sessionWarningModal .btn-secondary').onclick = function () {
     window.location.href = '/auth/logout';
 };
 
@@ -156,9 +156,9 @@ function exibirMensagem(mensagem, tipo = 'sucesso') {
 function updateActiveMenu(selected) {
     // Atualiza o controle da página atual para o sistema de atualizações
     paginaAtual = selected;
-    
+
     const menus = ['menu-home', 'menu-clientes', 'menu-chamados', 'menu-usuarios', 'menu-agenda', 'menu-backups'];
-    menus.forEach(function(id) {
+    menus.forEach(function (id) {
         const element = document.getElementById(id);
         if (element) {
             element.classList.remove('active');
@@ -171,142 +171,26 @@ function updateActiveMenu(selected) {
 }
 
 /**
- * Carrega a página inicial do sistema
- */
-function carregarHome() {
-    updateActiveMenu('home'); // Atualiza o menu ativo
-    
-    document.getElementById('conteudo').innerHTML = `
-        <div class="home-page-container">
-            <!-- Seção superior -->
-            <div class="top-section">
-                <div class="search-card-wrapper">
-                    <div class="card search-card">
-                        <div class="card-body">
-                            <h2><i class="bi bi-search"></i> Buscar Cliente</h2>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text"><i class="bi bi-person-search"></i></span>
-                                <input type="text" id="busca-cliente" class="form-control" placeholder="Digite nome ou email...">
-                                <button class="btn btn-primary" onclick="buscarClientes()">
-                                    <i class="bi bi-search"></i> Buscar
-                                </button>
-                            </div>
-                            <div id="resultado-busca"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="system-summary-wrapper">
-                    <div class="card home-card">
-                        <div class="card-body">
-                            <h5><i class="bi bi-clipboard-data"></i> Resumo do Sistema</h5>
-                            <ul class="list-group" id="estatisticas-gerais"></ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Seção inferior -->
-            <div class="bottom-section">
-                <div class="statistics-wrapper">
-                    <div class="card home-card">
-                        <div class="card-body">
-                            <h5><i class="bi bi-graph-up"></i> Estatísticas de Chamados</h5>
-                            <div class="period-selector">
-                                <select id="periodo-estatisticas" class="form-select form-select-sm">
-                                    <option value="total">Todo o período</option>
-                                    <option value="mensal">Mensal (mês atual)</option>
-                                    <option value="semanal">Semanal (semana atual)</option>
-                                    <option value="diario">Diário (hoje)</option>
-                                </select>
-                            </div>
-                            <div class="chart-container">
-                                <canvas id="grafico-chamados"></canvas>
-                            </div>
-                            <div class="stats-summary">
-                                <p><i class="bi bi-hourglass-split"></i> Total de Chamados Abertos: <span id="total-abertos">0</span></p>
-                                <p><i class="bi bi-check-circle"></i> Total de Chamados Fechados: <span id="total-fechados">0</span></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="recent-tickets-wrapper">
-                    <div class="card home-card">
-                        <div class="card-body">
-                            <h5 class="card-title mb-3"><i class="bi bi-clock-history"></i> Últimos Chamados</h5>
-                            <div id="ultimos-chamados" class="recent-tickets-container"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>`;
-    // Carrega as estatísticas apenas uma vez ao entrar na página inicial
-    carregarEstatisticas('total'); 
-    configurarDropdownPeriodo();
-    configurarBuscaClientes();
-}
-
-/**
  * Carrega a página de listagem de clientes
  */
 function carregarClientesPage() {
     updateActiveMenu('clientes'); // Atualiza o menu ativo
-    document.getElementById('conteudo').innerHTML = `
-        <div class="row">
-            <div class="col-md-12">
-                <h2 class="mb-4">Clientes Cadastrados</h2>
-                
-                <!-- Barra de pesquisa moderna -->
-                <div class="modern-search">
-                    <input type="text" id="pesquisa-cliente" class="form-control" 
-                           placeholder="Pesquisar por nome, ID ou e-mail...">
-                </div>
-                
-                <!-- Toolbar moderna -->
-                <div class="modern-toolbar">
-                    <button id="btn-novo-cliente" class="btn btn-success" onclick="carregarNovoClientePage()">
-                        <i class="bi bi-plus-lg"></i> Novo Cliente
-                    </button>
-                    <button id="btn-editar-cliente" class="btn btn-info" onclick="editarClienteSelecionado()" disabled>
-                        <i class="bi bi-pencil"></i> Visualizar
-                    </button>
-                    <button id="btn-excluir-cliente" class="btn btn-danger" onclick="excluirClienteSelecionado()" disabled>
-                        <i class="bi bi-trash"></i> Excluir
-                    </button>
-                </div>
 
-                <!-- Tabela moderna -->
-                <table class="modern-table">
-                    <thead>
-                        <tr>
-                            <th onclick="ordenarClientes('id')">ID - Nome</th>
-                            <th>Nome Fantasia</th>
-                            <th>E-mail</th>
-                            <th>Telefone</th>
-                        </tr>
-                    </thead>
-                    <tbody id="clientes">
-                        <!-- Dados serão renderizados aqui -->
-                    </tbody>
-                </table>
+    // Obtém e clona o template
+    const template = document.getElementById('clientes-page-template');
+    const clone = template.content.cloneNode(true);
 
-                <!-- Paginação moderna -->
-                <div class="modern-pagination">
-                    <button id="btn-anterior" onclick="paginaAnteriorClientes()">
-                        <i class="bi bi-chevron-left"></i> Anterior
-                    </button>
-                    <span class="page-info" id="pagina-atual">
-                        Página ${paginaAtualClientes}/${totalPaginasClientes}
-                    </span>
-                    <button id="btn-proximo" onclick="proximaPaginaClientes()">
-                        Próxima <i class="bi bi-chevron-right"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
+    // Atualiza o texto da paginação no clone
+    const paginaAtualElement = clone.querySelector('#pagina-atual');
+    if (paginaAtualElement) {
+        paginaAtualElement.textContent = `Página ${paginaAtualClientes}/${totalPaginasClientes}`;
+    }
+
+    // Limpa e adiciona o novo conteúdo
+    const conteudo = document.getElementById('conteudo');
+    conteudo.innerHTML = '';
+    conteudo.appendChild(clone);
+
     carregarClientes(); // Carrega a lista de clientes
     configurarPesquisaClientes(); // Configura a pesquisa de clientes
 }
@@ -322,7 +206,7 @@ async function pesquisarClientes() {
 
         const tbody = document.getElementById('clientes'); // Obtém o corpo da tabela
         tbody.innerHTML = clientes.map(cliente => `
-            <tr data-id="${cliente[0]}" data-cliente='${JSON.stringify(cliente).replace(/"/g,'&quot;')}' style="cursor:pointer;">
+            <tr data-id="${cliente[0]}" data-cliente='${JSON.stringify(cliente).replace(/"/g, '&quot;')}' style="cursor:pointer;">
                 <td>#${cliente[0]} - ${cliente[1]}</td>
                 <td>${cliente[2] || ''}</td>
                 <td>${cliente[3] || ''}</td>
@@ -332,7 +216,7 @@ async function pesquisarClientes() {
 
         // Adiciona evento de clique para selecionar a linha
         document.querySelectorAll("#clientes tr").forEach(row => {
-            row.addEventListener('click', function() {
+            row.addEventListener('click', function () {
                 document.querySelectorAll("#clientes tr").forEach(r => r.classList.remove('table-warning')); // Remove a classe de seleção de todas as linhas
                 this.classList.add('table-warning'); // Adiciona a classe de seleção à linha clicada
                 document.getElementById('btn-editar-cliente').disabled = false; // Habilita o botão de editar
@@ -359,7 +243,7 @@ async function pesquisarClientes() {
 function configurarPesquisaClientes() {
     const input = document.getElementById('pesquisa-cliente'); // Obtém o campo de pesquisa
     if (input) {
-        input.addEventListener('keyup', function(e) {
+        input.addEventListener('keyup', function (e) {
             if (this.value.length > 0) {
                 pesquisarClientes(); // Realiza a pesquisa
             } else {
@@ -383,7 +267,7 @@ async function buscarClientes(termo) {
         const clientes = await resposta.json(); // Converte a resposta para JSON
 
         const resultadoHTML = clientes.map(cliente => `
-            <tr data-id="${cliente[0]}" data-telefone="${cliente[4] || ''}" data-cliente='${JSON.stringify(cliente).replace(/"/g,'&quot;')}' style="cursor:pointer;">
+            <tr data-id="${cliente[0]}" data-telefone="${cliente[4] || ''}" data-cliente='${JSON.stringify(cliente).replace(/"/g, '&quot;')}' style="cursor:pointer;">
                 <td>${cliente[1]}</td>
                 <td>${cliente[2] || ''}</td>
                 <td>${cliente[3] || ''}</td>
@@ -395,7 +279,7 @@ async function buscarClientes(termo) {
 
         // Adiciona evento de clique para selecionar a linha
         document.querySelectorAll("#clientes tr").forEach(row => {
-            row.addEventListener('click', function() {
+            row.addEventListener('click', function () {
                 // Remove a classe de seleção de todas as linhas
                 document.querySelectorAll("#clientes tr").forEach(r => r.classList.remove('table-warning'));
                 // Adiciona a classe de seleção à linha clicada
@@ -419,37 +303,24 @@ async function buscarClientes(termo) {
  */
 async function carregarChamadosPage() {
     try {
-        updateActiveMenu('chamados'); // Atualiza o menu ativo
-        document.getElementById('conteudo').innerHTML = `
-            <div id="chamados-subnav" class="mb-3">
-                <ul class="nav nav-tabs">
-                    <li class="nav-item">
-                        <a id="tab-abrir" class="nav-link active" href="#" 
-                           onclick="event.preventDefault(); selecionarAbaChamados('abrir'); carregarAbrirChamado();">
-                           Novo Chamado
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a id="tab-abertos" class="nav-link" href="#" 
-                           onclick="event.preventDefault(); selecionarAbaChamados('abertos'); carregarChamadosAbertos();">
-                           Chamados Abertos
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a id="tab-finalizados" class="nav-link" href="#" 
-                           onclick="event.preventDefault(); selecionarAbaChamados('finalizados'); carregarChamadosFinalizados();">
-                           Chamados Finalizados
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            <div id="chamados-content"></div>
-        `;
-        selecionarAbaChamados('abrir'); // Seleciona a aba "Abrir Chamado"
-        await carregarAbrirChamado(); // Carrega o conteúdo da aba "Abrir Chamado"
+        updateActiveMenu('chamados');
+
+        // Limpa o conteúdo anterior
+        const conteudo = document.getElementById('conteudo');
+        conteudo.innerHTML = '';
+
+        // Obtém e clona o template
+        const template = document.getElementById('chamados-page-template');
+        const clone = template.content.cloneNode(true);
+
+        // Adiciona o novo conteúdo
+        conteudo.appendChild(clone);
+
+        selecionarAbaChamados('abrir');
+        await carregarAbrirChamado();
     } catch (erro) {
-        console.error('Erro ao carregar página de chamados:', erro); // Exibe o erro no console
-        exibirMensagem('Erro ao carregar página de chamados', 'erro'); // Exibe a mensagem de erro
+        console.error('Erro ao carregar página de chamados:', erro);
+        exibirMensagem('Erro ao carregar página de chamados', 'erro');
     }
 }
 
@@ -459,7 +330,7 @@ async function carregarChamadosPage() {
  */
 function selecionarAbaChamados(aba) {
     const tabs = ['tab-abrir', 'tab-abertos', 'tab-finalizados']; // Lista de IDs das abas
-    tabs.forEach(function(id) {
+    tabs.forEach(function (id) {
         document.getElementById(id).classList.remove('active'); // Remove a classe 'active' de todas as abas
     });
     document.getElementById('tab-' + aba).classList.add('active'); // Adiciona a classe 'active' à aba selecionada
@@ -471,44 +342,17 @@ function selecionarAbaChamados(aba) {
  */
 function carregarAbrirChamado() {
     return new Promise((resolve) => {
-        document.getElementById('chamados-content').innerHTML = `
-            <div class="row">
-                <div class="col-md-12">
-                    <h2 class="mb-4">Abrir Novo Chamado</h2>
-                    <form id="chamado-form">
-                        <div class="mb-3">
-                            <label for="cliente_busca" class="form-label">Cliente:</label>
-                            <input type="text" class="form-control" id="cliente_busca" 
-                                   placeholder="Digite para buscar cliente...">
-                            <input type="hidden" id="cliente_id">
-                            <div id="resultados_cliente" class="list-group mt-2"></div>
-                        </div>
-                        <!-- Solicitante -->
-                        <div class="mb-3">
-                            <label for="solicitante" class="form-label">Solicitante:</label>
-                            <input type="text" class="form-control" id="solicitante" 
-                                   placeholder="Nome do solicitante">
-                        </div>
-                        <div class="mb-3">
-                            <label for="telefone_chamado" class="form-label">Telefone:</label>
-                            <input type="text" class="form-control" id="telefone_chamado">
-                        </div>
-                        <div class="mb-3">
-                            <label for="assunto" class="form-label">Assunto:</label>
-                            <input type="text" class="form-control" id="assunto" 
-                                   placeholder="Resumo do problema" maxlength="70">
-                            <div class="form-text">Máximo 70 caracteres</div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="descricao" class="form-label">Descrição:</label>
-                            <textarea class="form-control" id="descricao" rows="5"></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Abrir Chamado</button>
-                    </form>
-                </div>
-            </div>
-        `;
-        
+        // Limpa o conteúdo anterior
+        const chamadosContent = document.getElementById('chamados-content');
+        chamadosContent.innerHTML = '';
+
+        // Obtém e clona o template
+        const template = document.getElementById('abrir-chamado-template');
+        const clone = template.content.cloneNode(true);
+
+        // Adiciona o novo conteúdo
+        chamadosContent.appendChild(clone);
+
         // Aguarda o próximo ciclo de eventos para garantir que o DOM seja atualizado
         setTimeout(async () => {
             try {
@@ -516,8 +360,8 @@ function carregarAbrirChamado() {
                 configurarBuscaClienteChamado(); // Configura a busca de cliente no formulário de chamado
                 resolve(); // Resolve a Promise
             } catch (erro) {
-                console.error('Erro ao carregar formulário de chamado:', erro); // Exibe o erro no console
-                exibirMensagem('Erro ao carregar formulário', 'erro'); // Exibe a mensagem de erro
+                console.error('Erro ao carregar formulário de chamado:', erro);
+                exibirMensagem('Erro ao carregar formulário', 'erro');
             }
         }, 0);
     });
@@ -529,10 +373,10 @@ function carregarAbrirChamado() {
 function configurarBuscaClienteChamado() {
     const clienteBusca = document.getElementById('cliente_busca'); // Obtém o campo de busca de cliente
     const resultadosDiv = document.getElementById('resultados_cliente'); // Obtém a div para exibir os resultados
-    
+
     let timeoutId; // Variável para controlar o timeout da busca
 
-    clienteBusca.addEventListener('input', function() {
+    clienteBusca.addEventListener('input', function () {
         clearTimeout(timeoutId); // Limpa o timeout anterior
         timeoutId = setTimeout(async () => {
             const termo = this.value.trim(); // Obtém o termo de pesquisa
@@ -544,12 +388,12 @@ function configurarBuscaClienteChamado() {
             try {
                 const resposta = await fetch(`/clientes/buscar?termo=${encodeURIComponent(termo)}`); // Envia a requisição para a API
                 const clientes = await resposta.json(); // Converte a resposta para JSON
-                
+
                 resultadosDiv.innerHTML = clientes.map(cliente => `
                     <a href="#" class="list-group-item list-group-item-action" 
-                       data-id="${cliente[0]}"
-                       data-telefone="${cliente[4] || ''}"
-                       onclick="selecionarClienteChamado(event, this)">
+                    data-id="${cliente[0]}"
+                    data-telefone="${cliente[4] || ''}"
+                    onclick="selecionarClienteChamado(event, this)">
                         #${cliente[0]} - ${cliente[1]} ${cliente[2] ? `(${cliente[2]})` : ''}
                     </a>
                 `).join(''); // Renderiza os resultados na div
@@ -567,18 +411,18 @@ function configurarBuscaClienteChamado() {
  */
 function selecionarClienteChamado(event, element) {
     event.preventDefault(); // Previne o comportamento padrão do link
-    
+
     const clienteId = element.dataset.id; // Obtém o ID do cliente
     const clienteNome = element.textContent.trim(); // Obtém o nome do cliente
     const telefone = element.dataset.telefone; // Obtém o telefone do cliente
-    
+
     // Atualiza os campos hidden e de busca
     document.getElementById('cliente_id').value = clienteId;
     document.getElementById('cliente_busca').value = clienteNome;
-    
+
     // Atualiza os campos de telefone
     document.getElementById('telefone_chamado').value = telefone;
-    
+
     // Limpa os resultados
     document.getElementById('resultados_cliente').innerHTML = '';
 }
@@ -594,12 +438,12 @@ function configurarFormularioChamado() {
         const telefone = document.getElementById('telefone_chamado').value; // Obtém o telefone
         const descricao = document.getElementById('descricao').value; // Obtém a descrição
         const solicitante = document.getElementById('solicitante').value;
-        
+
         if (!cliente_id) {
             exibirMensagem('Selecione um cliente', 'erro'); // Exibe a mensagem de erro
             return;
         }
-        
+
         // Monta os dados para o chamado
         const dadosChamado = {
             assunto,
@@ -635,66 +479,28 @@ function configurarFormularioChamado() {
 /**
  * Carrega a lista de chamados abertos
  */
+/**
+ * Carrega a lista de chamados abertos
+ */
 function carregarChamadosAbertos() {
-    document.getElementById('chamados-content').innerHTML = `
-        <div class="row">
-            <div class="col-md-12">
-                <h2 class="mb-4">Chamados Abertos</h2>
-                
-                <!-- Nova caixa de pesquisa para chamados -->
-                <div class="modern-search mb-3">
-                    <input type="text" id="pesquisa-chamados-aberto" class="form-control" 
-                           placeholder="Pesquisar por cliente, protocolo ou assunto...">
-                </div>
-                
-                <!-- Toolbar moderna -->
-                <div class="modern-toolbar">
-                    <button id="btn-abrir" class="btn btn-info" onclick="abrirDetalhesChamado(selectedChamadoId)" disabled>
-                        <i class="bi bi-folder2-open"></i> Visualizar
-                    </button>
-                    <button id="btn-finalizar" class="btn btn-success" onclick="finalizarChamado(selectedChamadoId)" disabled>
-                        <i class="bi bi-check-lg"></i> Finalizar
-                    </button>
-                    <button id="btn-excluir" class="btn btn-danger" onclick="excluirChamado(selectedChamadoId)" disabled>
-                        <i class="bi bi-trash"></i> Excluir
-                    </button>
-                </div>
+    // Limpa o conteúdo anterior
+    const chamadosContent = document.getElementById('chamados-content');
+    chamadosContent.innerHTML = ''; // Limpa o conteúdo existente
 
-                <!-- Tabela moderna -->
-                <table class="modern-table">
-                    <thead>
-                        <tr>
-                            <th>Protocolo</th>
-                            <th>ID</th>
-                            <th>Cliente</th>
-                            <th onclick="sortChamados('data')">Data</th>
-                            <th>Assunto</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="chamados-list">
-                        <!-- Dados serão renderizados aqui -->
-                    </tbody>
-                </table>
+    // Obtém e clona o template
+    const template = document.getElementById('chamados-abertos-template');
+    const clone = template.content.cloneNode(true);
 
-                <!-- Paginação moderna -->
-                <div class="modern-pagination">
-                    <button id="btn-anterior-chamados-aberto" onclick="paginaAnteriorChamados('Aberto')">
-                        <i class="bi bi-chevron-left"></i> Anterior
-                    </button>
-                    <span class="page-info" id="pagina-atual-chamados-aberto">
-                        Página ${paginaAtualChamadosAbertos}
-                    </span>
-                    <button id="btn-proximo-chamados-aberto" onclick="proximaPaginaChamados('Aberto')">
-                        Próxima <i class="bi bi-chevron-right"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    carregarChamados('Aberto'); // Carrega os chamados com status "Aberto"
-    
-    // Configurar a pesquisa de chamados abertos
+    // Adiciona o novo conteúdo
+    chamadosContent.appendChild(clone);
+
+    // Atualiza o número da página atual
+    const paginaAtualElement = document.getElementById('pagina-atual-chamados-aberto');
+    if (paginaAtualElement) {
+        paginaAtualElement.textContent = `Página ${paginaAtualClientes}`;
+    }
+
+    carregarChamados('Aberto');
     configurarPesquisaChamados('aberto');
 }
 
@@ -702,65 +508,24 @@ function carregarChamadosAbertos() {
  * Carrega a lista de chamados finalizados
  */
 function carregarChamadosFinalizados() {
-    document.getElementById('chamados-content').innerHTML = `
-        <div class="row">
-            <div class="col-md-12">
-                <h2 class="mb-4">Chamados Finalizados</h2>
-                
-                <!-- Nova caixa de pesquisa para chamados -->
-                <div class="modern-search mb-3">
-                    <input type="text" id="pesquisa-chamados-finalizado" class="form-control" 
-                           placeholder="Pesquisar por cliente, protocolo ou assunto...">
-                </div>
-                
-                <!-- Toolbar moderna -->
-                <div class="modern-toolbar">
-                    <button id="btn-abrir" class="btn btn-info" onclick="abrirDetalhesChamado(selectedChamadoId)" disabled>
-                        <i class="bi bi-folder2-open"></i> Visualizar
-                    </button>
-                    <button id="btn-reabrir" class="btn btn-warning" onclick="reabrirChamado(selectedChamadoId)" disabled>
-                        <i class="bi bi-arrow-clockwise"></i> Reabrir
-                    </button>
-                    <button id="btn-excluir" class="btn btn-danger" onclick="excluirChamado(selectedChamadoId)" disabled>
-                        <i class="bi bi-trash"></i> Excluir
-                    </button>
-                </div>
+    // Limpa o conteúdo anterior
+    const chamadosContent = document.getElementById('chamados-content');
+    chamadosContent.innerHTML = '';
 
-                <!-- Tabela moderna -->
-                <table class="modern-table">
-                    <thead>
-                        <tr>
-                            <th>Protocolo</th>
-                            <th>Cliente</th>
-                            <th onclick="sortChamados('data')">Data</th>
-                            <th>Assunto</th>
-                            <th>Data Fechamento</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="chamados-finalizados">
-                        <!-- Dados serão renderizados aqui -->
-                    </tbody>
-                </table>
+    // Obtém e clona o template
+    const template = document.getElementById('chamados-finalizados-template');
+    const clone = template.content.cloneNode(true);
 
-                <!-- Paginação moderna -->
-                <div class="modern-pagination">
-                    <button id="btn-anterior-chamados-finalizado" onclick="paginaAnteriorChamados('Finalizado')">
-                        <i class="bi bi-chevron-left"></i> Anterior
-                    </button>
-                    <span class="page-info" id="pagina-atual-chamados-finalizado">
-                        Página ${paginaAtualChamadosFinalizados}
-                    </span>
-                    <button id="btn-proximo-chamados-finalizado" onclick="proximaPaginaChamados('Finalizado')">
-                        Próxima <i class="bi bi-chevron-right"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-    carregarChamados('Finalizado'); // Carrega os chamados com status "Finalizado"
-    
-    // Configurar a pesquisa de chamados finalizados
+    // Adiciona o novo conteúdo
+    chamadosContent.appendChild(clone);
+
+    // Atualiza o número da página atual
+    const paginaAtualElement = document.getElementById('pagina-atual-chamados-finalizado');
+    if (paginaAtualElement) {
+        paginaAtualElement.textContent = `Página ${paginaAtualChamadosFinalizados}`;
+    }
+
+    carregarChamados('Finalizado');
     configurarPesquisaChamados('finalizado');
 }
 
@@ -789,10 +554,10 @@ async function carregarClientes() {
     try {
         const url = `/clientes?pagina=${paginaAtualClientes}&limite=${limitePorPagina}&order_field=${currentSortField}&order_order=${currentSortOrder}`;
         const data = await fetchWithLoading(url); // Envia a requisição para a API com tela de carregamento
-        
+
         const tbody = document.getElementById('clientes'); // Obtém o corpo da tabela
         tbody.innerHTML = data.clientes.map(cliente => `
-            <tr data-id="${cliente[0]}" data-cliente='${JSON.stringify(cliente).replace(/"/g,'&quot;')}' style="cursor:pointer;">
+            <tr data-id="${cliente[0]}" data-cliente='${JSON.stringify(cliente).replace(/"/g, '&quot;')}' style="cursor:pointer;">
                 <td>#${cliente[0]} - ${cliente[1]}</td>
                 <td>${cliente[2] || ''}</td>
                 <td>${cliente[3] || ''}</td>
@@ -802,7 +567,7 @@ async function carregarClientes() {
 
         // Adiciona evento de clique para selecionar a linha
         document.querySelectorAll("#clientes tr").forEach(row => {
-            row.addEventListener('click', function() {
+            row.addEventListener('click', function () {
                 // Remove a classe de seleção de todas as linhas
                 document.querySelectorAll("#clientes tr").forEach(r => r.classList.remove('table-warning'));
                 // Adiciona a classe de seleção à linha clicada
@@ -907,14 +672,14 @@ function carregarChamados(status = 'Aberto') {
                                         </td>
                                     </tr>`;
                         }).join('');
-                        
+
                         // Vincula eventos para seleção das linhas
                         document.querySelectorAll("#chamados-list tr").forEach(row => {
-                            row.addEventListener('click', function() {
+                            row.addEventListener('click', function () {
                                 document.querySelectorAll("#chamados-list tr").forEach(r => r.classList.remove('table-warning')); // Remove a classe de seleção de todas as linhas
                                 this.classList.add('table-warning'); // Adiciona a classe de seleção à linha clicada
                                 selectedChamadoId = this.getAttribute('data-id'); // Define o ID do chamado selecionado
-                                
+
                                 // Habilita os botões quando um chamado é selecionado
                                 document.getElementById('btn-abrir').disabled = false;
                                 document.getElementById('btn-finalizar').disabled = false;
@@ -947,14 +712,14 @@ function carregarChamados(status = 'Aberto') {
                                         </td>
                                     </tr>`;
                         }).join('');
-                        
+
                         // Vincula eventos para seleção das linhas
                         document.querySelectorAll("#chamados-finalizados tr").forEach(row => {
-                            row.addEventListener('click', function() {
+                            row.addEventListener('click', function () {
                                 document.querySelectorAll("#chamados-finalizados tr").forEach(r => r.classList.remove('table-warning')); // Remove a classe de seleção de todas as linhas
                                 this.classList.add('table-warning'); // Adiciona a classe de seleção à linha clicada
                                 selectedChamadoId = this.getAttribute('data-id'); // Define o ID do chamado selecionado
-                                
+
                                 // Habilita os botões quando um chamado é selecionado
                                 document.getElementById('btn-abrir').disabled = false;
                                 document.getElementById('btn-reabrir').disabled = false;
@@ -970,7 +735,7 @@ function carregarChamados(status = 'Aberto') {
                 const btnAnterior = document.getElementById(status === 'Aberto' ? 'btn-anterior-chamados-aberto' : 'btn-anterior-chamados-finalizado');
                 const btnProximo = document.getElementById(status === 'Aberto' ? 'btn-proximo-chamados-aberto' : 'btn-proximo-chamados-finalizado');
                 const paginaAtualElement = document.getElementById(status === 'Aberto' ? 'pagina-atual-chamados-aberto' : 'pagina-atual-chamados-finalizado');
-                
+
                 if (btnAnterior && btnProximo && paginaAtualElement) {
                     btnAnterior.disabled = paginaAtual === 1;
                     btnProximo.disabled = paginaAtual >= data.total_paginas;
@@ -1045,7 +810,7 @@ function carregarEditarClientePage(cliente) {
                     document.getElementById('endereco-cidade').textContent = clienteCompleto.cidade || 'N/A';
                     document.getElementById('endereco-estado').textContent = clienteCompleto.estado || 'N/A';
                     document.getElementById('endereco-pais').textContent = clienteCompleto.pais || 'N/A';
-                    
+
                     // Preencher os campos do formulário de endereço
                     document.getElementById('cep').value = clienteCompleto.cep || '';
                     document.getElementById('rua').value = clienteCompleto.rua || '';
@@ -1061,183 +826,317 @@ function carregarEditarClientePage(cliente) {
                 console.error("Erro ao recarregar cliente:", error);
             });
     }
+
     document.getElementById('conteudo').innerHTML = `
+        <div id="cliente-form-container" class="cliente-form-container">
         <div class="row">
-            <div class="col-md-8 offset-md-2">
-                <h2>Editar Cliente</h2>
-                <ul class="nav nav-tabs" id="clienteTabs">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="dados-tab" data-bs-toggle="tab" href="#dados" role="tab">Dados do Cliente</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="endereco-tab" data-bs-toggle="tab" href="#endereco" role="tab">Endereço</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="chamados-tab" data-bs-toggle="tab" href="#chamados-cliente" role="tab">Chamados registrados</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="notas-tab" data-bs-toggle="tab" href="#notas" role="tab">Informações Adicionais</a>
-                    </li>
-                </ul>
-                <div class="tab-content" id="clienteTabsContent">
-                    <div class="tab-pane fade show active" id="dados" role="tabpanel">
-                        <form id="editar-cliente-form">
-                            <div class="mb-3">
-                                <label for="id" class="form-label">ID:</label>
-                                <input type="text" id="id" class="form-control" value="#${cliente[0]}" readonly>
-                            </div>
-                            <div class="mb-3">
-                                <label for="nome" class="form-label">Razão Social/Nome:</label>
-                                <input type="text" id="nome" class="form-control" value="${cliente[1] || ''}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="nome_fantasia" class="form-label">Nome Fantasia:</label>
-                                <input type="text" id="nome_fantasia" class="form-control" value="${cliente[2] || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">E-mail:</label>
-                                <input type="text" id="email" class="form-control" value="${cliente[3] || ''}" 
-                                    placeholder="email@exemplo.com, outro@exemplo.com">
-                                <div class="form-text">Você pode adicionar múltiplos e-mails separados por vírgula ou "/".</div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="telefone" class="form-label">Telefone:</label>
-                                <input type="text" id="telefone" class="form-control" value="${cliente[4] || ''}">
-                                <div class="form-text">Você pode adicionar múltiplos telefones separados por vírgula ou "/".</div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="ativo" class="form-label">Ativo:</label>
-                                <select id="ativo" class="form-select">
-                                    <option value="Sim" ${cliente[5]==='Sim'?'selected':''}>Sim</option>
-                                    <option value="Não" ${cliente[5]==='Não'?'selected':''}>Não</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="tipo_cliente" class="form-label">Tipo Cliente:</label>
-                                <select id="tipo_cliente" class="form-select">
-                                    <option value="Comercial" ${cliente[6]==='Comercial'?'selected':''}>Comercial</option>
-                                    <option value="Pessoa Física" ${cliente[6]==='Pessoa Física'?'selected':''}>Pessoa Física</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="cnpj_cpf" class="form-label">CNPJ/CPF:</label>
-                                <input type="text" id="cnpj_cpf" class="form-control" value="${cliente[7] || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="ie_rg" class="form-label">IE/RG:</label>
-                                <input type="text" id="ie_rg" class="form-control" value="${cliente[8] || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="contribuinte_icms" class="form-label">Contribuinte ICMS:</label>
-                                <select id="contribuinte_icms" class="form-select">
-                                    <option value="Sim" ${cliente[9]==='Sim'?'selected':''}>Sim</option>
-                                    <option value="Não" ${cliente[9]==='Não'?'selected':''}>Não</option>
-                                    <option value="Isento" ${cliente[9]==='Isento'?'selected':''}>Isento</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="rg_orgao_emissor" class="form-label">RG Órgão Emissor:</label>
-                                <input type="text" id="rg_orgao_emissor" class="form-control" value="${cliente[10] || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="nacionalidade" class="form-label">Nacionalidade:</label>
-                                <input type="text" id="nacionalidade" class="form-control" value="${cliente[11] || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="naturalidade" class="form-label">Naturalidade:</label>
-                                <input type="text" id="naturalidade" class="form-control" value="${cliente[12] || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="estado_nascimento" class="form-label">Estado de Nascimento:</label>
-                                <input type="text" id="estado_nascimento" class="form-control" value="${cliente[13] || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="data_nascimento" class="form-label">Data de Nascimento:</label>
-                                <input type="date" id="data_nascimento" class="form-control" value="${cliente[14] || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="sexo" class="form-label">Sexo:</label>
-                                <select id="sexo" class="form-select">
-                                    <option value="Feminino" ${cliente[15]==='Feminino'?'selected':''}>Feminino</option>
-                                    <option value="Masculino" ${cliente[15]==='Masculino'?'selected':''}>Masculino</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="profissao" class="form-label">Profissão:</label>
-                                <input type="text" id="profissao" class="form-control" value="${cliente[16] || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="estado_civil" class="form-label">Estado Civil:</label>
-                                <input type="text" id="estado_civil" class="form-control" value="${cliente[17] || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="inscricao_municipal" class="form-label">Inscrição Municipal:</label>
-                                <input type="text" id="inscricao_municipal" class="form-control" value="${cliente[18] || ''}">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Atualizar Cliente</button>
-                        </form>
+            <div class="col-md-10 offset-md-1">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h2 class="m-0">Editar Cliente</h2>
+                        <span class="client-id">#${cliente[0]}</span>
                     </div>
-                    <div class="tab-pane fade" id="endereco" role="tabpanel">
-                        <form id="editar-endereco-form">
-                            <div class="mb-3">
-                                <label for="cep" class="form-label">CEP:</label>
-                                <input type="text" id="cep" class="form-control" value="${cliente[19] || ''}" placeholder="Digite o CEP">
+                    <div class="card-body">
+                        <ul class="nav nav-tabs" id="clienteTabs">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="dados-tab" data-bs-toggle="tab" href="#dados" role="tab">
+                                    <i class="bi bi-person"></i> Dados do Cliente
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="endereco-tab" data-bs-toggle="tab" href="#endereco" role="tab">
+                                    <i class="bi bi-geo-alt"></i> Endereço
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="chamados-tab" data-bs-toggle="tab" href="#chamados-cliente" role="tab">
+                                    <i class="bi bi-ticket"></i> Chamados
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="notas-tab" data-bs-toggle="tab" href="#notas" role="tab">
+                                    <i class="bi bi-journal-text"></i> Informações Adicionais
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="tab-content pt-4" id="clienteTabsContent">
+                            <div class="tab-pane fade show active" id="dados" role="tabpanel">
+                                <form id="editar-cliente-form">
+                                    <!-- Informações principais -->
+                                    <h5 class="mb-3">Informações Principais</h5>
+                                    <div class="form-row">
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="nome" class="form-label">Razão Social/Nome:</label>
+                                                <input type="text" id="nome" class="form-control" value="${cliente[1] || ''}" required>
+                                            </div>
+                                        </div>
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="nome_fantasia" class="form-label">Nome Fantasia:</label>
+                                                <input type="text" id="nome_fantasia" class="form-control" value="${cliente[2] || ''}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="email" class="form-label">E-mail:</label>
+                                                <input type="text" id="email" class="form-control" value="${cliente[3] || ''}" 
+                                                    placeholder="email@exemplo.com, outro@exemplo.com">
+                                                <div class="form-text">Múltiplos e-mails separados por vírgula ou "/".</div>
+                                            </div>
+                                        </div>
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="telefone" class="form-label">Telefone:</label>
+                                                <input type="text" id="telefone" class="form-control" value="${cliente[4] || ''}">
+                                                <div class="form-text">Múltiplos telefones separados por vírgula ou "/".</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="ativo" class="form-label">Ativo:</label>
+                                                <select id="ativo" class="form-select">
+                                                    <option value="Sim" ${cliente[5] === 'Sim' ? 'selected' : ''}>Sim</option>
+                                                    <option value="Não" ${cliente[5] === 'Não' ? 'selected' : ''}>Não</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="tipo_cliente" class="form-label">Tipo Cliente:</label>
+                                                <select id="tipo_cliente" class="form-select">
+                                                    <option value="Comercial" ${cliente[6] === 'Comercial' ? 'selected' : ''}>Comercial</option>
+                                                    <option value="Pessoa Física" ${cliente[6] === 'Pessoa Física' ? 'selected' : ''}>Pessoa Física</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Documentação -->
+                                    <h5 class="mb-3 mt-4">Documentação</h5>
+                                    <div class="form-row">
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="cnpj_cpf" class="form-label">CNPJ/CPF:</label>
+                                                <input type="text" id="cnpj_cpf" class="form-control" value="${cliente[7] || ''}">
+                                            </div>
+                                        </div>
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="ie_rg" class="form-label">IE/RG:</label>
+                                                <input type="text" id="ie_rg" class="form-control" value="${cliente[8] || ''}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="contribuinte_icms" class="form-label">Contribuinte ICMS:</label>
+                                                <select id="contribuinte_icms" class="form-select">
+                                                    <option value="Sim" ${cliente[9] === 'Sim' ? 'selected' : ''}>Sim</option>
+                                                    <option value="Não" ${cliente[9] === 'Não' ? 'selected' : ''}>Não</option>
+                                                    <option value="Isento" ${cliente[9] === 'Isento' ? 'selected' : ''}>Isento</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="rg_orgao_emissor" class="form-label">RG Órgão Emissor:</label>
+                                                <input type="text" id="rg_orgao_emissor" class="form-control" value="${cliente[10] || ''}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="inscricao_municipal" class="form-label">Inscrição Municipal:</label>
+                                                <input type="text" id="inscricao_municipal" class="form-control" value="${cliente[18] || ''}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Dados Pessoais (Mostrar apenas se for Pessoa Física) -->
+                                    <div id="dados-pessoais-section">
+                                        <h5 class="mb-3 mt-4">Dados Pessoais</h5>
+                                        <div class="form-row">
+                                            <div class="form-col">
+                                                <div class="mb-3">
+                                                    <label for="nacionalidade" class="form-label">Nacionalidade:</label>
+                                                    <input type="text" id="nacionalidade" class="form-control" value="${cliente[11] || ''}">
+                                                </div>
+                                            </div>
+                                            <div class="form-col">
+                                                <div class="mb-3">
+                                                    <label for="naturalidade" class="form-label">Naturalidade:</label>
+                                                    <input type="text" id="naturalidade" class="form-control" value="${cliente[12] || ''}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-row">
+                                            <div class="form-col">
+                                                <div class="mb-3">
+                                                    <label for="estado_nascimento" class="form-label">Estado de Nascimento:</label>
+                                                    <input type="text" id="estado_nascimento" class="form-control" value="${cliente[13] || ''}">
+                                                </div>
+                                            </div>
+                                            <div class="form-col">
+                                                <div class="mb-3">
+                                                    <label for="data_nascimento" class="form-label">Data de Nascimento:</label>
+                                                    <input type="date" id="data_nascimento" class="form-control" value="${cliente[14] || ''}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-row">
+                                            <div class="form-col">
+                                                <div class="mb-3">
+                                                    <label for="sexo" class="form-label">Sexo:</label>
+                                                    <select id="sexo" class="form-select">
+                                                        <option value="Feminino" ${cliente[15] === 'Feminino' ? 'selected' : ''}>Feminino</option>
+                                                        <option value="Masculino" ${cliente[15] === 'Masculino' ? 'selected' : ''}>Masculino</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-col">
+                                                <div class="mb-3">
+                                                    <label for="profissao" class="form-label">Profissão:</label>
+                                                    <input type="text" id="profissao" class="form-control" value="${cliente[16] || ''}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-row">
+                                            <div class="form-col">
+                                                <div class="mb-3">
+                                                    <label for="estado_civil" class="form-label">Estado Civil:</label>
+                                                    <input type="text" id="estado_civil" class="form-control" value="${cliente[17] || ''}">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-end mt-4">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-save"></i> Atualizar Cliente
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
-                            <div class="mb-3">
-                                <label for="rua" class="form-label">Rua:</label>
-                                <input type="text" id="rua" class="form-control" value="${cliente[20] || ''}">
+                            
+                            <div class="tab-pane fade" id="endereco" role="tabpanel">
+                                <form id="editar-endereco-form">
+                                    <div class="form-row">
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="cep" class="form-label">CEP:</label>
+                                                <input type="text" id="cep" class="form-control" value="${cliente[19] || ''}" placeholder="Digite o CEP">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="rua" class="form-label">Rua:</label>
+                                                <input type="text" id="rua" class="form-control" value="${cliente[20] || ''}">
+                                            </div>
+                                        </div>
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="numero" class="form-label">Número:</label>
+                                                <input type="text" id="numero" class="form-control" value="${cliente[21] || ''}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="complemento" class="form-label">Complemento:</label>
+                                                <input type="text" id="complemento" class="form-control" value="${cliente[22] || ''}">
+                                            </div>
+                                        </div>
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="bairro" class="form-label">Bairro:</label>
+                                                <input type="text" id="bairro" class="form-control" value="${cliente[23] || ''}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="cidade" class="form-label">Cidade:</label>
+                                                <input type="text" id="cidade" class="form-control" value="${cliente[24] || ''}">
+                                            </div>
+                                        </div>
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="estado" class="form-label">Estado:</label>
+                                                <input type="text" id="estado" class="form-control" value="${cliente[25] || ''}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-col">
+                                            <div class="mb-3">
+                                                <label for="pais" class="form-label">País:</label>
+                                                <input type="text" id="pais" class="form-control" value="${cliente[26] || ''}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between mt-4">
+                                        <button type="button" class="btn btn-maps" onclick="abrirRotaGoogleMaps()">
+                                            <i class="bi bi-map"></i> Ver Rota no Google Maps
+                                        </button>
+                                        
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-save"></i> Atualizar Endereço
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
-                            <div class="mb-3">
-                                <label for="numero" class="form-label">Número:</label>
-                                <input type="text" id="numero" class="form-control" value="${cliente[21] || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="complemento" class="form-label">Complemento:</label>
-                                <input type="text" id="complemento" class="form-control" value="${cliente[22] || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="bairro" class="form-label">Bairro:</label>
-                                <input type="text" id="bairro" class="form-control" value="${cliente[23] || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="cidade" class="form-label">Cidade:</label>
-                                <input type="text" id="cidade" class="form-control" value="${cliente[24] || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="estado" class="form-label">Estado:</label>
-                                <input type="text" id="estado" class="form-control" value="${cliente[25] || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="pais" class="form-label">País:</label>
-                                <input type="text" id="pais" class="form-control" value="${cliente[26] || ''}">
-                            </div>
-                            <!-- Novo botão para rota no Google Maps -->
-                            <div class="mb-3">
-                                <button type="button" class="btn btn-primary" onclick="abrirRotaGoogleMaps()">
-                                    <i class="bi bi-map"></i> Ver Rota no Google Maps
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="tab-pane fade" id="chamados-cliente" role="tabpanel">
-                        <div class="chamados-cliente-container my-3">
-                            <h3 class="mb-3">Chamados do Cliente</h3>
-                            <div id="chamados-cliente-lista">
-                                <div class="text-center">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Carregando...</span>
+                            
+                            <div class="tab-pane fade" id="chamados-cliente" role="tabpanel">
+                                <div class="chamados-cliente-container">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5 class="m-0">Chamados do Cliente</h5>
+                                        <button type="button" class="btn btn-new-ticket" onclick="novoChamadoCliente(${cliente[0]})">
+                                            <i class="bi bi-plus-circle"></i> Novo Chamado
+                                        </button>
+                                    </div>
+                                    <div id="chamados-cliente-lista" class="card">
+                                        <div class="card-body text-center p-4">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Carregando...</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="tab-pane fade" id="notas" role="tabpanel">
-                        <div class="notes-container">
-                            <textarea id="cliente-notas"></textarea>
-                            <div class="notes-actions">
-                                <button type="button" class="btn btn-primary" onclick="saveClientNotes(${cliente[0]})">
-                                    <i class="bi bi-save"></i> Salvar Notas
-                                </button>
+                            
+                            <div class="tab-pane fade" id="notas" role="tabpanel">
+                                <div class="notes-container">
+                                    <h5 class="mb-3">Informações Adicionais</h5>
+                                    <textarea id="cliente-notas" class="form-control" placeholder="Adicione informações importantes sobre este cliente..."></textarea>
+                                    <div class="notes-actions mt-3">
+                                        <button type="button" class="btn btn-primary" onclick="saveClientNotes(${cliente[0]})">
+                                            <i class="bi bi-save"></i> Salvar Notas
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1246,6 +1145,29 @@ function carregarEditarClientePage(cliente) {
         </div>
     `;
 
+    // Lógica para mostrar/ocultar campos de pessoa física
+    const toggleDadosPessoais = () => {
+        const tipoCliente = document.getElementById('tipo_cliente').value;
+        const dadosPessoaisSection = document.getElementById('dados-pessoais-section');
+
+        if (tipoCliente === 'Pessoa Física') {
+            dadosPessoaisSection.style.display = 'block';
+        } else {
+            dadosPessoaisSection.style.display = 'none';
+        }
+    };
+
+    // Configurar o evento após o DOM estar pronto
+    setTimeout(() => {
+        const tipoClienteSelect = document.getElementById('tipo_cliente');
+        if (tipoClienteSelect) {
+            tipoClienteSelect.addEventListener('change', toggleDadosPessoais);
+            // Executar uma vez na inicialização
+            toggleDadosPessoais();
+        }
+    }, 100);
+
+    // Mantém a lógica original dos formulários
     document.getElementById('editar-cliente-form').onsubmit = async (e) => {
         e.preventDefault();
         const clienteAtualizado = {
@@ -1353,17 +1275,17 @@ function carregarEditarClientePage(cliente) {
 async function carregarChamadosCliente(clienteId) {
     try {
         const chamadosContainer = document.getElementById('chamados-cliente-lista');
-        
+
         // Buscar chamados abertos do cliente
         const resultadoAbertos = await fetchWithLoading(`/chamados?status=Aberto&cliente_id=${clienteId}`);
-        
+
         // Buscar chamados finalizados do cliente
         const resultadoFinalizados = await fetchWithLoading(`/chamados?status=Finalizado&cliente_id=${clienteId}`);
-        
+
         // Filtra apenas os chamados deste cliente específico
         const chamadosAbertos = resultadoAbertos.chamados.filter(chamado => chamado[1] == clienteId);
         const chamadosFinalizados = resultadoFinalizados.chamados.filter(chamado => chamado[1] == clienteId);
-        
+
         // Verificar se existem chamados
         if (chamadosAbertos.length === 0 && chamadosFinalizados.length === 0) {
             chamadosContainer.innerHTML = `
@@ -1373,7 +1295,7 @@ async function carregarChamadosCliente(clienteId) {
             `;
             return;
         }
-        
+
         // Montar a tabela HTML para exibir os chamados com classes responsivas
         let html = `
             <div class="table-responsive">
@@ -1389,7 +1311,7 @@ async function carregarChamadosCliente(clienteId) {
                     </thead>
                     <tbody>
         `;
-        
+
         // Adiciona chamados abertos primeiro
         if (chamadosAbertos.length > 0) {
             chamadosAbertos.forEach(chamado => {
@@ -1408,7 +1330,7 @@ async function carregarChamadosCliente(clienteId) {
                 `;
             });
         }
-        
+
         // Adiciona chamados finalizados depois
         if (chamadosFinalizados.length > 0) {
             chamadosFinalizados.forEach(chamado => {
@@ -1427,7 +1349,7 @@ async function carregarChamadosCliente(clienteId) {
                 `;
             });
         }
-        
+
         html += `
                     </tbody>
                 </table>
@@ -1438,7 +1360,7 @@ async function carregarChamadosCliente(clienteId) {
                 <p><strong>Chamados finalizados:</strong> ${chamadosFinalizados.length}</p>
             </div>
         `;
-        
+
         chamadosContainer.innerHTML = html;
     } catch (erro) {
         console.error('Erro ao carregar chamados do cliente:', erro);
@@ -1457,10 +1379,10 @@ async function carregarChamadosCliente(clienteId) {
  */
 function formatarData(dataString) {
     if (!dataString) return '';
-    
+
     try {
         const data = new Date(dataString);
-        return data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+        return data.toLocaleDateString('pt-BR') + ' ' + data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     } catch (e) {
         return dataString;
     }
@@ -1578,7 +1500,7 @@ async function carregarClientesSelect() {
         try {
             // Aguarda um curto período para garantir que o DOM esteja pronto
             await new Promise(r => setTimeout(r, 100));
-            
+
             const selectClientes = document.getElementById('cliente_id');
             if (!selectClientes) {
                 throw new Error('Elemento select de clientes não encontrado');
@@ -1586,7 +1508,7 @@ async function carregarClientesSelect() {
 
             const resposta = await fetch('/clientes');
             const data = await resposta.json();
-            
+
             selectClientes.innerHTML = data.clientes.map(cliente => `
                 <option value="${cliente[0]}" data-telefone="${cliente[3] || ''}">
                     ${cliente[1]}
@@ -1594,12 +1516,12 @@ async function carregarClientesSelect() {
             `).join('');
 
             // Configura o listener de mudança
-            selectClientes.addEventListener('change', function() {
+            selectClientes.addEventListener('change', function () {
                 const selectedOption = this.options[this.selectedIndex];
                 const telefone = selectedOption.getAttribute('data-telefone') || '';
-                
+
                 const telefoneInput = document.getElementById('telefone_chamado');
-                
+
                 if (telefoneInput) telefoneInput.value = telefone;
             });
 
@@ -1626,7 +1548,7 @@ async function finalizarChamado(id) {
     if (!confirm("Tem certeza que deseja finalizar este chamado?")) {
         return; // Se o usuário cancelar, interrompe a execução
     }
-    
+
     try {
         showLoading();
         const response = await fetch(`/chamados/${id}/finalizar`, {
@@ -1641,7 +1563,7 @@ async function finalizarChamado(id) {
 
         if (response.ok) {
             exibirMensagem(data.mensagem || 'Chamado finalizado com sucesso!');
-            
+
             // Recarrega a lista de chamados após finalizar
             if (paginaAtual === 'chamados') {
                 carregarChamados('Aberto');
@@ -1847,7 +1769,7 @@ async function carregarEstatisticas(periodo = 'total') {
  */
 function inicializarGrafico(dados) {
     const ctx = document.getElementById('grafico-chamados').getContext('2d');
-    
+
     // Destrói o gráfico anterior se existir
     if (graficoChamados) {
         graficoChamados.destroy();
@@ -1944,11 +1866,11 @@ async function fetchWithLoading(url, options = {}) {
     // Apenas mostrar o spinner para requisições longas (como salvar/excluir)
     // Para atualizações automáticas de estatísticas, não mostramos o spinner
     const showSpinner = !url.includes('/estatisticas') || (options.method && options.method !== 'GET');
-    
+
     if (showSpinner) {
         showLoading();
     }
-    
+
     try {
         const response = await fetch(url, options);
         if (!response.ok) {
@@ -2005,11 +1927,27 @@ let refreshInterval;
 let paginaAtual = 'home'; // Variável para rastrear a página atual
 
 /**
+ * Carrega a página inicial do sistema
+ */
+function carregarHome() {
+    updateActiveMenu('home');
+    const template = document.getElementById('home-template');
+    const content = template.content.cloneNode(true);
+    document.getElementById('conteudo').innerHTML = '';
+    document.getElementById('conteudo').appendChild(content);
+
+    // Carrega as estatísticas apenas uma vez ao entrar na página inicial
+    carregarEstatisticas('total');
+    configurarDropdownPeriodo();
+    configurarBuscaClientes();
+}
+
+/**
  * Inicia o ciclo de atualização automática das estatísticas
  */
 function startAutoRefresh() {
     stopAutoRefresh();
-    
+
     // Usa um intervalo mais longo (2 minutos = 120000ms) para reduzir requisições frequentes
     refreshInterval = setInterval(() => {
         // Apenas atualiza se a página estiver visível para o usuário e se estiver na página inicial
@@ -2046,7 +1984,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Configurar o link para o Database Viewer
     const dbViewerLink = document.getElementById('menu-db-viewer');
     if (dbViewerLink) {
-        dbViewerLink.addEventListener('click', function(e) {
+        dbViewerLink.addEventListener('click', function (e) {
             e.preventDefault();
             openDatabaseViewer();
         });
@@ -2089,7 +2027,8 @@ function carregarNovoClientePage() {
                             </div>
                             <div class="mb-3">
                                 <label for="email" class="form-label">E-mail:</label>
-                                <input type="email" id="email" class="form-control">
+                                <input type="text" id="email" class="form-control">
+                                <div class="form-text">Múltiplos e-mails separados por vírgula ou "/".</div>
                             </div>
                             <div class="mb-3">
                                 <label for="telefone" class="form-label">Telefone:</label>
@@ -2266,7 +2205,7 @@ function carregarNovoClientePage() {
         try {
             const resposta = await fetch('/clientes', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(novoCliente)
             });
             if (resposta.ok) {
@@ -2305,7 +2244,7 @@ async function carregarDetalhesChamadoPage(id) {
                 <label for="cliente" class="form-label">Cliente:</label>
                 <div class="input-group">
                     <input type="text" id="cliente" class="form-control" 
-                           value="${chamado.cliente_nome ? chamado.cliente_nome : 'Cliente removido'}" readonly>
+                        value="${chamado.cliente_nome ? chamado.cliente_nome : 'Cliente removido'}" readonly>
                     ${chamado.cliente_id ? `
                         <button type="button" class="btn btn-outline-secondary" 
                                 onclick="mostrarDetalhesCliente(${chamado.cliente_id})">
@@ -2334,7 +2273,7 @@ async function carregarDetalhesChamadoPage(id) {
                         <div class="mb-3 col-md-6">
                             <label for="solicitante" class="form-label">Solicitante:</label>
                             <input type="text" id="solicitante" class="form-control" 
-                                   value="${chamado.solicitante || ''}" ${isFinalizado ? 'readonly' : ''} maxlength="70">
+                                value="${chamado.solicitante || ''}" ${isFinalizado ? 'readonly' : ''} maxlength="70">
                             <div class="form-text">Máximo 70 caracteres</div>
                         </div>
                         <!-- Container para a seção de descrição e andamentos -->
@@ -2396,8 +2335,8 @@ async function carregarDetalhesChamadoPage(id) {
             andamentosCarousel.innerHTML = '';
 
             // Se finalizado, não adiciona a entrada vazia para novos andamentos
-            const andamentosArray = status === 'Finalizado' 
-                ? chamado.andamentos 
+            const andamentosArray = status === 'Finalizado'
+                ? chamado.andamentos
                 : [...chamado.andamentos, { id: null, data_hora: '', texto: '' }];
 
             // Verificar se não há andamentos em um chamado finalizado
@@ -2468,7 +2407,7 @@ async function carregarDetalhesChamadoPage(id) {
 
                 andamentosCarousel.appendChild(andamentoDiv);
             });
-            
+
             // Inserção dos botões de navegação com scroll one-by-one
             const prevButton = document.createElement('button');
             prevButton.type = 'button';
@@ -2479,7 +2418,7 @@ async function carregarDetalhesChamadoPage(id) {
             prevButton.style.left = '20px';
             prevButton.style.top = '50%';
             prevButton.style.transform = 'translateY(-50%)';
-            prevButton.onclick = function() {
+            prevButton.onclick = function () {
                 // Calcula a largura do primeiro item (incluindo margem, se necessário)
                 const item = andamentosCarousel.firstElementChild;
                 if (item) {
@@ -2497,7 +2436,7 @@ async function carregarDetalhesChamadoPage(id) {
             nextButton.style.right = '20px';
             nextButton.style.top = '50%';
             nextButton.style.transform = 'translateY(-50%)';
-            nextButton.onclick = function() {
+            nextButton.onclick = function () {
                 const item = andamentosCarousel.firstElementChild;
                 if (item) {
                     const itemWidth = item.offsetWidth + 10;
@@ -2516,7 +2455,7 @@ async function carregarDetalhesChamadoPage(id) {
         if (!isFinalizado) {
             document.getElementById('detalhes-chamado-form').onsubmit = async (e) => {
                 e.preventDefault();
-                
+
                 const chamadoId = document.getElementById('chamado_id').value;
                 const dadosAtualizados = {
                     assunto: document.getElementById('assunto').value,
@@ -2524,7 +2463,7 @@ async function carregarDetalhesChamadoPage(id) {
                     status: document.getElementById('status').value,
                     descricao: document.getElementById('descricao').value
                 };
-            
+
                 try {
                     const response = await fetch(`/chamados/${chamadoId}`, {
                         method: 'PUT',
@@ -2533,21 +2472,21 @@ async function carregarDetalhesChamadoPage(id) {
                         },
                         body: JSON.stringify(dadosAtualizados)
                     });
-            
+
                     if (!response.ok) {
                         throw new Error('Erro ao atualizar chamado');
                     }
-            
+
                     const result = await response.json();
                     exibirMensagem(result.mensagem || 'Chamado atualizado com sucesso!', 'sucesso');
-                    
+
                     // Fecha o modal após salvar
                     const modal = bootstrap.Modal.getInstance(document.getElementById('chamadoModal'));
                     modal.hide();
-                    
+
                     // Recarrega a lista de chamados
                     carregarChamados(dadosAtualizados.status);
-                    
+
                 } catch (erro) {
                     console.error('Erro ao atualizar chamado:', erro);
                 }
@@ -2566,21 +2505,21 @@ async function finalizarEAtualizar(id) {
         // Recarrega os detalhes do chamado após finalizar
         const response = await fetch(`/chamados/${id}`);
         const chamado = await response.json();
-        
+
         // Desabilita todos os campos do formulário
         const form = document.getElementById('detalhes-chamado-form');
         const campos = form.querySelectorAll('input, textarea, select, button[type="submit"]');
         campos.forEach(campo => campo.disabled = true);
-        
+
         // Remove o botão de finalizar
         const btnFinalizar = form.querySelector('button[onclick^="finalizarEAtualizar"]');
         if (btnFinalizar) {
             btnFinalizar.remove();
         }
-        
+
         // Exibe mensagem de sucesso
         exibirMensagem('Chamado finalizado com sucesso!', 'sucesso');
-        
+
     } catch (erro) {
         console.error('Erro:', erro);
         exibirMensagem('Erro ao finalizar chamado', 'erro');
@@ -2590,7 +2529,7 @@ async function finalizarEAtualizar(id) {
 /**
  * Alterna entre tema claro e escuro
  */
-document.getElementById('theme-toggle').addEventListener('click', function() {
+document.getElementById('theme-toggle').addEventListener('click', function () {
     const body = document.body;
     if (body.classList.contains('dark-mode')) {
         body.classList.remove('dark-mode');
@@ -2718,8 +2657,8 @@ function renderAndamentos() {
     andamentosCarousel.innerHTML = '';
 
     // Se finalizado, não adiciona a entrada vazia para novos andamentos
-    const andamentosArray = status === 'Finalizado' 
-        ? chamado.andamentos 
+    const andamentosArray = status === 'Finalizado'
+        ? chamado.andamentos
         : [...chamado.andamentos, { id: null, data_hora: '', texto: '' }];
 
     // Verificar se não há andamentos em um chamado finalizado
@@ -2790,7 +2729,7 @@ function renderAndamentos() {
 
         andamentosCarousel.appendChild(andamentoDiv);
     });
-    
+
     // Inserção dos botões de navegação com scroll one-by-one
     const prevButton = document.createElement('button');
     prevButton.type = 'button';
@@ -2801,7 +2740,7 @@ function renderAndamentos() {
     prevButton.style.left = '20px';
     prevButton.style.top = '50%';
     prevButton.style.transform = 'translateY(-50%)';
-    prevButton.onclick = function() {
+    prevButton.onclick = function () {
         // Calcula a largura do primeiro item (incluindo margem, se necessário)
         const item = andamentosCarousel.firstElementChild;
         if (item) {
@@ -2819,7 +2758,7 @@ function renderAndamentos() {
     nextButton.style.right = '20px';
     nextButton.style.top = '50%';
     nextButton.style.transform = 'translateY(-50%)';
-    nextButton.onclick = function() {
+    nextButton.onclick = function () {
         const item = andamentosCarousel.firstElementChild;
         if (item) {
             const itemWidth = item.offsetWidth + 10;
@@ -2942,14 +2881,14 @@ function renderAndamentos(andamentos, chamadoId) {
     if (!andamentosCarousel) return;
 
     andamentosCarousel.innerHTML = '';
-    
+
     // Sempre adiciona um novo campo de andamento no final
     const andamentosArray = [...(andamentos || []), { id: null, data_hora: '', texto: '' }];
 
     andamentosArray.forEach((andamento, index) => {
         const andamentoDiv = document.createElement('div');
         andamentoDiv.className = 'andamento-item';
-        
+
         if (andamento.id) { // Andamento existente
             andamentoDiv.innerHTML = `
                 <textarea class="form-control mb-2" rows="5" readonly>${andamento.texto || ''}</textarea>
@@ -2962,7 +2901,7 @@ function renderAndamentos(andamentos, chamadoId) {
                 <button class="btn btn-secondary" onclick="toggleDescriptionVisibility()">Voltar</button>
             `;
         }
-        
+
         andamentosCarousel.appendChild(andamentoDiv);
     });
 }
@@ -2987,12 +2926,12 @@ function configurarBuscaClientes() {
     const buscaInput = document.getElementById('busca-cliente');
     if (buscaInput) {
         let timeoutId;
-        buscaInput.addEventListener('input', function() {
+        buscaInput.addEventListener('input', function () {
             // Limpa o timeout anterior para implementar debounce
             clearTimeout(timeoutId);
-            
+
             // Define um novo timeout para buscar após o usuário parar de digitar
-            timeoutId = setTimeout(function() {
+            timeoutId = setTimeout(function () {
                 const termo = buscaInput.value.trim();
                 // Só busca se tiver pelo menos 2 caracteres
                 if (termo.length >= 2) {
@@ -3012,7 +2951,7 @@ function configurarBuscaClientes() {
 function configurarDropdownPeriodo() {
     const dropdown = document.getElementById('periodo-estatisticas');
     if (dropdown) {
-        dropdown.addEventListener('change', function() {
+        dropdown.addEventListener('change', function () {
             carregarEstatisticas(this.value);
         });
     }
@@ -3042,7 +2981,7 @@ function getPeriodoText(periodo) {
 function configurarDropdownPeriodo() {
     const dropdown = document.getElementById('periodo-estatisticas');
     if (dropdown) {
-        dropdown.addEventListener('change', function() {
+        dropdown.addEventListener('change', function () {
             carregarEstatisticas(this.value);
         });
     }
@@ -3061,13 +3000,13 @@ function buscarClientesAjax(termo) {
                 resultadoDiv.innerHTML = '<p class="text-muted">Nenhum cliente encontrado.</p>';
                 return;
             }
-            
+
             // Cria uma lista com os resultados
             let html = '<div class="list-group mt-2">';
             clientes.forEach(cliente => {
                 html += `
                     <a href="#" class="list-group-item list-group-item-action" 
-                       onclick="mostrarDetalhesCliente(${cliente[0]})">
+                        onclick="mostrarDetalhesCliente(${cliente[0]})">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <strong>${cliente[1]}</strong>
@@ -3084,7 +3023,7 @@ function buscarClientesAjax(termo) {
         })
         .catch(erro => {
             console.error('Erro na busca de clientes:', erro);
-            document.getElementById('resultado-busca').innerHTML = 
+            document.getElementById('resultado-busca').innerHTML =
                 '<p class="text-danger">Erro ao buscar clientes. Tente novamente.</p>';
         });
 }
@@ -3109,7 +3048,7 @@ async function mostrarDetalhesCliente(clienteId) {
         if (!resposta.ok) {
             throw new Error('Cliente não encontrado');
         }
-        
+
         const cliente = await resposta.json();
         carregarDetalhesCliente([
             cliente.id,
@@ -3131,26 +3070,26 @@ async function checkAdminStatus() {
     try {
         const response = await fetch('/auth/check-role');
         const data = await response.json();
-        
+
         // Armazena o papel do usuário em sessionStorage para uso posterior
         sessionStorage.setItem('userRole', data.role);
-        
+
         if (data.role === 'admin') {
             // Mostrar elementos para administradores
             document.querySelectorAll('.admin-only').forEach(el => {
                 el.style.display = 'block';  // ou 'list-item' para itens de lista
             });
-            
+
             // Verificar se o link para o Database Viewer existe e configurá-lo
             const dbViewerLink = document.getElementById('menu-db-viewer');
             if (dbViewerLink) {
-                dbViewerLink.addEventListener('click', function(e) {
+                dbViewerLink.addEventListener('click', function (e) {
                     e.preventDefault();
                     // Abrir o Database Viewer em uma nova janela
                     window.open('/db-viewer.html', '_blank');
                 });
             }
-            
+
             console.log('Configurações de administrador aplicadas');
         } else {
             // Esconder elementos admin
@@ -3252,7 +3191,7 @@ async function carregarUsuarios() {
             throw new Error('Falha ao carregar usuários');
         }
         const usuarios = await response.json();
-        
+
         const tbody = document.getElementById('usuarios-list');
         tbody.innerHTML = usuarios.map(usuario => `
             <tr data-id="${usuario.id}" data-username="${usuario.username}" style="cursor:pointer;">
@@ -3264,18 +3203,18 @@ async function carregarUsuarios() {
 
         // Adiciona eventos de clique nas linhas
         document.querySelectorAll("#usuarios-list tr").forEach(row => {
-            row.addEventListener('click', function() {
+            row.addEventListener('click', function () {
                 document.querySelectorAll("#usuarios-list tr").forEach(r => r.classList.remove('table-warning'));
                 this.classList.add('table-warning');
-                
+
                 const username = this.getAttribute('data-username');
                 const id = this.getAttribute('data-id');
-                
+
                 document.getElementById('btn-editar-usuario').disabled = false;
-                
+
                 // Desabilita o botão de excluir apenas para o admin
                 document.getElementById('btn-excluir-usuario').disabled = (username === 'admin');
-                
+
                 selectedUserId = id;
                 selectedUsername = username;
             });
@@ -3341,7 +3280,7 @@ async function salvarUsuario() {
     try {
         const url = id ? `/usuarios/${id}` : '/usuarios';
         const method = id ? 'PUT' : 'POST';
-        
+
         const response = await fetch(url, {
             method,
             headers: { 'Content-Type': 'application/json' },
@@ -3370,7 +3309,7 @@ async function editarUsuario(id) {
     try {
         showLoading();
         const response = await fetch(`/usuarios/${id}`);
-        
+
         // Verificar se foi redirecionado para login
         if (response.url.includes('login.html')) {
             window.location.href = '/login.html';
@@ -3380,14 +3319,14 @@ async function editarUsuario(id) {
         if (!response.ok) {
             throw new Error('Falha ao carregar usuário');
         }
-        
+
         const usuario = await response.json();
-        
+
         document.getElementById('usuario-id').value = usuario.id;
         document.getElementById('username').value = usuario.username;
         document.getElementById('role').value = usuario.role;
         document.getElementById('password').value = ''; // Não exibe a senha atual
-        
+
         // Configura o modal baseado no tipo de usuário
         const usernameInput = document.getElementById('username');
         const roleSelect = document.getElementById('role');
@@ -3422,7 +3361,7 @@ async function editarUsuario(id) {
  */
 async function excluirUsuario(id) {
     if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
-    
+
     try {
         const response = await fetch(`/usuarios/${id}`, { method: 'DELETE' });
         if (response.ok) {
@@ -3487,10 +3426,10 @@ async function exibirInfoUsuario() {
     try {
         const response = await fetch('/auth/check-role');
         const data = await response.json();
-        
+
         const usernameSpan = document.getElementById('usuario-logado');
         const roleSpan = document.getElementById('usuario-role');
-        
+
         if (data.username && data.role) {
             usernameSpan.textContent = data.username;
             roleSpan.textContent = data.role;
@@ -3510,7 +3449,7 @@ async function reabrirChamado(id) {
     if (!confirm("Tem certeza que deseja reabrir este chamado?")) {
         return; // Se o usuário cancelar, interrompe a execução
     }
-    
+
     try {
         showLoading();
         const response = await fetch(`/chamados/${id}`, {
@@ -3529,7 +3468,7 @@ async function reabrirChamado(id) {
 
         if (response.ok) {
             exibirMensagem('Chamado reaberto com sucesso!');
-            
+
             // Recarrega a lista de chamados após reabrir
             if (paginaAtual === 'chamados') {
                 carregarChamados('Aberto');
@@ -3557,7 +3496,7 @@ function carregarChamadosFinalizados() {
                 <!-- Caixa de pesquisa para chamados -->
                 <div class="modern-search mb-3">
                     <input type="text" id="pesquisa-chamados-finalizado" class="form-control" 
-                           placeholder="Pesquisar por cliente, protocolo ou assunto...">
+                        placeholder="Pesquisar por cliente, protocolo ou assunto...">
                 </div>
                 
                 <!-- Toolbar moderna -->
@@ -3606,18 +3545,18 @@ function carregarChamadosFinalizados() {
         </div>
     `;
     carregarChamados('Finalizado');
-    
+
     // Configurar a pesquisa de chamados finalizados
     configurarPesquisaChamados('finalizado');
 }
 
 if (status === 'Finalizado') {
     document.querySelectorAll("#chamados-finalizados tr").forEach(row => {
-        row.addEventListener('click', function() {
+        row.addEventListener('click', function () {
             document.querySelectorAll("#chamados-finalizados tr").forEach(r => r.classList.remove('table-warning'));
             this.classList.add('table-warning');
             selectedChamadoId = this.getAttribute('data-id');
-            
+
             // Habilita os botões quando um chamado é selecionado
             document.getElementById('btn-abrir').disabled = false;
             document.getElementById('btn-reabrir').disabled = false;
@@ -3636,9 +3575,9 @@ async function mostrarDetalhesCliente(clienteId) {
         if (!response.ok) {
             throw new Error('Cliente não encontrado');
         }
-        
+
         const cliente = await response.json();
-        
+
         // Cria um modal dinamicamente com dropdown em vez de tabs
         const modalHtml = `
             <div class="modal fade" id="clienteDetalhesModal" tabindex="-1">
@@ -3830,7 +3769,7 @@ async function mostrarDetalhesCliente(clienteId) {
         document.getElementById('clienteDetalhesModal').setAttribute('data-cliente-id', cliente.id);
 
         // Adiciona um listener para quando o dropdown for alterado para Informações Adicionais
-        document.getElementById('cliente-secao-dropdown').addEventListener('change', function(e) {
+        document.getElementById('cliente-secao-dropdown').addEventListener('change', function (e) {
             if (e.target.value === 'notas') {
                 // Atualiza o conteúdo das notas diretamente (sem usar o editor)
                 fetch(`/clientes/${cliente.id}/notas`)
@@ -3867,7 +3806,7 @@ function alternarSecaoCliente(secaoId) {
     document.querySelectorAll('.secao-cliente').forEach(secao => {
         secao.style.display = 'none';
     });
-    
+
     // Exibe a seção selecionada
     document.getElementById(secaoId).style.display = 'block';
 }
@@ -3881,7 +3820,7 @@ function abrirMapaCliente(endereco) {
         exibirMensagem('Endereço incompleto para abrir no mapa', 'erro');
         return;
     }
-    
+
     // Abre uma nova aba com o Google Maps usando o endereço do cliente
     const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco)}`;
     window.open(url, '_blank');
@@ -4010,23 +3949,23 @@ function configurarCalendario() {
         allDaySlot: false,
         forceEventDuration: true,
         defaultTimedEventDuration: '01:00:00',
-        
+
         // handler de seleção para abrir o modal de agendamento
-        select: function(info) {
+        select: function (info) {
             // Formata as datas para o formato esperado pelo input datetime-local
             const startStr = info.start.toISOString().slice(0, 16);
-            const endStr = info.end ? info.end.toISOString().slice(0, 16) : 
-                new Date(info.start.getTime() + 60*60000).toISOString().slice(0, 16);
-                
+            const endStr = info.end ? info.end.toISOString().slice(0, 16) :
+                new Date(info.start.getTime() + 60 * 60000).toISOString().slice(0, 16);
+
             // Abre o modal de agendamento com as datas selecionadas
             abrirModalAgendamento(startStr, endStr);
         },
-        
-        eventClick: function(info) {
+
+        eventClick: function (info) {
             abrirModalDetalhesAgendamento(info.event);
         },
-        
-        eventDrop: async function(info) {
+
+        eventDrop: async function (info) {
             try {
                 await fetch(`/agendamentos/${info.event.id}`, {
                     method: 'PUT',
@@ -4037,7 +3976,7 @@ function configurarCalendario() {
                     })
                 });
                 exibirMensagem('Agendamento atualizado com sucesso!');
-                
+
                 // Recria os tooltips após o drop
                 setTimeout(recriarTooltips, 100);
                 refreshCalendar(); // Refresh calendar after drop
@@ -4047,8 +3986,8 @@ function configurarCalendario() {
                 info.revert();
             }
         },
-        
-        eventResize: async function(info) {
+
+        eventResize: async function (info) {
             try {
                 await fetch(`/agendamentos/${info.event.id}`, {
                     method: 'PUT',
@@ -4068,45 +4007,45 @@ function configurarCalendario() {
                 info.revert();
             }
         },
-        
-        events: function(fetchInfo, successCallback, failureCallback) {
+
+        events: function (fetchInfo, successCallback, failureCallback) {
             carregarAgendamentos(successCallback, failureCallback);
         },
-        
-        eventDidMount: function(info) {
+
+        eventDidMount: function (info) {
             info.el.setAttribute('data-event-id', info.event.id);
             const tooltip = getOrCreateTooltip(
                 info.el,
                 formatarTooltipAgendamento(info.event)
             );
         },
-        
-        eventWillUnmount: function(info) {
+
+        eventWillUnmount: function (info) {
             const tooltip = tooltipCache.get(info.el);
             if (tooltip) {
                 tooltip.destroy();
             }
         },
-        
-        eventMouseLeave: function(info) {
+
+        eventMouseLeave: function (info) {
             const tooltip = tooltipCache.get(info.el);
             if (tooltip) {
                 tooltip.hide();
             }
         },
-        
-        eventDragStart: function() {
+
+        eventDragStart: function () {
             destroyAllTooltips();
         },
-        
-        eventResizeStart: function() {
+
+        eventResizeStart: function () {
             destroyAllTooltips();
         },
     });
-    
+
     // Salva a referência ao calendário globalmente
     window.calendar = calendar;
-    
+
     calendar.render();
 }
 
@@ -4120,7 +4059,7 @@ function refreshCalendar() {
 }
 
 // Adicionar limpeza de tooltips quando os modais são abertos/fechados
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     ['agendamentoModal', 'agendamentoDetalhesModal'].forEach(modalId => {
         const modal = document.getElementById(modalId);
         if (modal) {
@@ -4145,25 +4084,25 @@ document.addEventListener('DOMContentLoaded', function() {
 function abrirModalAgendamento(startStr, endStr) {
     // Limpar todos os campos do formulário
     document.getElementById('agendamentoForm').reset();
-    
+
     // Limpar explicitamente o campo de observações (para garantir)
     document.getElementById('observacoes_agendamento').value = '';
-    
+
     // Limpar a lista de chamados e o chamado selecionado
     document.getElementById('lista-chamados').innerHTML = '';
     document.getElementById('chamado-selecionado').classList.add('d-none');
     document.getElementById('chamado-selecionado').innerHTML = '';
-    
+
     // Agora atribuir os novos valores das datas
     document.getElementById('data_agendamento').value = startStr;
     document.getElementById('data_final_agendamento').value = endStr;
-    
+
     // Configurar o campo de busca de chamados
     configurarBuscaChamadosAgendamento();
-    
+
     // Configurar o botão de salvar
     document.getElementById('salvarAgendamento').onclick = salvarAgendamento;
-    
+
     // Mostrar o modal
     const modal = new bootstrap.Modal(document.getElementById('agendamentoModal'));
     modal.show();
@@ -4191,25 +4130,25 @@ function configurarBuscaChamadosAgendamento() {
             if (!response.ok) {
                 throw new Error('Falha ao buscar chamados');
             }
-            
+
             const chamados = await response.json();
-            
+
             if (chamados.length === 0) {
                 listaChamadosDiv.innerHTML = '<div class="list-group-item">Nenhum chamado encontrado</div>';
                 listaChamadosDiv.classList.add('show');
                 return;
             }
-            
+
             const chamadosHtml = chamados.map(chamado => `
                 <a href="#" class="list-group-item list-group-item-action" 
-                   data-id="${chamado.id}" 
-                   data-protocolo="${chamado.protocolo}"
-                   data-assunto="${chamado.assunto || ''}"
-                   data-cliente="${chamado.cliente_nome || 'Cliente removido'}">
+                    data-id="${chamado.id}" 
+                    data-protocolo="${chamado.protocolo}"
+                    data-assunto="${chamado.assunto || ''}"
+                    data-cliente="${chamado.cliente_nome || 'Cliente removido'}">
                     ${chamado.protocolo} - ${chamado.cliente_nome || 'Cliente removido'} - ${chamado.assunto || 'Sem assunto'}
                 </a>
             `).join('');
-            
+
             listaChamadosDiv.innerHTML = chamadosHtml;
             listaChamadosDiv.classList.add('show');
         } catch (error) {
@@ -4220,10 +4159,10 @@ function configurarBuscaChamadosAgendamento() {
     }
 
     // Event listener para o input de busca
-    buscaChamadoInput.addEventListener('input', function() {
+    buscaChamadoInput.addEventListener('input', function () {
         clearTimeout(timeoutId);
         const termo = this.value.trim();
-        
+
         // Só busca se tiver pelo menos 2 caracteres
         if (termo.length >= 2) {
             timeoutId = setTimeout(() => {
@@ -4236,17 +4175,17 @@ function configurarBuscaChamadosAgendamento() {
     });
 
     // Event listener para selecionar um chamado
-    listaChamadosDiv.addEventListener('click', function(e) {
+    listaChamadosDiv.addEventListener('click', function (e) {
         if (e.target.tagName === 'A') {
             e.preventDefault();
             const chamadoId = e.target.dataset.id;
             const protocolo = e.target.dataset.protocolo;
             const assunto = e.target.dataset.assunto;
             const cliente = e.target.dataset.cliente;
-            
+
             buscaChamadoInput.value = `${protocolo} - ${cliente}`;
             buscaChamadoInput.dataset.chamadoId = chamadoId;
-            
+
             // Mostrar detalhes do chamado selecionado
             chamadoSelecionadoDiv.innerHTML = `
                 <p><strong>Protocolo:</strong> ${protocolo}</p>
@@ -4254,21 +4193,21 @@ function configurarBuscaChamadosAgendamento() {
                 <p><strong>Assunto:</strong> ${assunto}</p>
             `;
             chamadoSelecionadoDiv.classList.remove('d-none');
-            
+
             // Esconde a lista de resultados
             listaChamadosDiv.classList.remove('show');
         }
     });
 
     // Esconde a lista quando clicar fora
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         if (!e.target.closest('#lista-chamados') && !e.target.closest('#busca-chamado')) {
             listaChamadosDiv.classList.remove('show');
         }
     });
 
     // Previne o fechamento da lista ao clicar nela
-    listaChamadosDiv.addEventListener('click', function(e) {
+    listaChamadosDiv.addEventListener('click', function (e) {
         e.stopPropagation();
     });
 }
@@ -4281,21 +4220,21 @@ async function salvarAgendamento() {
         const chamadoId = document.getElementById('busca-chamado').dataset.chamadoId;
         const dataAgendamento = document.getElementById('data_agendamento').value;
         const dataFinalAgendamento = document.getElementById('data_final_agendamento').value;
-        
+
         // Verificações de validação
         if (!chamadoId) {
             exibirMensagem('Selecione um chamado', 'erro');
             return;
         }
-        
+
         if (!dataAgendamento || !dataFinalAgendamento) {
             exibirMensagem('Preencha as datas de início e fim', 'erro');
             return;
         }
-        
+
         // Mostra a tela de carregamento
         showLoading();
-        
+
         // Envia os dados para o servidor
         const response = await fetch('/agendamentos', {
             method: 'POST',
@@ -4309,26 +4248,26 @@ async function salvarAgendamento() {
                 observacoes: document.getElementById('observacoes_agendamento')?.value || ''
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
             throw new Error(data.erro || 'Erro ao criar agendamento');
         }
-        
+
         // Exibe mensagem de sucesso
         exibirMensagem('Agendamento criado com sucesso!');
-        
+
         // Fecha o modal
         bootstrap.Modal.getInstance(document.getElementById('agendamentoModal')).hide();
-        
+
         // Atualiza o calendário
         const calendarEl = document.getElementById('calendario');
         if (calendarEl && calendarEl.fullCalendar) {
             calendarEl.fullCalendar.refetchEvents();
         }
         refreshCalendar(); // Refresh calendar after saving
-        
+
     } catch (error) {
         console.error('Erro ao salvar agendamento:', error);
         exibirMensagem(error.message || 'Erro ao salvar agendamento', 'erro');
@@ -4349,23 +4288,23 @@ async function carregarAgendamentos(successCallback, failureCallback) {
         if (!response.ok) {
             throw new Error('Falha ao carregar agendamentos');
         }
-        
+
         const agendamentos = await response.json();
-        
+
         // Converte os agendamentos para o formato que o FullCalendar espera
         const eventos = agendamentos.map(agendamento => {
             const titulo = `Visita Técnica - ${agendamento.protocolo}`;
             const status = agendamento.chamado_status || 'Aberto';
-            
+
             // Define a cor com base no status
             let backgroundColor = '#0d6efd'; // Azul para agendamentos normais
             let borderColor = '#0a58ca';
-            
+
             if (status === 'Finalizado') {
                 backgroundColor = '#28a745'; // Verde para agendamentos finalizados
                 borderColor = '#1e7e34';
             }
-            
+
             // Cria a descrição formatada para exibir no calendário
             const description = `
                 <strong>Cliente:</strong> ${agendamento.cliente_nome}<br>
@@ -4373,7 +4312,7 @@ async function carregarAgendamentos(successCallback, failureCallback) {
                 <strong>Endereço:</strong> ${agendamento.endereco || 'N/A'}<br>
                 <strong>Telefone:</strong> ${agendamento.cliente_telefone || 'N/A'}
             `;
-            
+
             return {
                 id: agendamento.id,
                 title: titulo,
@@ -4391,7 +4330,7 @@ async function carregarAgendamentos(successCallback, failureCallback) {
                 }
             };
         });
-        
+
         successCallback(eventos);
     } catch (erro) {
         console.error('Erro ao carregar agendamentos:', erro);
@@ -4407,12 +4346,12 @@ function abrirModalFinalizarChamado(event) {
     const chamadoId = event.extendedProps.chamado_id;
     currentAgendamentoId = event.id; // Armazena o ID do agendamento atual
     const modalFinalizar = new bootstrap.Modal(document.getElementById('finalizarChamadoModal'));
-    
+
     // Clear previous data
     document.getElementById('relatorio_visita').value = '';
     modalFinalizar.show();
 
-    document.getElementById('salvarFinalizacao').onclick = async function() {
+    document.getElementById('salvarFinalizacao').onclick = async function () {
         const relatorioVisita = document.getElementById('relatorio_visita').value;
         if (!relatorioVisita) {
             exibirMensagem('Preencha o relatório da visita!', 'erro');
@@ -4488,7 +4427,7 @@ async function excluirAgendamentoAtual() {
                 exibirMensagem('Agendamento excluído com sucesso');
                 const modalFinalizacao = bootstrap.Modal.getInstance(document.getElementById('finalizarChamadoModal'));
                 modalFinalizacao.hide();
-                
+
                 // Atualiza o calendário
                 const calendar = document.querySelector('#calendario').FullCalendar;
                 if (calendar) {
@@ -4507,7 +4446,7 @@ async function excluirAgendamentoAtual() {
     }
 }
 
-document.getElementById('salvarFinalizacao').onclick = async function() {
+document.getElementById('salvarFinalizacao').onclick = async function () {
     const relatorio = document.getElementById('relatorio_visita').value;
     if (!relatorio) {
         alert('Por favor, preencha o relatório da visita.');
@@ -4550,10 +4489,10 @@ document.getElementById('salvarFinalizacao').onclick = async function() {
         }
         refreshCalendar(); // Atualiza o calendário após a exclusão
         exibirMensagem('Ordem de serviço finalizada com sucesso!', 'sucesso');
-        
+
         // Limpa o formulário
         document.getElementById('relatorio_visita').value = '';
-        
+
     } catch (erro) {
         console.error('Erro ao finalizar ordem de serviço:', erro);
         exibirMensagem('Erro ao finalizar ordem de serviço', 'erro');
@@ -4568,15 +4507,15 @@ async function abrirModalDetalhesAgendamento(event) {
     try {
         currentAgendamentoId = event.id;
         const chamadoId = event.extendedProps.chamado_id;
-        
+
         // Obtém os detalhes completos do agendamento
         const response = await fetch(`/agendamentos/${event.id}`);
         if (!response.ok) {
             throw new Error('Erro ao carregar detalhes do agendamento');
         }
-        
+
         const agendamento = await response.json();
-        
+
         // Atualiza os detalhes no modal
         document.getElementById('detalhe-protocolo').textContent = agendamento.protocolo || 'N/A';
         document.getElementById('detalhe-cliente').textContent = agendamento.cliente_nome || 'Cliente removido';
@@ -4584,41 +4523,41 @@ async function abrirModalDetalhesAgendamento(event) {
         document.getElementById('detalhe-telefone').textContent = agendamento.cliente_telefone || 'N/A';
         document.getElementById('detalhe-endereco').textContent = agendamento.endereco || 'Endereço não disponível';
         document.getElementById('detalhe-status').textContent = agendamento.chamado_status || 'N/A';
-        
+
         // Formatando as datas para exibição
         const dataInicio = new Date(agendamento.data_agendamento);
         const dataFim = new Date(agendamento.data_final_agendamento);
-        
+
         document.getElementById('detalhe-data').textContent = dataInicio.toLocaleString('pt-BR');
         document.getElementById('detalhe-data-fim').textContent = dataFim.toLocaleString('pt-BR');
-        
+
         // Exibe a descrição do chamado
         document.getElementById('detalhe-descricao').textContent = agendamento.descricao || 'Sem descrição';
-        
+
         // Exibe as observações do agendamento
         document.getElementById('detalhe-observacoes').textContent = agendamento.observacoes || 'Sem observações';
 
         // Configura os IDs para o botão de finalização
         document.getElementById('detalhe-chamado-id').value = chamadoId;
         document.getElementById('detalhe-agendamento-id').value = event.id;
-        
+
         // Ajusta a visibilidade dos botões conforme o status do chamado
         const isFinalizado = agendamento.chamado_status === 'Finalizado';
         document.getElementById('detalhe-section-finalizacao').style.display = isFinalizado ? 'none' : 'block';
         document.getElementById('detalhe-btn-finalizar').style.display = isFinalizado ? 'none' : 'block';
         document.getElementById('detalhe-finalizado-msg').style.display = isFinalizado ? 'block' : 'none';
         document.getElementById('relatorio_visita').value = '';
-        
+
         // Abre o modal
         const detalhesModal = new bootstrap.Modal(document.getElementById('agendamentoDetalhesModal'));
-        
+
         // Adiciona listener para quando o modal for fechado
         document.getElementById('agendamentoDetalhesModal').addEventListener('hidden.bs.modal', function () {
             setTimeout(recriarTooltips, 100);
         });
-        
+
         detalhesModal.show();
-        
+
     } catch (error) {
         console.error('Erro:', error);
         exibirMensagem('Erro ao carregar detalhes do agendamento', 'erro');
@@ -4632,24 +4571,24 @@ async function finalizarOrdemServicoModal() {
     try {
         // Adicione logs para depuração
         console.log('Iniciando finalização de ordem de serviço');
-        
+
         // Identificar corretamente o elemento de texto usando o contexto do modal
         const modal = document.getElementById('agendamentoDetalhesModal');
         const relatorioTextarea = modal.querySelector('#relatorio_visita');
-        
+
         if (!relatorioTextarea) {
             console.error('Campo de relatório não encontrado!');
             exibirMensagem('Erro: campo de relatório não encontrado', 'erro');
             return;
         }
-        
+
         // Capturar e validar o valor
         const relatorio = relatorioTextarea.value.trim();
         console.log('Valor do relatório capturado:', relatorio, 'Comprimento:', relatorio.length);
-        
+
         const chamadoId = document.getElementById('detalhe-chamado-id').value;
         const agendamentoId = document.getElementById('detalhe-agendamento-id').value;
-        
+
         // Validação mais robusta
         if (!relatorio || relatorio.length === 0) {
             console.error('Relatório vazio ou somente espaços');
@@ -4662,7 +4601,7 @@ async function finalizarOrdemServicoModal() {
             relatorio_visita: relatorio,
             agendamento_id: agendamentoId
         };
-        
+
         console.log('Dados a enviar:', dadosEnvio);
 
         const response = await fetch(`/chamados/${chamadoId}/finalizar-ordem-servico`, {
@@ -4675,7 +4614,7 @@ async function finalizarOrdemServicoModal() {
 
         const data = await response.json();
         console.log('Resposta recebida:', data);
-        
+
         if (response.ok) {
             exibirMensagem('Ordem de serviço finalizada com sucesso!', 'sucesso');
             // Fecha o modal
@@ -4697,35 +4636,35 @@ async function finalizarOrdemServicoModal() {
  */
 async function excluirAgendamentoModal() {
     const agendamentoId = document.getElementById('detalhe-agendamento-id').value;
-    
+
     if (!agendamentoId) {
         exibirMensagem('ID do agendamento não encontrado', 'erro');
         return;
     }
-    
+
     if (confirm('Tem certeza que deseja excluir este agendamento?')) {
         try {
             showLoading();
-            
+
             const response = await fetch(`/agendamentos/${agendamentoId}`, {
                 method: 'DELETE'
             });
-            
+
             if (!response.ok) {
                 throw new Error('Erro ao excluir agendamento');
             }
-            
+
             // Fecha o modal
             bootstrap.Modal.getInstance(document.getElementById('agendamentoDetalhesModal')).hide();
-            
+
             // Recarrega o calendário
             const calendarEl = document.getElementById('calendario');
             if (calendarEl && calendarEl.fullCalendar) {
                 calendarEl.fullCalendar.refetchEvents();
             }
-            
+
             exibirMensagem('Agendamento excluído com sucesso!', 'sucesso');
-			refreshCalendar(); // Refresh calendar after deletion
+            refreshCalendar(); // Refresh calendar after deletion
         } catch (error) {
             console.error('Erro:', error);
             exibirMensagem('Erro ao excluir agendamento', 'erro');
@@ -4735,8 +4674,8 @@ async function excluirAgendamentoModal() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    
+document.addEventListener('DOMContentLoaded', function () {
+
     // Adicione este bloco para garantir a limpeza ao fechar o modal
     const agendamentoModal = document.getElementById('agendamentoModal');
     if (agendamentoModal) {
@@ -4748,18 +4687,18 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('chamado-selecionado').classList.add('d-none');
             document.getElementById('chamado-selecionado').innerHTML = '';
         });
-    }   
+    }
 
 });
 
 // Função para exibir notificação de backup
 function exibirNotificacaoBackup(backupInfo) {
     if (!backupInfo) return;
-    
+
     const mensagemDiv = document.getElementById('mensagem');
     const tipo = backupInfo.realizado ? 'success' : 'info';
     const icone = backupInfo.realizado ? 'check-circle' : 'info-circle';
-    
+
     // Se foi realizado backup, exibe uma mensagem mais destacada
     if (backupInfo.realizado) {
         mensagemDiv.innerHTML = `
@@ -4768,7 +4707,7 @@ function exibirNotificacaoBackup(backupInfo) {
         `;
         mensagemDiv.className = `alert alert-${tipo}`;
         mensagemDiv.style.display = 'block';
-        
+
         // Mantém a mensagem por 6 segundos
         setTimeout(() => {
             mensagemDiv.style.display = 'none';
@@ -4785,13 +4724,13 @@ function exibirNotificacaoBackup(backupInfo) {
 async function carregarInfoBackups() {
     try {
         const response = await fetch('/system/backups');
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             return data;
         } else {
@@ -4810,7 +4749,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (localStorage.getItem('theme') === 'dark') {
         document.body.classList.add('dark-mode');
     }
-    
+
     carregarHome();
     startAutoRefresh();
     exibirInfoUsuario();
@@ -4821,19 +4760,19 @@ document.addEventListener('DOMContentLoaded', () => {
 // Modificar a página de login para processar informações de backup após o login bem-sucedido
 async function handleLogin(e) {
     e.preventDefault();
-    
+
     const loginButton = document.getElementById('login-button');
     const errorDiv = document.getElementById('login-error');
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value.trim();
-    
+
     // Validação básica
     if (!username || !password) {
         errorDiv.textContent = 'Usuário e senha são obrigatórios';
         errorDiv.style.display = 'block';
         return;
     }
-    
+
     try {
         loginButton.disabled = true;
         loginButton.textContent = 'Entrando...';
@@ -4873,18 +4812,18 @@ async function handleLogin(e) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.removeEventListener('submit', handleLogin); // Remove handler anterior se existir
         loginForm.addEventListener('submit', handleLogin); // Adiciona o novo handler
     }
-    
+
 });
 
 
 // Adicionar às funções executadas após o carregamento do DOM
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Verificar se há informações de backup no localStorage
     const backupInfo = localStorage.getItem('backup_info');
     if (backupInfo) {
@@ -4892,19 +4831,19 @@ document.addEventListener('DOMContentLoaded', function() {
         exibirNotificacaoBackup(JSON.parse(backupInfo));
         localStorage.removeItem('backup_info');
     }
-    
+
 });
 
 // Adicionar seção de backups à área de administração
 function carregarBackupsPage() {
     // Verifica o papel do usuário usando session storage em vez de session.get
     const userRole = sessionStorage.getItem('userRole');
-    
+
     if (userRole !== 'admin') {
         exibirMensagem('Acesso restrito a administradores', 'erro');
         return;
     }
-    
+
     updateActiveMenu('backups');
     document.getElementById('conteudo').innerHTML = `
         <div class="row">
@@ -4930,7 +4869,7 @@ function carregarBackupsPage() {
             </div>
         </div>
     `;
-    
+
     // Carregar informações dos backups
     carregarInfoBackups().then(data => {
         if (!data) {
@@ -4941,7 +4880,7 @@ function carregarBackupsPage() {
             `;
             return;
         }
-        
+
         let html = `
             <div class="backup-summary mb-3">
                 <p><strong>Total de backups:</strong> ${data.total_backups}</p>
@@ -4960,7 +4899,7 @@ function carregarBackupsPage() {
                     </thead>
                     <tbody>
         `;
-        
+
         if (data.backups.length === 0) {
             html += `
                 <tr>
@@ -4978,13 +4917,13 @@ function carregarBackupsPage() {
                 `;
             });
         }
-        
+
         html += `
                     </tbody>
                 </table>
             </div>
         `;
-        
+
         document.getElementById('backup-info').innerHTML = html;
     });
 }
@@ -4995,19 +4934,19 @@ function carregarBackupsPage() {
  */
 async function handleLogin(e) {
     e.preventDefault();
-    
+
     const loginButton = document.getElementById('login-button');
     const errorDiv = document.getElementById('login-error');
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value.trim();
-    
+
     // Validação básica
     if (!username || !password) {
         errorDiv.textContent = 'Usuário e senha são obrigatórios';
         errorDiv.style.display = 'block';
         return;
     }
-    
+
     try {
         loginButton.disabled = true;
         loginButton.textContent = 'Entrando...';
@@ -5046,13 +4985,13 @@ async function handleLogin(e) {
 }
 
 // Adiciona o event listener para o formulário de login quando a página for carregada
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.removeEventListener('submit', handleLogin); // Limpa listeners duplicados
         loginForm.addEventListener('submit', handleLogin);
     }
-    
+
     // Verificar se há informações de backup no localStorage para exibir
     const backupInfo = localStorage.getItem('backup_info');
     if (backupInfo) {
@@ -5060,14 +4999,14 @@ document.addEventListener('DOMContentLoaded', function() {
         exibirNotificacaoBackup(JSON.parse(backupInfo));
         localStorage.removeItem('backup_info');
     }
-    
+
     // Resto do código para inicialização
     if (document.body.classList.contains('index-page')) {
         // Aplica o tema salvo se existir
         if (localStorage.getItem('theme') === 'dark') {
             document.body.classList.add('dark-mode');
         }
-        
+
         carregarHome();
         startAutoRefresh();
         exibirInfoUsuario();
@@ -5082,13 +5021,13 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function exibirNotificacaoBackup(backupInfo) {
     if (!backupInfo) return;
-    
+
     const mensagemDiv = document.getElementById('mensagem');
     if (!mensagemDiv) return;
-    
+
     const tipo = backupInfo.realizado ? 'success' : 'info';
     const icone = backupInfo.realizado ? 'check-circle' : 'info-circle';
-    
+
     // Se foi realizado backup, exibe uma mensagem mais destacada
     if (backupInfo.realizado) {
         mensagemDiv.innerHTML = `
@@ -5097,7 +5036,7 @@ function exibirNotificacaoBackup(backupInfo) {
         `;
         mensagemDiv.className = `alert alert-${tipo}`;
         mensagemDiv.style.display = 'block';
-        
+
         // Mantém a mensagem por 6 segundos
         setTimeout(() => {
             if (mensagemDiv) mensagemDiv.style.display = 'none';
@@ -5115,19 +5054,19 @@ function exibirNotificacaoBackup(backupInfo) {
 function configurarPesquisaChamados(tipo) {
     const inputId = `pesquisa-chamados-${tipo}`;
     const input = document.getElementById(inputId);
-    
+
     if (!input) return;
-    
+
     let timeoutId;
-    
-    input.addEventListener('input', function() {
+
+    input.addEventListener('input', function () {
         // Limpa o timeout anterior para evitar múltiplas pesquisas
         clearTimeout(timeoutId);
-        
+
         // Define um novo timeout para filtrar apenas quando o usuário parar de digitar
         timeoutId = setTimeout(() => {
             const termo = input.value.toLowerCase().trim();
-            
+
             if (termo.length === 0) {
                 // Se o campo estiver vazio, recarrega a listagem normal
                 const status = tipo === 'aberto' ? 'Aberto' : 'Finalizado';
@@ -5137,7 +5076,7 @@ function configurarPesquisaChamados(tipo) {
                     paginaAtualChamadosFinalizados = 1;
                 }
                 carregarChamados(status);
-                
+
                 // Mostrar controles de paginação normais
                 document.getElementById(`btn-anterior-chamados-${tipo}`).style.display = '';
                 document.getElementById(`btn-proximo-chamados-${tipo}`).style.display = '';
@@ -5159,7 +5098,7 @@ async function buscarChamadosPorTermo(termo, tipo) {
     try {
         const status = tipo === 'aberto' ? 'Aberto' : 'Finalizado';
         const tableId = tipo === 'aberto' ? 'chamados-list' : 'chamados-finalizados';
-        
+
         // Mostrar indicador de carregamento
         document.getElementById(tableId).innerHTML = `
             <tr>
@@ -5170,24 +5109,24 @@ async function buscarChamadosPorTermo(termo, tipo) {
                 </td>
             </tr>
         `;
-        
+
         // Fazer requisição à API para buscar chamados em todas as páginas
         const response = await fetch(`/chamados/buscar?termo=${encodeURIComponent(termo)}&status=${status}`);
-        
+
         if (!response.ok) {
             throw new Error('Erro na busca de chamados');
         }
-        
+
         const data = await response.json();
-        
+
         // Esconder controles de paginação durante a busca
         document.getElementById(`btn-anterior-chamados-${tipo}`).style.display = 'none';
         document.getElementById(`btn-proximo-chamados-${tipo}`).style.display = 'none';
         document.getElementById(`pagina-atual-chamados-${tipo}`).style.display = 'none';
-        
+
         // Renderizar os resultados da busca
         renderizarResultadosBusca(data.chamados, tipo);
-        
+
     } catch (error) {
         console.error('Erro ao buscar chamados:', error);
         exibirMensagem('Erro ao buscar chamados: ' + error.message, 'erro');
@@ -5202,7 +5141,7 @@ async function buscarChamadosPorTermo(termo, tipo) {
 function renderizarResultadosBusca(chamados, tipo) {
     const tableId = tipo === 'aberto' ? 'chamados-list' : 'chamados-finalizados';
     const tbody = document.getElementById(tableId);
-    
+
     // Se não encontrou resultados
     if (chamados.length === 0) {
         tbody.innerHTML = `
@@ -5214,7 +5153,7 @@ function renderizarResultadosBusca(chamados, tipo) {
         `;
         return;
     }
-    
+
     // Gerar HTML com os resultados encontrados
     if (tipo === 'aberto') {
         tbody.innerHTML = chamados.map(chamado => `
@@ -5239,20 +5178,20 @@ function renderizarResultadosBusca(chamados, tipo) {
             </tr>
         `).join('');
     }
-    
+
     // Adicionar event listeners para selecionar linhas
     const tabelaId = tipo === 'aberto' ? 'chamados-list' : 'chamados-finalizados';
     document.querySelectorAll(`#${tabelaId} tr`).forEach(row => {
-        row.addEventListener('click', function() {
+        row.addEventListener('click', function () {
             // Remover seleção anterior
             document.querySelectorAll(`#${tabelaId} tr`).forEach(r => r.classList.remove('table-warning'));
-            
+
             // Adicionar seleção à linha clicada
             this.classList.add('table-warning');
-            
+
             // Armazenar ID do chamado selecionado
             selectedChamadoId = this.getAttribute('data-id');
-            
+
             // Habilitar botões de ação
             const btnPrefix = tipo === 'aberto' ? '' : '';
             document.getElementById('btn-abrir').disabled = false;
@@ -5413,16 +5352,16 @@ async function salvarConfiguracaoBackup(diretorio) {
 async function carregarInfoBackups() {
     try {
         const response = await fetchWithLoading('/system/backups');
-        
+
         if (response.success) {
             const backups = response.backups;
             const diretorio = response.diretorio;
             const totalBackups = response.total_backups;
-            
+
             // Atualiza o diretório exibido
             document.getElementById('backup-dir-atual').textContent = diretorio;
             document.getElementById('backup-dir').value = diretorio;
-            
+
             // Renderiza a lista de backups
             const listaBackups = document.getElementById('lista-backups');
             if (backups.length === 0) {
@@ -5440,7 +5379,7 @@ async function carregarInfoBackups() {
                     </tr>
                 `).join('');
             }
-            
+
         } else {
             exibirMensagem('Erro ao carregar informações de backup', 'erro');
         }
@@ -5456,7 +5395,7 @@ async function carregarInfoBackups() {
 async function realizarBackupManual() {
     try {
         exibirMensagem('Realizando backup. Por favor, aguarde...', 'sucesso');
-        
+
         // Realiza o backup manual via API
         const response = await fetchWithLoading('/system/backup/manual', {
             method: 'POST',
@@ -5464,7 +5403,7 @@ async function realizarBackupManual() {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         if (response.success) {
             exibirMensagem(`Backup realizado com sucesso!`, 'sucesso');
             // Recarrega a lista após o backup bem-sucedido
@@ -5583,14 +5522,14 @@ function setupKonamiCode() {
     let konamiIndex = 0;
 
     // Adiciona o event listener para detectar o código Konami
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         // Converte a tecla pressionada para minúsculo para comparação
         const key = e.key.toLowerCase();
 
         // Verifica se a tecla corresponde à sequência esperada
         if (key === konamiCode[konamiIndex].toLowerCase()) {
             konamiIndex++;
-            
+
             // Se completou toda a sequência
             if (konamiIndex === konamiCode.length) {
                 // Reseta o índice
@@ -5628,19 +5567,19 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 async function handleLogin(e) {
     e.preventDefault();
-    
+
     const loginButton = document.getElementById('login-button');
     const errorDiv = document.getElementById('login-error');
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value.trim();
-    
+
     // Validação básica
     if (!username || !password) {
         errorDiv.textContent = 'Usuário e senha são obrigatórios';
         errorDiv.style.display = 'block';
         return;
     }
-    
+
     try {
         loginButton.disabled = true;
         loginButton.textContent = 'Entrando...';
@@ -5679,13 +5618,13 @@ async function handleLogin(e) {
 }
 
 // Adiciona o event listener para o formulário de login quando a página for carregada
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.removeEventListener('submit', handleLogin); // Limpa listeners duplicados
         loginForm.addEventListener('submit', handleLogin);
     }
-    
+
     // Verificar se há informações de backup no localStorage para exibir
     const backupInfo = localStorage.getItem('backup_info');
     if (backupInfo) {
@@ -5693,14 +5632,14 @@ document.addEventListener('DOMContentLoaded', function() {
         exibirNotificacaoBackup(JSON.parse(backupInfo));
         localStorage.removeItem('backup_info');
     }
-    
+
     // Resto do código para inicialização
     if (document.body.classList.contains('index-page')) {
         // Aplica o tema salvo se existir
         if (localStorage.getItem('theme') === 'dark') {
             document.body.classList.add('dark-mode');
         }
-        
+
         carregarHome();
         startAutoRefresh();
         exibirInfoUsuario();
@@ -5715,13 +5654,13 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function exibirNotificacaoBackup(backupInfo) {
     if (!backupInfo) return;
-    
+
     const mensagemDiv = document.getElementById('mensagem');
     if (!mensagemDiv) return;
-    
+
     const tipo = backupInfo.realizado ? 'success' : 'info';
     const icone = backupInfo.realizado ? 'check-circle' : 'info-circle';
-    
+
     // Se foi realizado backup, exibe uma mensagem mais destacada
     if (backupInfo.realizado) {
         mensagemDiv.innerHTML = `
@@ -5730,7 +5669,7 @@ function exibirNotificacaoBackup(backupInfo) {
         `;
         mensagemDiv.className = `alert alert-${tipo}`;
         mensagemDiv.style.display = 'block';
-        
+
         // Mantém a mensagem por 6 segundos
         setTimeout(() => {
             if (mensagemDiv) mensagemDiv.style.display = 'none';
@@ -5748,19 +5687,19 @@ function exibirNotificacaoBackup(backupInfo) {
 function configurarPesquisaChamados(tipo) {
     const inputId = `pesquisa-chamados-${tipo}`;
     const input = document.getElementById(inputId);
-    
+
     if (!input) return;
-    
+
     let timeoutId;
-    
-    input.addEventListener('input', function() {
+
+    input.addEventListener('input', function () {
         // Limpa o timeout anterior para evitar múltiplas pesquisas
         clearTimeout(timeoutId);
-        
+
         // Define um novo timeout para filtrar apenas quando o usuário parar de digitar
         timeoutId = setTimeout(() => {
             const termo = input.value.toLowerCase().trim();
-            
+
             if (termo.length === 0) {
                 // Se o campo estiver vazio, recarrega a listagem normal
                 const status = tipo === 'aberto' ? 'Aberto' : 'Finalizado';
@@ -5770,7 +5709,7 @@ function configurarPesquisaChamados(tipo) {
                     paginaAtualChamadosFinalizados = 1;
                 }
                 carregarChamados(status);
-                
+
                 // Mostrar controles de paginação normais
                 document.getElementById(`btn-anterior-chamados-${tipo}`).style.display = '';
                 document.getElementById(`btn-proximo-chamados-${tipo}`).style.display = '';
@@ -5792,7 +5731,7 @@ async function buscarChamadosPorTermo(termo, tipo) {
     try {
         const status = tipo === 'aberto' ? 'Aberto' : 'Finalizado';
         const tableId = tipo === 'aberto' ? 'chamados-list' : 'chamados-finalizados';
-        
+
         // Mostrar indicador de carregamento
         document.getElementById(tableId).innerHTML = `
             <tr>
@@ -5803,24 +5742,24 @@ async function buscarChamadosPorTermo(termo, tipo) {
                 </td>
             </tr>
         `;
-        
+
         // Fazer requisição à API para buscar chamados em todas as páginas
         const response = await fetch(`/chamados/buscar?termo=${encodeURIComponent(termo)}&status=${status}`);
-        
+
         if (!response.ok) {
             throw new Error('Erro na busca de chamados');
         }
-        
+
         const data = await response.json();
-        
+
         // Esconder controles de paginação durante a busca
         document.getElementById(`btn-anterior-chamados-${tipo}`).style.display = 'none';
         document.getElementById(`btn-proximo-chamados-${tipo}`).style.display = 'none';
         document.getElementById(`pagina-atual-chamados-${tipo}`).style.display = 'none';
-        
+
         // Renderizar os resultados da busca
         renderizarResultadosBusca(data.chamados, tipo);
-        
+
     } catch (error) {
         console.error('Erro ao buscar chamados:', error);
         exibirMensagem('Erro ao buscar chamados: ' + error.message, 'erro');
@@ -5835,7 +5774,7 @@ async function buscarChamadosPorTermo(termo, tipo) {
 function renderizarResultadosBusca(chamados, tipo) {
     const tableId = tipo === 'aberto' ? 'chamados-list' : 'chamados-finalizados';
     const tbody = document.getElementById(tableId);
-    
+
     // Se não encontrou resultados
     if (chamados.length === 0) {
         tbody.innerHTML = `
@@ -5847,7 +5786,7 @@ function renderizarResultadosBusca(chamados, tipo) {
         `;
         return;
     }
-    
+
     // Gerar HTML com os resultados encontrados
     if (tipo === 'aberto') {
         tbody.innerHTML = chamados.map(chamado => `
@@ -5872,20 +5811,20 @@ function renderizarResultadosBusca(chamados, tipo) {
             </tr>
         `).join('');
     }
-    
+
     // Adicionar event listeners para selecionar linhas
     const tabelaId = tipo === 'aberto' ? 'chamados-list' : 'chamados-finalizados';
     document.querySelectorAll(`#${tabelaId} tr`).forEach(row => {
-        row.addEventListener('click', function() {
+        row.addEventListener('click', function () {
             // Remover seleção anterior
             document.querySelectorAll(`#${tabelaId} tr`).forEach(r => r.classList.remove('table-warning'));
-            
+
             // Adicionar seleção à linha clicada
             this.classList.add('table-warning');
-            
+
             // Armazenar ID do chamado selecionado
             selectedChamadoId = this.getAttribute('data-id');
-            
+
             // Habilitar botões de ação
             const btnPrefix = tipo === 'aberto' ? '' : '';
             document.getElementById('btn-abrir').disabled = false;
@@ -5905,17 +5844,10 @@ function renderizarResultadosBusca(chamados, tipo) {
  * usando a localização atual do usuário como ponto de partida
  */
 function abrirRotaGoogleMaps() {
-    // Exibe um indicador de carregamento
+    // Obtém e clona o template do loading
+    const template = document.getElementById('loading-maps-template');
     const loadingElement = document.createElement('div');
-    loadingElement.innerHTML = `
-        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); 
-                  display: flex; align-items: center; justify-content: center; z-index: 9999;">
-            <div style="background: white; padding: 20px; border-radius: 8px; text-align: center;">
-                <div class="spinner-border text-primary" role="status"></div>
-                <p class="mt-2">Obtendo sua localização...</p>
-            </div>
-        </div>
-    `;
+    loadingElement.appendChild(template.content.cloneNode(true));
     document.body.appendChild(loadingElement);
 
     // Captura os valores dos campos de endereço
@@ -5924,13 +5856,13 @@ function abrirRotaGoogleMaps() {
     const bairro = document.getElementById('bairro').value;
     const cidade = document.getElementById('cidade').value;
     const estado = document.getElementById('estado').value;
-    
+
     // Monta o endereço completo
     const enderecoCompleto = `${rua}, ${numero} - ${bairro}, ${cidade} - ${estado}`;
-    
+
     // Codifica o endereço para URL
     const enderecoURL = encodeURIComponent(enderecoCompleto);
-    
+
     // Verifica se o navegador suporta geolocalização
     if (navigator.geolocation) {
         // Define um timeout para a obtenção da localização
@@ -5939,34 +5871,34 @@ function abrirRotaGoogleMaps() {
             timeout: 10000,        // 10 segundos
             maximumAge: 0          // Sempre obter uma posição nova
         };
-        
+
         // Tenta obter a localização atual
         navigator.geolocation.getCurrentPosition(
             // Sucesso na obtenção da localização
-            function(position) {
+            function (position) {
                 // Remove o indicador de carregamento
                 document.body.removeChild(loadingElement);
-                
+
                 // Obtém as coordenadas
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
-                
+
                 // Define a origem como as coordenadas obtidas
                 const origin = `${lat},${lng}`;
-                
+
                 // Abre o Google Maps com as coordenadas exatas e o destino
                 window.open(`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${enderecoURL}&travelmode=driving`, '_blank');
             },
             // Erro na obtenção da localização
-            function(error) {
+            function (error) {
                 // Remove o indicador de carregamento
                 document.body.removeChild(loadingElement);
-                
+
                 console.warn("Erro ao obter localização:", error.message);
-                
+
                 // Exibe mensagem de erro adequada
                 let mensagemErro;
-                switch(error.code) {
+                switch (error.code) {
                     case error.PERMISSION_DENIED:
                         mensagemErro = "Você negou a permissão para obter sua localização. Utilizando modo de rota padrão.";
                         break;
@@ -5979,14 +5911,14 @@ function abrirRotaGoogleMaps() {
                     default:
                         mensagemErro = "Erro desconhecido ao obter sua localização. Utilizando modo de rota padrão.";
                 }
-                
+
                 // Exibe a mensagem de erro para o usuário
                 if (typeof exibirMensagem === 'function') {
                     exibirMensagem(mensagemErro, 'erro');
                 } else {
                     alert(mensagemErro);
                 }
-                
+
                 // Abre o Google Maps sem origem específica
                 window.open(`https://www.google.com/maps/dir/?api=1&destination=${enderecoURL}&travelmode=driving`, '_blank');
             },
@@ -5995,16 +5927,16 @@ function abrirRotaGoogleMaps() {
     } else {
         // Remove o indicador de carregamento
         document.body.removeChild(loadingElement);
-        
+
         // Navegador não suporta geolocalização
         const mensagem = "Seu navegador não suporta geolocalização. Utilizando modo de rota padrão.";
-        
+
         if (typeof exibirMensagem === 'function') {
             exibirMensagem(mensagem, 'erro');
         } else {
             alert(mensagem);
         }
-        
+
         // Abre o Google Maps sem origem específica
         window.open(`https://www.google.com/maps/dir/?api=1&destination=${enderecoURL}&travelmode=driving`, '_blank');
     }
