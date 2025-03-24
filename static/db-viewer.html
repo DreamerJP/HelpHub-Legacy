@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,109 +16,116 @@
             max-height: 500px;
             overflow-y: auto;
         }
+
         .database-stats {
             background-color: #f8f9fa;
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .table-actions {
             margin-bottom: 15px;
         }
+
         .table-filter {
             margin-bottom: 15px;
         }
+
         .truncate-text {
             max-width: 300px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
         .expand-btn {
             cursor: pointer;
             color: #0d6efd;
         }
+
         body.dark-mode .database-stats {
             background-color: #343a40;
             color: #fff;
         }
+
         .refresh-button {
             cursor: pointer;
         }
-        
+
         /* Ajustes para o tema escuro */
         body.dark-mode {
             background-color: #212529;
             color: #f8f9fa;
         }
-        
+
         body.dark-mode .card {
             background-color: #343a40;
             color: #f8f9fa;
         }
-        
+
         body.dark-mode .card-header {
             background-color: #212529;
             color: #f8f9fa;
         }
-        
+
         body.dark-mode .modal-content {
             background-color: #343a40;
             color: #f8f9fa;
         }
-        
+
         body.dark-mode .modal-header,
         body.dark-mode .modal-footer {
             border-color: #495057;
             background-color: #212529;
         }
-        
+
         body.dark-mode .text-muted,
         body.dark-mode .form-text {
             color: #adb5bd !important;
         }
-        
+
         body.dark-mode .table {
             color: #f8f9fa;
         }
-        
+
         body.dark-mode .form-control,
         body.dark-mode .form-select {
             background-color: #495057;
             color: #f8f9fa;
             border-color: #6c757d;
         }
-        
+
         body.dark-mode .form-check-input {
             background-color: #495057;
             border-color: #6c757d;
         }
-        
+
         body.dark-mode .alert-warning {
             background-color: #664d03;
             color: #fff3cd;
             border-color: #997404;
         }
-        
+
         body.dark-mode .alert-info {
             background-color: #055160;
             color: #cff4fc;
             border-color: #087990;
         }
-        
+
         body.dark-mode .alert-danger {
             background-color: #58151c;
             color: #f8d7da;
             border-color: #842029;
         }
-        
+
         body.dark-mode .alert-success {
             background-color: #0f5132;
             color: #d1e7dd;
             border-color: #146c43;
         }
-        
+
         body.dark-mode .table-bordered,
         body.dark-mode .table-bordered th,
         body.dark-mode .table-bordered td {
@@ -125,13 +133,13 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <img src="logo.png" alt="Logo" height="30" class="d-inline-block align-text-top">
-                HelpHub
+                <img src="logo.png" alt="Logo" height="50" class="d-inline-block align-text-top">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -164,7 +172,7 @@
     <!-- Conteúdo principal -->
     <div class="container mt-4">
         <h1 class="mb-4"><i class="bi bi-database-gear"></i> Visualizador do Banco de Dados</h1>
-        
+
         <!-- Informações gerais do banco de dados -->
         <div class="database-stats">
             <div class="row">
@@ -177,12 +185,13 @@
                     <p id="db-tables">Carregando...</p>
                 </div>
                 <div class="col-md-4">
-                    <h5><i class="bi bi-arrow-repeat refresh-button" onclick="refreshDatabaseStats()"></i> Última Atualização</h5>
+                    <h5><i class="bi bi-arrow-repeat refresh-button" onclick="refreshDatabaseStats()"></i> Última
+                        Atualização</h5>
                     <p id="last-refresh">Carregando...</p>
                 </div>
             </div>
         </div>
-        
+
         <!-- Seletor de tabelas -->
         <div class="card mb-4">
             <div class="card-header">
@@ -194,7 +203,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Visualizador de tabela -->
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
@@ -214,9 +223,10 @@
             <div class="card-body">
                 <!-- Filtro -->
                 <div class="table-filter">
-                    <input type="text" class="form-control" id="table-filter" placeholder="Filtrar registros..." disabled>
+                    <input type="text" class="form-control" id="table-filter" placeholder="Filtrar registros..."
+                        disabled>
                 </div>
-                
+
                 <!-- Estatísticas da tabela -->
                 <div class="row mb-3">
                     <div class="col-md-4">
@@ -229,7 +239,7 @@
                         <!-- Estatísticas específicas para cada tabela -->
                     </div>
                 </div>
-                
+
                 <!-- Tabela de dados -->
                 <div class="table-responsive">
                     <table class="table table-striped table-hover" id="data-table">
@@ -289,40 +299,45 @@
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle"></i> <strong>Atenção:</strong> A importação pode substituir dados existentes. Faça backup antes de continuar.
+                        <i class="bi bi-exclamation-triangle"></i> <strong>Atenção:</strong> A importação pode
+                        substituir dados existentes. Faça backup antes de continuar.
                     </div>
-                    
+
                     <form id="importForm">
                         <div class="mb-3">
                             <label for="csvFile" class="form-label">Arquivo CSV</label>
                             <input type="file" class="form-control" id="csvFile" accept=".csv" required>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label class="form-label">Opções de importação</label>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="importMode" id="importModeAppend" value="append" checked>
+                                <input class="form-check-input" type="radio" name="importMode" id="importModeAppend"
+                                    value="append" checked>
                                 <label class="form-check-label" for="importModeAppend">
                                     <strong>Adicionar novos registros</strong>
                                 </label>
                                 <div class="text-muted small mt-1 mb-2">
-                                    Mantém os registros existentes e adiciona os novos dados do arquivo CSV à tabela atual. 
+                                    Mantém os registros existentes e adiciona os novos dados do arquivo CSV à tabela
+                                    atual.
                                     Escolha esta opção quando quiser inserir dados complementares.
                                 </div>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="importMode" id="importModeReplace" value="replace">
+                                <input class="form-check-input" type="radio" name="importMode" id="importModeReplace"
+                                    value="replace">
                                 <label class="form-check-label" for="importModeReplace">
-                                    <strong>Substituir tabela inteira</strong> <span class="text-danger">(cuidado!)</span>
+                                    <strong>Substituir tabela inteira</strong> <span
+                                        class="text-danger">(cuidado!)</span>
                                 </label>
                                 <div class="text-muted small mt-1 mb-2">
-                                    <i class="bi bi-exclamation-triangle-fill text-danger"></i> 
+                                    <i class="bi bi-exclamation-triangle-fill text-danger"></i>
                                     Remove todos os dados atuais da tabela antes de importar os novos registros.
                                     Use apenas quando deseja substituir completamente os dados existentes.
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label class="form-label">Configurações do CSV</label>
                             <div class="row g-3">
@@ -341,32 +356,38 @@
                                         <option value="false">Dados (sem cabeçalho)</option>
                                     </select>
                                     <div class="form-text">
-                                        Escolha se a primeira linha contém os nomes das colunas (cabeçalho) 
+                                        Escolha se a primeira linha contém os nomes das colunas (cabeçalho)
                                         ou se já contém dados a serem importados.
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="previewData" class="form-label">Pré-visualização</label>
                             <div class="small text-muted mb-2">
-                                <i class="bi bi-info-circle"></i> Mostrando apenas as primeiras 5 linhas do arquivo para visualização rápida.
-                                A pré-visualização ajuda a verificar se as configurações acima estão corretas antes da importação.
+                                <i class="bi bi-info-circle"></i> Mostrando apenas as primeiras 5 linhas do arquivo para
+                                visualização rápida.
+                                A pré-visualização ajuda a verificar se as configurações acima estão corretas antes da
+                                importação.
                             </div>
                             <div class="table-responsive" style="max-height: 200px;">
                                 <table class="table table-sm table-bordered" id="previewTable">
                                     <thead>
-                                        <tr><th>Selecione um arquivo CSV para visualizar</th></tr>
+                                        <tr>
+                                            <th>Selecione um arquivo CSV para visualizar</th>
+                                        </tr>
                                     </thead>
                                     <tbody>
-                                        <tr><td>Nenhum dado para exibir</td></tr>
+                                        <tr>
+                                            <td>Nenhum dado para exibir</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </form>
-                    
+
                     <div id="importStatus"></div>
                 </div>
                 <div class="modal-footer">
@@ -389,18 +410,18 @@
         let importData = [];
         let importColumns = [];
         let importModal;
-        
+
         // Quando o documento estiver pronto
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Verificar autenticação
             checkAdminRole();
-            
+
             // Carregar estatísticas do banco de dados
             loadDatabaseStats();
-            
+
             // Carregar lista de tabelas
             loadTableList();
-            
+
             // Configurar o filtro da tabela
             setupTableFilter();
 
@@ -412,7 +433,7 @@
         });
 
         // Alternar entre temas claro e escuro
-        document.getElementById('theme-toggle').addEventListener('click', function() {
+        document.getElementById('theme-toggle').addEventListener('click', function () {
             if (document.body.classList.contains('dark-mode')) {
                 document.body.classList.remove('dark-mode');
                 localStorage.setItem('theme', 'light');
@@ -429,7 +450,7 @@
             try {
                 const response = await fetch('/auth/check-role');
                 const data = await response.json();
-                
+
                 if (!response.ok || data.role !== 'admin') {
                     alert('Acesso negado. Apenas administradores podem acessar esta página.');
                     window.location.href = '/';
@@ -448,9 +469,9 @@
                 if (!response.ok) {
                     throw new Error('Falha ao carregar estatísticas do banco de dados');
                 }
-                
+
                 const data = await response.json();
-                
+
                 document.getElementById('db-size').textContent = data.total_size;
                 document.getElementById('db-tables').textContent = `${data.table_count} tabelas`;
                 document.getElementById('last-refresh').textContent = new Date().toLocaleString();
@@ -468,11 +489,11 @@
                 if (!response.ok) {
                     throw new Error('Falha ao carregar lista de tabelas');
                 }
-                
+
                 const tables = await response.json();
                 const tableSelector = document.getElementById('table-selector');
                 tableSelector.innerHTML = '';
-                
+
                 tables.forEach(table => {
                     const button = document.createElement('button');
                     button.className = 'btn btn-outline-secondary m-1';
@@ -482,7 +503,7 @@
                 });
             } catch (error) {
                 console.error('Erro:', error);
-                document.getElementById('table-selector').innerHTML = 
+                document.getElementById('table-selector').innerHTML =
                     '<div class="alert alert-danger">Erro ao carregar tabelas</div>';
             }
         }
@@ -499,31 +520,31 @@
                 if (!response.ok) {
                     throw new Error(`Falha ao carregar dados da tabela ${tableName}`);
                 }
-                
+
                 const data = await response.json();
                 tableData = data.records;
                 tableColumns = data.columns;
-                
+
                 // Atualizar estatísticas da tabela
                 document.getElementById('record-count').textContent = tableData.length;
                 document.getElementById('table-size').textContent = data.size || 'N/A';
-                
+
                 // Estatísticas específicas para tabelas relevantes
                 const specificStats = document.getElementById('table-specific-stats');
                 if (tableName === 'notas_clientes') {
                     let nonEmptyCount = tableData.filter(record => record.notas && record.notas.trim().length > 0).length;
                     specificStats.innerHTML = `
-                        <p><strong>Notas não vazias:</strong> ${nonEmptyCount} (${Math.round(nonEmptyCount/tableData.length*100)}%)</p>
+                        <p><strong>Notas não vazias:</strong> ${nonEmptyCount} (${Math.round(nonEmptyCount / tableData.length * 100)}%)</p>
                     `;
                 } else {
                     specificStats.innerHTML = '';
                 }
-                
+
                 // Renderizar tabela
                 renderTable(tableData, tableColumns);
             } catch (error) {
                 console.error('Erro:', error);
-                document.getElementById('data-table').innerHTML = 
+                document.getElementById('data-table').innerHTML =
                     '<div class="alert alert-danger">Erro ao carregar dados da tabela</div>';
             }
         }
@@ -531,14 +552,14 @@
         // Renderizar tabela de dados
         function renderTable(data, columns) {
             const table = document.getElementById('data-table');
-            
+
             // Cabeçalho da tabela
             let headerRow = '<tr>';
             columns.forEach(column => {
                 headerRow += `<th>${column}</th>`;
             });
             headerRow += '</tr>';
-            
+
             // Corpo da tabela
             let tableBody = '';
             if (data.length === 0) {
@@ -563,7 +584,7 @@
                     tableBody += '</tr>';
                 });
             }
-            
+
             // Atualizar tabela
             table.innerHTML = `<thead>${headerRow}</thead><tbody>${tableBody}</tbody>`;
         }
@@ -571,11 +592,11 @@
         // Escape HTML para evitar injeção de código
         function escapeHtml(unsafe) {
             return unsafe
-                 .replace(/&/g, "&amp;")
-                 .replace(/</g, "&lt;")
-                 .replace(/>/g, "&gt;")
-                 .replace(/"/g, "&quot;")
-                 .replace(/'/g, "&#039;");
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
         // Mostrar texto completo no modal
@@ -587,18 +608,18 @@
         // Configurar filtro da tabela
         function setupTableFilter() {
             const filterInput = document.getElementById('table-filter');
-            filterInput.addEventListener('input', function() {
+            filterInput.addEventListener('input', function () {
                 if (!tableData.length) return;
-                
+
                 const filterText = this.value.toLowerCase();
-                
+
                 if (!filterText) {
                     // Se o filtro estiver vazio, mostrar todos os dados
                     renderTable(tableData, tableColumns);
                     document.getElementById('record-count').textContent = tableData.length;
                     return;
                 }
-                
+
                 // Filtrar dados
                 const filteredData = tableData.filter(record => {
                     return Object.values(record).some(value => {
@@ -606,10 +627,10 @@
                         return String(value).toLowerCase().includes(filterText);
                     });
                 });
-                
+
                 // Atualizar estatísticas
                 document.getElementById('record-count').textContent = `${filteredData.length} / ${tableData.length}`;
-                
+
                 // Renderizar tabela filtrada
                 renderTable(filteredData, tableColumns);
             });
@@ -633,13 +654,13 @@
                 alert('Não há dados para exportar.');
                 return;
             }
-            
+
             // Criar conteúdo CSV
             let csvContent = "data:text/csv;charset=utf-8,";
-            
+
             // Adicionar cabeçalhos
             csvContent += tableColumns.join(',') + '\r\n';
-            
+
             // Adicionar dados
             tableData.forEach(record => {
                 let row = tableColumns.map(column => {
@@ -654,14 +675,14 @@
                 });
                 csvContent += row.join(',') + '\r\n';
             });
-            
+
             // Criar link de download
             let encodedUri = encodeURI(csvContent);
             let link = document.createElement("a");
             link.setAttribute("href", encodedUri);
             link.setAttribute("download", `${currentTable}_export.csv`);
             document.body.appendChild(link);
-            
+
             // Simular clique e remover link
             link.click();
             document.body.removeChild(link);
@@ -674,28 +695,28 @@
                 alert('Por favor, selecione uma tabela antes de importar dados.');
                 return;
             }
-            
+
             // Resetar o formulário e a pré-visualização
             document.getElementById('importForm').reset();
             document.getElementById('importStatus').innerHTML = '';
             document.getElementById('previewTable').innerHTML = '<thead><tr><th>Selecione um arquivo CSV para visualizar</th></tr></thead><tbody><tr><td>Nenhum dado para exibir</td></tr></tbody>';
             document.getElementById('processImport').disabled = true;
-            
+
             // Atualiza o título do modal com a tabela atual
             const modalTitle = document.querySelector('#importModal .modal-title');
             modalTitle.innerHTML = `<i class="bi bi-file-earmark-arrow-up"></i> Importar dados para <strong>${currentTable}</strong>`;
-            
+
             // Exibe o modal
             if (!importModal) {
                 importModal = new bootstrap.Modal(document.getElementById('importModal'));
             }
             importModal.show();
-            
+
             // Configurar evento para processar o arquivo selecionado
             const fileInput = document.getElementById('csvFile');
             const delimiterInput = document.getElementById('delimiter');
             const hasHeaderSelect = document.getElementById('hasHeader');
-            
+
             fileInput.addEventListener('change', () => processSelectedFile());
             delimiterInput.addEventListener('input', () => {
                 if (fileInput.files.length > 0) {
@@ -708,7 +729,7 @@
                 }
             });
         }
-        
+
         // Processar arquivo CSV selecionado para pré-visualização
         function processSelectedFile() {
             const fileInput = document.getElementById('csvFile');
@@ -716,37 +737,37 @@
             const hasHeaderSelect = document.getElementById('hasHeader');
             const previewTable = document.getElementById('previewTable');
             const processImportBtn = document.getElementById('processImport');
-            
+
             if (!fileInput.files || fileInput.files.length === 0) {
                 return;
             }
-            
+
             const file = fileInput.files[0];
             if (file.size > 10 * 1024 * 1024) { // 10MB limite
                 alert('O arquivo é muito grande. Por favor, selecione um arquivo menor que 10MB.');
                 fileInput.value = '';
                 return;
             }
-            
+
             const delimiter = delimiterInput.value || ',';
             const hasHeader = hasHeaderSelect.value === 'true';
-            
+
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 try {
                     const csv = e.target.result;
                     const result = processCSV(csv, delimiter, hasHeader);
-                    
+
                     importData = result.data;
                     importColumns = result.columns;
-                    
+
                     // Gerar HTML para pré-visualização (apenas primeiras 5 linhas)
                     let previewHTML = '<thead><tr>';
                     importColumns.forEach(column => {
                         previewHTML += `<th>${escapeHtml(column)}</th>`;
                     });
                     previewHTML += '</tr></thead><tbody>';
-                    
+
                     const previewRows = importData.slice(0, 5);
                     previewRows.forEach(row => {
                         previewHTML += '<tr>';
@@ -755,56 +776,56 @@
                         });
                         previewHTML += '</tr>';
                     });
-                    
+
                     if (importData.length > 5) {
                         previewHTML += `<tr><td colspan="${importColumns.length}" class="text-center">... e mais ${importData.length - 5} registro(s)</td></tr>`;
                     }
-                    
+
                     previewHTML += '</tbody>';
                     previewTable.innerHTML = previewHTML;
-                    
+
                     // Habilitar botão de importação
                     processImportBtn.disabled = false;
-                    
+
                 } catch (error) {
                     console.error('Erro ao processar CSV:', error);
                     previewTable.innerHTML = `<thead><tr><th>Erro ao processar o arquivo</th></tr></thead><tbody><tr><td>${escapeHtml(error.message)}</td></tr></tbody>`;
                     processImportBtn.disabled = true;
                 }
             };
-            
-            reader.onerror = function() {
+
+            reader.onerror = function () {
                 previewTable.innerHTML = '<thead><tr><th>Erro ao ler o arquivo</th></tr></thead>';
                 processImportBtn.disabled = true;
             };
-            
+
             reader.readAsText(file);
         }
-        
+
         // Processar conteúdo CSV
         function processCSV(csv, delimiter = ',', hasHeader = true) {
             // Dividir o CSV em linhas
             const lines = csv.split(/\r\n|\n|\r/).filter(line => line.trim());
-            
+
             if (lines.length === 0) {
                 throw new Error('O arquivo CSV está vazio');
             }
-            
+
             // Processar cabeçalho
             const headerLine = lines[0];
             const headers = headerLine.split(delimiter).map(h => h.trim().replace(/^"(.*)"$/, '$1'));
-            
+
             // Processar linhas de dados
             const dataStartIndex = hasHeader ? 1 : 0;
             const data = [];
-            
+
             for (let i = dataStartIndex; i < lines.length; i++) {
                 const fields = parseCSVLine(lines[i], delimiter);
-                
+
                 // Criar objeto com dados da linha
                 const rowData = {};
                 const columnsToUse = hasHeader ? headers : fields.map((_, idx) => `column${idx + 1}`);
-                
+
                 for (let j = 0; j < columnsToUse.length; j++) {
                     if (j < fields.length) {
                         rowData[columnsToUse[j]] = fields[j];
@@ -812,25 +833,25 @@
                         rowData[columnsToUse[j]] = '';
                     }
                 }
-                
+
                 data.push(rowData);
             }
-            
+
             return {
                 columns: hasHeader ? headers : data[0] ? Object.keys(data[0]) : [],
                 data: data
             };
         }
-        
+
         // Analisar uma linha CSV (considera aspas para campos com delimitadores internos)
         function parseCSVLine(line, delimiter) {
             const fields = [];
             let inQuotes = false;
             let currentField = '';
-            
+
             for (let i = 0; i < line.length; i++) {
                 const char = line[i];
-                
+
                 if (char === '"') {
                     if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
                         // Aspas escapadas dentro de aspas
@@ -849,24 +870,24 @@
                     currentField += char;
                 }
             }
-            
+
             // Adicionar o último campo
             fields.push(currentField);
-            
+
             return fields;
         }
-        
+
         // Importar dados para a tabela
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const processImportBtn = document.getElementById('processImport');
             if (processImportBtn) {
-                processImportBtn.addEventListener('click', function() {
+                processImportBtn.addEventListener('click', function () {
                     const importMode = document.querySelector('input[name="importMode"]:checked').value;
                     const statusDiv = document.getElementById('importStatus');
-                    
+
                     statusDiv.innerHTML = '<div class="alert alert-info">Processando importação, aguarde...</div>';
                     this.disabled = true;
-                    
+
                     // Enviar dados para o servidor
                     fetch(`/admin/database/tables/${currentTable}/import`, {
                         method: 'POST',
@@ -879,35 +900,36 @@
                             data: importData
                         })
                     })
-                    .then(response => response.json())
-                    .then(result => {
-                        if (result.success) {
-                            statusDiv.innerHTML = `<div class="alert alert-success">
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success) {
+                                statusDiv.innerHTML = `<div class="alert alert-success">
                                 <i class="bi bi-check-circle"></i> ${result.message}
                             </div>`;
-                            
-                            // Atualizar a tabela após importação bem-sucedida
-                            setTimeout(() => {
-                                importModal.hide();
-                                refreshCurrentTable();
-                            }, 2000);
-                        } else {
-                            statusDiv.innerHTML = `<div class="alert alert-danger">
+
+                                // Atualizar a tabela após importação bem-sucedida
+                                setTimeout(() => {
+                                    importModal.hide();
+                                    refreshCurrentTable();
+                                }, 2000);
+                            } else {
+                                statusDiv.innerHTML = `<div class="alert alert-danger">
                                 <i class="bi bi-x-circle"></i> Erro: ${result.error}
                             </div>`;
-                            this.disabled = false;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Erro na importação:', error);
-                        statusDiv.innerHTML = `<div class="alert alert-danger">
+                                this.disabled = false;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erro na importação:', error);
+                            statusDiv.innerHTML = `<div class="alert alert-danger">
                             <i class="bi bi-x-circle"></i> Erro na comunicação com o servidor
                         </div>`;
-                        this.disabled = false;
-                    });
+                            this.disabled = false;
+                        });
                 });
             }
         });
     </script>
 </body>
+
 </html>
