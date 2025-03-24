@@ -19,7 +19,14 @@ HelpHub/
 │       ├── logo.png        # Favicon
 │       ├── script.js       # JavaScript para interação com backend
 │       ├── snake.html      # Página do Easter Egg
-│       └── styles.css      # Estilos da página
+│       ├── styles.css      # Estilos da página
+│       └── help.html       # Página de ajuda
+│           ├── docs/
+│           ├── instrucoes_exportacao.md
+│           ├── seguranca_sistema.md
+│           ├── recursos_avancados.md
+│           ├── gerenciamento_usuarios.md
+│           └── instrucoes_importacao.md
 │
 └── README.md               # Instruções do projeto
 ```
