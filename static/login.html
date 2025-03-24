@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <!-- Configurações básicas do documento -->
     <meta charset="UTF-8">
@@ -11,7 +12,17 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Estilos personalizados do sistema -->
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Estilos adicionais para a logo */
+        .login-logo {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
+
 <body>
     <!-- Container principal da tela de login com estilo de background -->
     <div class="login-container">
@@ -19,43 +30,58 @@
         <div class="login-box">
             <!-- Logo e cabeçalho da aplicação -->
             <img src="logo.png" alt="Logo" class="login-logo">
-            <h1 class="text-center" style="font-size: 2rem; margin-bottom: 0.5rem;">HelpHub</h1>
             <p class="text-center text-muted mb-4">Sistema de Gerenciamento de Chamados</p>
-            
+
+            <!-- Alerta informativo sobre primeiro acesso (inicialmente oculto) -->
+            <div id="first-access-alert" class="alert alert-info mb-4" role="alert" style="display: none;">
+                <i class="bi bi-info-circle"></i> 
+                Para primeiro acesso, use:<br>
+                <strong>Usuário:</strong> admin<br>
+                <strong>Senha:</strong> admin<br>
+                <small class="d-block mt-1">Você será solicitado a criar uma nova senha.</small>
+            </div>
+
             <!-- Formulário de autenticação -->
             <form id="login-form">
                 <!-- Campo de entrada para nome de usuário -->
                 <div class="mb-3">
-                    <input type="text" 
-                           class="form-control" 
-                           id="username" 
-                           name="username"
-                           placeholder="Usuário" 
-                           required>
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Usuário"
+                        required>
                 </div>
                 <!-- Campo de entrada para senha -->
                 <div class="mb-3">
-                    <input type="password" 
-                           class="form-control" 
-                           id="password" 
-                           name="password"
-                           placeholder="Senha" 
-                           required>
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Senha"
+                        required>
                 </div>
                 <!-- Botão para submeter o formulário -->
                 <button type="submit" class="btn btn-primary w-100" id="login-button">Entrar</button>
             </form>
-            
+
+            <!-- Formulário de senha inicial (inicialmente oculto) -->
+            <form id="initial-password-form" style="display: none;">
+                <h4 class="mb-4">Definir Senha Inicial</h4>
+                <div class="mb-3">
+                    <input type="password" class="form-control" id="new-password" 
+                            placeholder="Nova senha" required>
+                    <div class="form-text">Mínimo de 8 caracteres</div>
+                </div>
+                <div class="mb-3">
+                    <input type="password" class="form-control" id="confirm-password" 
+                            placeholder="Confirmar senha" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Definir Senha</button>
+            </form>
+
             <!-- Área para exibir mensagens de erro de autenticação -->
             <div id="login-error" class="alert alert-danger mt-3" style="display: none;">
                 Credenciais inválidas
             </div>
-            
+
             <!-- Área para exibir mensagens sobre backup -->
             <div id="backup-message" class="alert alert-info mt-3" style="display: none;">
                 <i class="bi bi-info-circle"></i> <span id="backup-text"></span>
             </div>
-            
+
             <!-- Informações de contato no rodapé do formulário -->
             <div class="text-center mt-4">
                 <small class="text-muted">
@@ -67,11 +93,28 @@
 
     <!-- Script para manipulação do formulário de login -->
     <script>
+        // Função para verificar se é primeiro acesso
+        async function checkFirstAccess() {
+            try {
+                const response = await fetch('/auth/check-first-access');
+                const data = await response.json();
+                
+                if (data.is_first_access) {
+                    document.getElementById('first-access-alert').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Erro ao verificar primeiro acesso:', error);
+            }
+        }
+
+        // Executa a verificação quando a página carregar
+        document.addEventListener('DOMContentLoaded', checkFirstAccess);
+
         // Adiciona evento de envio ao formulário de login
-        document.getElementById('login-form').addEventListener('submit', async function(e) {
+        document.getElementById('login-form').addEventListener('submit', async function (e) {
             // Previne o comportamento padrão do formulário (recarregar página)
             e.preventDefault();
-            
+
             // Obtém referências aos elementos do DOM
             const loginButton = document.getElementById('login-button');
             const errorDiv = document.getElementById('login-error');
@@ -79,14 +122,14 @@
             const backupText = document.getElementById('backup-text');
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
-            
+
             // Validação no cliente antes de enviar ao servidor
             if (!username || !password) {
                 errorDiv.textContent = 'Usuário e senha são obrigatórios';
                 errorDiv.style.display = 'block';
                 return;
             }
-            
+
             try {
                 // Desabilita o botão e altera o texto para feedback visual
                 loginButton.disabled = true;
@@ -108,19 +151,26 @@
                 const data = await response.json();
                 console.log('Resposta do servidor:', data); // Log adicional para depuração
 
+                if (data.initial_password_required) {
+                    // Mostra formulário de senha inicial
+                    document.getElementById('login-form').style.display = 'none';
+                    document.getElementById('initial-password-form').style.display = 'block';
+                    return;
+                }
+
                 if (response.ok && data.success) {
                     // Se houver informações de backup, armazena para exibir após o login
                     if (data.backup) {
                         localStorage.setItem('backup_info', JSON.stringify(data.backup));
                     }
-                    
+
                     // Se o login for bem-sucedido, redireciona para a página principal
                     window.location.href = '/';
                 } else {
                     // Exibe mensagem de erro retornada pelo servidor
                     errorDiv.textContent = data.error || 'Credenciais inválidas';
                     errorDiv.style.display = 'block';
-                    
+
                     // Limpa o campo de senha por segurança
                     document.getElementById('password').value = '';
                 }
@@ -136,6 +186,47 @@
             }
         });
 
+        document.getElementById('initial-password-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const errorDiv = document.getElementById('login-error');
+
+            if (newPassword !== confirmPassword) {
+                errorDiv.textContent = 'As senhas não coincidem';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (newPassword.length < 8) {
+                errorDiv.textContent = 'A senha deve ter pelo menos 8 caracteres';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch('/auth/set_initial_password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ password: newPassword })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    window.location.href = '/';
+                } else {
+                    errorDiv.textContent = data.error || 'Erro ao definir senha';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Erro ao definir senha:', error);
+                errorDiv.textContent = 'Erro ao conectar com o servidor';
+                errorDiv.style.display = 'block';
+            }
+        });
+
         // Melhora a experiência do usuário ocultando erros quando começa a digitar novamente
         document.querySelectorAll('#username, #password').forEach(input => {
             input.addEventListener('input', () => {
@@ -144,4 +235,5 @@
         });
     </script>
 </body>
+
 </html>
