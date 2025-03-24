@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,7 +21,7 @@
             background: radial-gradient(circle, #333 0%, #111 100%);
             overflow: hidden;
         }
-        
+
         h1 {
             margin-bottom: 50px;
             color: #4CAF50;
@@ -31,7 +32,7 @@
             width: 700px;
             text-align: center;
         }
-        
+
         h1:after {
             content: '';
             position: absolute;
@@ -42,21 +43,21 @@
             height: 2px;
             background: linear-gradient(90deg, transparent, #4CAF50, transparent);
         }
-        
+
         .center-container {
             display: flex;
             justify-content: center;
             width: 100%;
             margin-left: 150px;
         }
-        
+
         .game-wrapper {
             position: relative;
             width: 700px;
             height: 400px;
             margin-left: 150px;
         }
-        
+
         #game-container {
             position: absolute;
             left: 0;
@@ -64,7 +65,7 @@
             perspective: 1000px;
             transform-style: preserve-3d;
         }
-        
+
         #game-canvas {
             border: 3px solid #4CAF50;
             box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
@@ -74,7 +75,7 @@
             width: 400px;
             height: 400px;
         }
-        
+
         .info {
             position: absolute;
             top: 0;
@@ -88,7 +89,7 @@
             height: 370px;
             overflow-y: auto;
         }
-        
+
         #score-container {
             position: absolute;
             top: 100%;
@@ -98,13 +99,14 @@
             display: flex;
             justify-content: space-between;
         }
-        
-        #score-display, #high-score-display {
+
+        #score-display,
+        #high-score-display {
             font-size: 20px;
             color: gold;
             text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
         }
-        
+
         #power-up-display {
             position: absolute;
             bottom: 30px;
@@ -125,7 +127,7 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         #pause-count {
             position: absolute;
             bottom: -70px;
@@ -134,7 +136,7 @@
             font-size: 20px;
             text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
         }
-        
+
         #game-over {
             position: absolute;
             top: 50%;
@@ -152,13 +154,21 @@
             animation: fadeIn 0.5s ease-out;
             z-index: 2000;
         }
-        
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translate(-50%, -60%); }
-            to { opacity: 1; transform: translate(-50%, -50%); }
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
         }
-        
-        #restart-btn, #toggle-ai-btn {
+
+        #restart-btn,
+        #toggle-ai-btn {
             margin-top: 20px;
             padding: 12px 24px;
             background: linear-gradient(to bottom, #4CAF50, #3e8e41);
@@ -172,30 +182,32 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
             width: 100%;
         }
-        
+
         #toggle-ai-btn {
             background: linear-gradient(to bottom, #2196F3, #0b7dda);
             margin-top: 10px;
         }
-        
-        #restart-btn:hover, #toggle-ai-btn:hover {
+
+        #restart-btn:hover,
+        #toggle-ai-btn:hover {
             transform: translateY(-2px) scale(1.05);
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
         }
-        
+
         #restart-btn:hover {
             background: linear-gradient(to bottom, #45a049, #357a38);
         }
-        
+
         #toggle-ai-btn:hover {
             background: linear-gradient(to bottom, #0b7dda, #0a69b9);
         }
-        
-        #restart-btn:active, #toggle-ai-btn:active {
+
+        #restart-btn:active,
+        #toggle-ai-btn:active {
             transform: translateY(1px);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
         }
-        
+
         .controls {
             margin-bottom: 15px;
             background-color: rgba(0, 0, 0, 0.4);
@@ -203,13 +215,13 @@
             padding: 10px;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        
+
         .controls p {
             margin: 8px 0;
             font-size: 14px;
             color: #ddd;
         }
-        
+
         .fruit-icon {
             display: inline-block;
             width: 12px;
@@ -218,27 +230,27 @@
             margin-right: 5px;
             position: relative;
         }
-        
+
         .fruit-normal {
             background-color: #f44336;
             box-shadow: 0 0 5px #f44336;
         }
-        
+
         .fruit-speed {
             background-color: #2196f3;
             box-shadow: 0 0 5px #2196f3;
         }
-        
+
         .fruit-grow {
             background-color: #4caf50;
             box-shadow: 0 0 5px #4caf50;
         }
-        
+
         .fruit-ghost {
             background-color: #9c27b0;
             box-shadow: 0 0 5px #9c27b0;
         }
-        
+
         .fruit-icon:after {
             content: '';
             position: absolute;
@@ -249,13 +261,21 @@
             background-color: rgba(255, 255, 255, 0.7);
             border-radius: 50%;
         }
-        
+
         @keyframes flash {
-            0% { opacity: 1; }
-            50% { opacity: 0.3; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
-        
+
         .particle {
             position: absolute;
             width: 6px;
@@ -265,13 +285,21 @@
             z-index: 100;
             box-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
         }
-        
+
         @keyframes borderPulse {
-            0% { box-shadow: 0 0 15px 3px currentColor; }
-            50% { box-shadow: 0 0 30px 8px currentColor; }
-            100% { box-shadow: 0 0 15px 3px currentColor; }
+            0% {
+                box-shadow: 0 0 15px 3px currentColor;
+            }
+
+            50% {
+                box-shadow: 0 0 30px 8px currentColor;
+            }
+
+            100% {
+                box-shadow: 0 0 15px 3px currentColor;
+            }
         }
-        
+
         .pause-overlay {
             position: absolute;
             top: 0;
@@ -291,7 +319,7 @@
             backdrop-filter: blur(3px);
             z-index: 500;
         }
-        
+
         .snake-segment {
             position: absolute;
             border-radius: 6px;
@@ -304,7 +332,7 @@
             filter: drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.4));
             z-index: 10;
         }
-        
+
         .snake-head {
             background: linear-gradient(135deg, #AED581, #689F38);
             border-radius: 8px;
@@ -312,18 +340,19 @@
             transform: translateZ(5px);
             filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.5));
         }
-        
+
         .food-3d {
             position: absolute;
             border-radius: 50%;
             box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5),
-                        0 6px 10px rgba(0, 0, 0, 0.3);
+                0 6px 10px rgba(0, 0, 0, 0.3);
             transform-style: preserve-3d;
             transform: translateZ(4px);
             z-index: 10;
         }
-        
-        .snake-segment:after, .food-3d:after {
+
+        .snake-segment:after,
+        .food-3d:after {
             content: '';
             position: absolute;
             top: 20%;
@@ -334,13 +363,21 @@
             border-radius: 50%;
             opacity: 0.8;
         }
-        
+
         @keyframes pulse {
-            0% { transform: translateZ(4px) scale(0.92); }
-            50% { transform: translateZ(5px) scale(1.08); }
-            100% { transform: translateZ(4px) scale(0.92); }
+            0% {
+                transform: translateZ(4px) scale(0.92);
+            }
+
+            50% {
+                transform: translateZ(5px) scale(1.08);
+            }
+
+            100% {
+                transform: translateZ(4px) scale(0.92);
+            }
         }
-        
+
         .grid-floor {
             position: absolute;
             width: 100%;
@@ -349,13 +386,13 @@
             left: 0;
             background: transparent;
             z-index: -1;
-            background-image: 
+            background-image:
                 linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
             background-size: 20px 20px;
             box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
         }
-        
+
         .snake-eye {
             position: absolute;
             width: 4px;
@@ -364,7 +401,7 @@
             border-radius: 50%;
             z-index: 5;
         }
-        
+
         .particle-effects {
             position: absolute;
             width: 100%;
@@ -372,7 +409,7 @@
             pointer-events: none;
             z-index: 500;
         }
-        
+
         .particle {
             position: absolute;
             width: 6px;
@@ -383,70 +420,93 @@
             box-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
             animation: particleFade 1s ease-out forwards;
         }
-        
+
         @keyframes particleFade {
-            0% { opacity: 1; transform: scale(1) translate(0, 0); }
-            100% { opacity: 0; transform: scale(0) translate(var(--x), var(--y)); }
+            0% {
+                opacity: 1;
+                transform: scale(1) translate(0, 0);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(0) translate(var(--x), var(--y));
+            }
         }
-        
+
         @keyframes snakeMove {
-            0% { transform: translateZ(3px) rotate(0deg); }
-            50% { transform: translateZ(4px) rotate(2deg); }
-            100% { transform: translateZ(3px) rotate(0deg); }
+            0% {
+                transform: translateZ(3px) rotate(0deg);
+            }
+
+            50% {
+                transform: translateZ(4px) rotate(2deg);
+            }
+
+            100% {
+                transform: translateZ(3px) rotate(0deg);
+            }
         }
-        
+
         @keyframes pulse {
-            0% { transform: translateZ(4px) scale(0.92); }
-            50% { transform: translateZ(5px) scale(1.08); }
-            100% { transform: translateZ(4px) scale(0.92); }
+            0% {
+                transform: translateZ(4px) scale(0.92);
+            }
+
+            50% {
+                transform: translateZ(5px) scale(1.08);
+            }
+
+            100% {
+                transform: translateZ(4px) scale(0.92);
+            }
         }
-        
+
         .food-3d {
             position: absolute;
             border-radius: 50%;
-            box-shadow: 
+            box-shadow:
                 0 5px 10px rgba(0, 0, 0, 0.5),
                 0 10px 15px rgba(0, 0, 0, 0.3);
             transform-style: preserve-3d;
             transform: translateZ(4px);
         }
-        
+
         .snake-segment {
             filter: drop-shadow(0px 5px 5px rgba(0, 0, 0, 0.4));
         }
-        
+
         .snake-head {
             filter: drop-shadow(0px 6px 6px rgba(0, 0, 0, 0.5));
         }
-        
+
         .grid-floor {
-            background-image: 
+            background-image:
                 linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
             background-size: 20px 20px;
             box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
         }
-        
+
         .food-normal-3d {
             background: radial-gradient(circle at 30% 30%, #ff7b7b, #FF5252) !important;
             animation: pulse 1.5s infinite alternate;
         }
-        
+
         .food-speed-3d {
             background: radial-gradient(circle at 30% 30%, #ffdb71, #FFC107) !important;
             animation: pulse 0.8s infinite alternate;
         }
-        
+
         .food-grow-3d {
             background: radial-gradient(circle at 30% 30%, #71c3ff, #2196F3) !important;
             animation: pulse 2s infinite alternate;
         }
-        
+
         .food-ghost-3d {
             background: radial-gradient(circle at 30% 30%, #c27be0, #9C27B0) !important;
             animation: pulse 1.2s infinite alternate;
         }
-        
+
         .info h3 {
             color: #4CAF50;
             margin-top: 10px;
@@ -454,25 +514,25 @@
             border-bottom: 1px solid rgba(76, 175, 80, 0.3);
             padding-bottom: 5px;
         }
-        
+
         .border-effect-speed {
             border-color: #FFC107 !important;
             box-shadow: 0 0 20px #FFC107 !important;
             animation: borderPulse 1.5s infinite !important;
         }
-        
+
         .border-effect-grow {
             border-color: #2196F3 !important;
             box-shadow: 0 0 20px #2196F3 !important;
             animation: borderPulse 1.5s infinite !important;
         }
-        
+
         .border-effect-ghost {
             border-color: #9C27B0 !important;
             box-shadow: 0 0 20px #9C27B0 !important;
             animation: borderPulse 1.5s infinite !important;
         }
-        
+
         .game-title {
             color: #4CAF50;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -484,7 +544,7 @@
             top: -110px;
             width: 100%;
         }
-        
+
         .game-title:after {
             content: '';
             position: absolute;
@@ -495,7 +555,7 @@
             height: 2px;
             background: linear-gradient(90deg, transparent, #4CAF50, transparent);
         }
-        
+
         #game-mode-indicator {
             position: absolute;
             top: calc(100% + 40px);
@@ -506,7 +566,7 @@
             border-radius: 5px;
             background-color: rgba(33, 150, 243, 0.7);
         }
-        
+
         .snake-segment-ai {
             position: absolute;
             border-radius: 6px;
@@ -519,7 +579,7 @@
             filter: drop-shadow(0px 3px 3px rgba(0, 0, 0, 0.4));
             z-index: 10;
         }
-        
+
         .snake-head-ai {
             background: linear-gradient(135deg, #FFC107, #FF5722);
             border-radius: 8px;
@@ -527,7 +587,7 @@
             transform: translateZ(5px);
             filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.5));
         }
-        
+
         #welcome-screen {
             position: fixed;
             z-index: 9999;
@@ -545,14 +605,14 @@
             animation: fadeIn 0.5s ease-out;
         }
 
-    @media (max-width: 768px) {
-        #welcome-screen {
-            width: 90%;
-            padding: 20px;
-            min-width: auto;
+        @media (max-width: 768px) {
+            #welcome-screen {
+                width: 90%;
+                padding: 20px;
+                min-width: auto;
+            }
         }
-    }
-        
+
         .mode-btn {
             display: block;
             width: 100%;
@@ -568,45 +628,45 @@
             font-size: 16px;
             position: relative;
         }
-        
+
         .mode-btn:first-of-type {
             margin-top: 25px;
         }
-        
+
         .mode-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
         }
-        
+
         #solo-btn {
             background: linear-gradient(to bottom, #4CAF50, #3e8e41);
         }
-        
+
         #solo-btn:hover {
             background: linear-gradient(to bottom, #45a049, #357a38);
         }
-        
+
         #vs-ai-btn {
             background: linear-gradient(to bottom, #2196F3, #0b7dda);
         }
-        
+
         #vs-ai-btn:hover {
             background: linear-gradient(to bottom, #0b7dda, #0a69b9);
         }
-        
+
         .mode-icon {
             font-size: 24px;
             margin-right: 10px;
             vertical-align: middle;
         }
-        
+
         .mode-desc {
             display: block;
             font-size: 12px;
             opacity: 0.7;
             margin-top: 5px;
         }
-        
+
         .game-title {
             position: absolute;
             top: -140px;
@@ -615,9 +675,9 @@
             font-family: 'Arial', sans-serif;
             font-size: 0;
             line-height: 1;
-            text-shadow: 0 5px 15px rgba(0,0,0,0.8);
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.8);
         }
-        
+
         .game-title .letter {
             display: inline-block;
             font-size: 2.8rem;
@@ -627,47 +687,85 @@
             position: relative;
             animation: titleWave 3s infinite ease-in-out;
         }
-        
+
         .game-title .snake-letter {
             color: #4CAF50;
         }
-        
+
         .game-title .game-letter {
             color: #FFC107;
         }
-        
-        .game-title .letter:nth-child(2) { animation-delay: 0.1s; }
-        .game-title .letter:nth-child(3) { animation-delay: 0.2s; }
-        .game-title .letter:nth-child(4) { animation-delay: 0.3s; }
-        .game-title .letter:nth-child(5) { animation-delay: 0.4s; }
-        .game-title .letter:nth-child(6) { animation-delay: 0.5s; }
-        .game-title .letter:nth-child(7) { animation-delay: 0.6s; }
-        .game-title .letter:nth-child(8) { animation-delay: 0.7s; }
-        .game-title .letter:nth-child(9) { animation-delay: 0.8s; }
-        
-        @keyframes titleWave {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+
+        .game-title .letter:nth-child(2) {
+            animation-delay: 0.1s;
         }
-        
+
+        .game-title .letter:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+
+        .game-title .letter:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+
+        .game-title .letter:nth-child(5) {
+            animation-delay: 0.4s;
+        }
+
+        .game-title .letter:nth-child(6) {
+            animation-delay: 0.5s;
+        }
+
+        .game-title .letter:nth-child(7) {
+            animation-delay: 0.6s;
+        }
+
+        .game-title .letter:nth-child(8) {
+            animation-delay: 0.7s;
+        }
+
+        .game-title .letter:nth-child(9) {
+            animation-delay: 0.8s;
+        }
+
+        @keyframes titleWave {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
         .game-title .snake-icon {
             display: inline-block;
             font-size: 2.2rem;
             margin: 0 5px;
             animation: snakeWiggle 2s infinite ease-in-out;
         }
-        
+
         @keyframes snakeWiggle {
-            0%, 100% { transform: rotate(-10deg); }
-            50% { transform: rotate(10deg); }
+
+            0%,
+            100% {
+                transform: rotate(-10deg);
+            }
+
+            50% {
+                transform: rotate(10deg);
+            }
         }
-        
+
         .game-title .letter.s::after {
             display: none;
         }
     </style>
     <!-- Fim: Estilos CSS principais -->
 </head>
+
 <body>
     <div class="center-container">
         <div class="game-wrapper">
@@ -693,7 +791,7 @@
                 </div>
                 <div id="pause-count">Pausas: 20/20</div>
                 <div class="pause-overlay" id="pause-overlay">PAUSADO</div>
-                
+
                 <div id="welcome-screen">
                     <h2>Bem-vindo ao Snake Game!</h2>
                     <p>Escolha um modo de jogo para começar:</p>
@@ -706,7 +804,7 @@
                         <span class="mode-desc">Duelo contra a cobra de IA. Você vence se a IA colidir primeiro!</span>
                     </button>
                 </div>
-                
+
                 <div id="game-over">
                     <h2>Fim de Jogo!</h2>
                     <p id="winner-message">Sua pontuação: <span id="final-score">0</span></p>
@@ -752,18 +850,18 @@
         const toggleAiBtn = document.getElementById('toggle-ai-btn');
         const gameModeIndicator = document.getElementById('game-mode-indicator');
         const winnerMessage = document.getElementById('winner-message');
-        
+
         const gridSize = 20;
         const gridWidth = canvas.width / gridSize;
         const gridHeight = canvas.height / gridSize;
-        
+
         const FRUIT_TYPES = {
             NORMAL: { color: '#FF5252', points: 10, chance: 70, class: 'food-normal-3d' },
             SPEED: { color: '#FFC107', points: 5, chance: 10, effect: 'speed', class: 'food-speed-3d', borderEffect: 'border-effect-speed' },
             GROWTH: { color: '#2196F3', points: 20, chance: 15, effect: 'grow', class: 'food-grow-3d', borderEffect: 'border-effect-grow' },
             GHOST: { color: '#9C27B0', points: 30, chance: 5, effect: 'ghost', class: 'food-ghost-3d', borderEffect: 'border-effect-ghost' }
         };
-        
+
         let snake = [];
         let aiSnake = [];
         let food = {};
@@ -781,19 +879,19 @@
         let pausesLeft = 20;
         let isAIMode = false;
         let winner = '';
-        
+
         let activePowerUp = null;
         let powerUpTimer = null;
         let ghostMode = false;
         let aiGhostMode = false;
         let currentBorderEffect = '';
-        
+
         let snake3DElements = [];
         let aiSnake3DElements = [];
         let food3DElement = null;
-        
+
         highScoreDisplay.textContent = `Recorde: ${highScore}`;
-        
+
         // Classe responsável pela renderização 3D da cobra e elementos do jogo
         class Snake3DRenderer {
             constructor(gameContainer, gridSize) {
@@ -802,7 +900,7 @@
                 this.snakeSegments = [];
                 this.aiSnakeSegments = [];
                 this.food = null;
-                
+
                 this.snakeColors = {
                     body: {
                         normal: 'linear-gradient(135deg, #8BC34A, #4CAF50)',
@@ -813,58 +911,58 @@
                         ghost: 'linear-gradient(135deg, rgba(220, 225, 255, 0.9), rgba(156, 164, 227, 0.9))'
                     }
                 };
-                
+
                 this.aiSnakeColors = {
                     body: 'linear-gradient(135deg, #FF9800, #F44336)',
                     head: 'linear-gradient(135deg, #FFC107, #FF5722)'
                 };
             }
-            
+
             renderSnake(snake, ghostMode) {
                 this.clearSnake();
-                
+
                 snake.forEach((segment, index) => {
                     const segmentElement = document.createElement('div');
                     segmentElement.className = 'snake-segment';
-                    
+
                     segmentElement.style.left = `${segment.x * this.gridSize}px`;
                     segmentElement.style.top = `${segment.y * this.gridSize}px`;
                     segmentElement.style.width = `${this.gridSize - 2}px`;
                     segmentElement.style.height = `${this.gridSize - 2}px`;
-                    
+
                     if (index === 0) {
                         segmentElement.classList.add('snake-head');
                         segmentElement.style.background = ghostMode ? this.snakeColors.head.ghost : this.snakeColors.head.normal;
-                        
+
                         this.addEyes(segmentElement, direction);
                     } else {
                         segmentElement.style.background = ghostMode ? this.snakeColors.body.ghost : this.snakeColors.body.normal;
-                        
+
                         segmentElement.style.animation = `snakeMove 1s infinite ${index * 0.1}s`;
                     }
-                    
+
                     if (index > 0) {
                         const opacity = Math.max(0.5, 1 - (index / snake.length) * 0.5);
                         segmentElement.style.opacity = opacity;
                     }
-                    
+
                     this.gameContainer.appendChild(segmentElement);
                     this.snakeSegments.push(segmentElement);
                 });
             }
-            
+
             renderAISnake(snake) {
                 this.clearAISnake();
-                
+
                 snake.forEach((segment, index) => {
                     const segmentElement = document.createElement('div');
                     segmentElement.className = 'snake-segment-ai';
-                    
+
                     segmentElement.style.left = `${segment.x * this.gridSize}px`;
                     segmentElement.style.top = `${segment.y * this.gridSize}px`;
                     segmentElement.style.width = `${this.gridSize - 2}px`;
                     segmentElement.style.height = `${this.gridSize - 2}px`;
-                    
+
                     if (index === 0) {
                         segmentElement.classList.add('snake-head-ai');
                         segmentElement.style.background = this.aiSnakeColors.head;
@@ -873,17 +971,17 @@
                         segmentElement.style.background = this.aiSnakeColors.body;
                         segmentElement.style.animation = `snakeMove 1s infinite ${index * 0.1}s`;
                     }
-                    
+
                     if (index > 0) {
                         const opacity = Math.max(0.5, 1 - (index / snake.length) * 0.5);
                         segmentElement.style.opacity = opacity;
                     }
-                    
+
                     this.gameContainer.appendChild(segmentElement);
                     this.aiSnakeSegments.push(segmentElement);
                 });
             }
-            
+
             addEyes(headElement, direction) {
                 const eyePositions = {
                     'up': [
@@ -903,9 +1001,9 @@
                         { left: '70%', top: '70%' }
                     ]
                 };
-                
+
                 const positions = eyePositions[direction] || eyePositions['right'];
-                
+
                 positions.forEach(pos => {
                     const eye = document.createElement('div');
                     eye.className = 'snake-eye';
@@ -914,18 +1012,18 @@
                     headElement.appendChild(eye);
                 });
             }
-            
+
             renderFood(food) {
                 this.clearFood();
-                
+
                 const foodElement = document.createElement('div');
                 foodElement.className = `food-3d ${food.class || 'food-normal-3d'}`;
-                
+
                 foodElement.style.left = `${food.x * this.gridSize + 1}px`;
                 foodElement.style.top = `${food.y * this.gridSize + 1}px`;
                 foodElement.style.width = `${this.gridSize - 2}px`;
                 foodElement.style.height = `${this.gridSize - 2}px`;
-                
+
                 switch (food.class) {
                     case 'food-speed-3d':
                         foodElement.style.background = 'radial-gradient(circle at 30% 30%, #ffdb71, #FFC107)';
@@ -941,11 +1039,11 @@
                         foodElement.style.background = 'radial-gradient(circle at 30% 30%, #ff7b7b, #FF5252)';
                         break;
                 }
-                
+
                 this.gameContainer.appendChild(foodElement);
                 this.food = foodElement;
             }
-            
+
             clearSnake() {
                 this.snakeSegments.forEach(segment => {
                     if (segment.parentNode) {
@@ -954,7 +1052,7 @@
                 });
                 this.snakeSegments = [];
             }
-            
+
             clearAISnake() {
                 this.aiSnakeSegments.forEach(segment => {
                     if (segment.parentNode) {
@@ -963,49 +1061,49 @@
                 });
                 this.aiSnakeSegments = [];
             }
-            
+
             clearFood() {
                 if (this.food && this.food.parentNode) {
                     this.food.parentNode.removeChild(this.food);
                 }
                 this.food = null;
             }
-            
+
             clearAll() {
                 this.clearSnake();
                 this.clearAISnake();
                 this.clearFood();
             }
-            
+
             createFoodParticles(position, color) {
                 const particleCount = 25;
-                
+
                 const foodX = position.x * this.gridSize + this.gridSize / 2;
                 const foodY = position.y * this.gridSize + this.gridSize / 2;
-                
+
                 for (let i = 0; i < particleCount; i++) {
                     const particle = document.createElement('div');
                     particle.className = 'particle';
-                    
+
                     particle.style.left = `${foodX}px`;
                     particle.style.top = `${foodY}px`;
-                    
+
                     particle.style.backgroundColor = color;
                     const size = 2 + Math.random() * 6;
                     particle.style.width = `${size}px`;
                     particle.style.height = `${size}px`;
-                    
+
                     particle.style.boxShadow = `0 0 ${2 + Math.random() * 4}px ${color}`;
-                    
+
                     const angle = Math.random() * Math.PI * 2;
                     const distance = 20 + Math.random() * 70;
                     const moveX = Math.cos(angle) * distance;
                     const moveY = Math.sin(angle) * distance;
                     particle.style.setProperty('--x', `${moveX}px`);
                     particle.style.setProperty('--y', `${moveY}px`);
-                    
+
                     particleContainer.appendChild(particle);
-                    
+
                     const duration = 800 + Math.random() * 400;
                     setTimeout(() => {
                         if (particle.parentNode) {
@@ -1015,31 +1113,31 @@
                 }
             }
         }
-        
+
         // Inicializa o renderer 3D
         const renderer3D = new Snake3DRenderer(gameContainer, gridSize);
-        
+
         // Função principal de inicialização do jogo
         function initGame() {
             if (powerUpTimer) clearTimeout(powerUpTimer);
-            
+
             snake = [
-                {x: 15, y: 10},
-                {x: 14, y: 10},
-                {x: 13, y: 10}
+                { x: 15, y: 10 },
+                { x: 14, y: 10 },
+                { x: 13, y: 10 }
             ];
-            
+
             aiSnake = [];
             if (isAIMode) {
                 aiSnake = [
-                    {x: 5, y: 10},
-                    {x: 6, y: 10},
-                    {x: 7, y: 10}
+                    { x: 5, y: 10 },
+                    { x: 6, y: 10 },
+                    { x: 7, y: 10 }
                 ];
                 aiDirection = 'left';
                 aiNextDirection = 'left';
             }
-            
+
             score = 0;
             direction = 'right';
             nextDirection = 'right';
@@ -1054,13 +1152,13 @@
             aiGhostMode = false;
             powerUpDisplay.style.opacity = '0';
             winner = '';
-            
+
             resetBorderEffect();
-            
+
             renderer3D.clearAll();
-            
+
             gameOverScreen.style.display = 'none';
-            
+
             let gridFloor = document.querySelector('.grid-floor');
             if (!gridFloor) {
                 gridFloor = document.createElement('div');
@@ -1068,62 +1166,62 @@
                 gameContainer.insertBefore(gridFloor, canvas);
                 gridFloor.style.zIndex = '-1';
             }
-            
+
             updateGameMode();
             updateScore();
             updatePauseCount();
-            
+
             createFood();
-            
+
             renderer3D.renderSnake(snake, ghostMode);
             if (isAIMode) renderer3D.renderAISnake(aiSnake);
             renderer3D.renderFood(food);
-            
+
             if (gameLoop) clearInterval(gameLoop);
             gameLoop = setInterval(gameUpdate, gameSpeed);
         }
-        
+
         // Alterna entre modo solo e modo IA
         function toggleAIMode() {
             isAIMode = !isAIMode;
             toggleAiBtn.textContent = isAIMode ? "Modo Solo" : "Modo Versus IA";
             initGame();
         }
-        
+
         function updateGameMode() {
             gameModeIndicator.textContent = isAIMode ? "Modo Versus IA" : "Modo Solo";
             gameModeIndicator.style.backgroundColor = isAIMode ? "rgba(244, 67, 54, 0.7)" : "rgba(33, 150, 243, 0.7)";
         }
-        
+
         function applyBorderEffect(fruitType) {
             resetBorderEffect();
-            
+
             if (fruitType && fruitType.borderEffect) {
                 canvas.classList.add(fruitType.borderEffect);
                 currentBorderEffect = fruitType.borderEffect;
             }
         }
-        
+
         function resetBorderEffect() {
             Object.values(FRUIT_TYPES).forEach(type => {
                 if (type.borderEffect) {
                     canvas.classList.remove(type.borderEffect);
                 }
             });
-            
+
             canvas.style.borderColor = '#4CAF50';
             canvas.style.boxShadow = '0 0 20px rgba(76, 175, 80, 0.5)';
             canvas.style.animation = '';
             currentBorderEffect = '';
         }
-        
+
         // Sistema de power-ups e efeitos especiais
         function activatePowerUp(type) {
             if (powerUpTimer) {
                 clearTimeout(powerUpTimer);
                 powerUpTimer = null;
             }
-            
+
             if (activePowerUp === 'ghost') {
                 ghostMode = false;
                 aiGhostMode = false;
@@ -1132,7 +1230,7 @@
                 clearInterval(gameLoop);
                 gameLoop = setInterval(gameUpdate, gameSpeed);
             }
-            
+
             let fruitType = null;
             for (const key in FRUIT_TYPES) {
                 if (FRUIT_TYPES[key].effect === type) {
@@ -1140,9 +1238,9 @@
                     break;
                 }
             }
-            
+
             activePowerUp = type;
-            
+
             switch (type) {
                 case 'speed':
                     gameSpeed = Math.max(30, baseSpeed / 1.5);
@@ -1151,29 +1249,29 @@
                     powerUpDisplay.textContent = "🔥 Velocidade Extra!";
                     powerUpDisplay.style.color = '#FFC107';
                     powerUpDisplay.style.backgroundColor = 'rgba(255, 193, 7, 0.3)';
-                    
+
                     applyBorderEffect(fruitType);
                     break;
                 case 'grow':
                     for (let i = 0; i < 4; i++) {
-                        snake.push({...snake[snake.length - 1]});
+                        snake.push({ ...snake[snake.length - 1] });
                     }
                     renderer3D.renderSnake(snake, ghostMode);
                     powerUpDisplay.textContent = "📏 Crescimento Extra!";
                     powerUpDisplay.style.color = '#2196F3';
                     powerUpDisplay.style.backgroundColor = 'rgba(33, 150, 243, 0.3)';
                     powerUpDisplay.style.opacity = '1';
-                    
+
                     applyBorderEffect(fruitType);
-                    
+
                     setTimeout(() => {
                         powerUpDisplay.style.opacity = '0';
                     }, 1500);
-                    
+
                     setTimeout(() => {
                         resetBorderEffect();
                     }, 3000);
-                    
+
                     return;
                     break;
                 case 'ghost':
@@ -1183,24 +1281,24 @@
                     powerUpDisplay.textContent = "👻 Modo Fantasma!";
                     powerUpDisplay.style.color = '#9C27B0';
                     powerUpDisplay.style.backgroundColor = 'rgba(156, 39, 176, 0.3)';
-                    
+
                     applyBorderEffect(fruitType);
                     break;
             }
-            
+
             powerUpDisplay.style.opacity = '0.7';
-            
+
             const duration = (type === 'ghost') ? 10000 : 5000;
-            
+
             powerUpTimer = setTimeout(() => {
                 deactivatePowerUp();
             }, duration);
-            console.log(`Power-up ${type} ativado - será desativado em ${duration/1000} segundos`);
+            console.log(`Power-up ${type} ativado - será desativado em ${duration / 1000} segundos`);
         }
-        
+
         function deactivatePowerUp() {
             console.log(`Desativando power-up: ${activePowerUp}, ghostMode era: ${ghostMode}`);
-            
+
             if (activePowerUp === 'speed') {
                 gameSpeed = baseSpeed;
                 clearInterval(gameLoop);
@@ -1210,70 +1308,70 @@
                 aiGhostMode = false;
                 renderer3D.renderSnake(snake, ghostMode);
             }
-            
+
             resetBorderEffect();
-            
+
             activePowerUp = null;
-            
+
             powerUpDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
             powerUpDisplay.style.opacity = '0';
-            
+
             console.log(`Power-up desativado, ghostMode agora: ${ghostMode}`);
         }
-        
+
         function updatePauseCount() {
             pauseCountDisplay.textContent = `Pausas: ${pausesLeft}/20`;
         }
-        
+
         // Loop principal do jogo - atualiza posições e verifica colisões
         function gameUpdate() {
             if (!gameActive || isPaused) return;
-            
+
             moveSnake();
-            
+
             if (isAIMode) {
                 updateAIDirection();
                 moveAISnake();
-                
+
                 if (aiSnake[0].x === food.x && aiSnake[0].y === food.y) {
                     renderer3D.createFoodParticles(food, food.color);
-                    
-                    aiSnake.push({...aiSnake[aiSnake.length - 1]});
-                    
+
+                    aiSnake.push({ ...aiSnake[aiSnake.length - 1] });
+
                     createFood();
                 }
             }
-            
+
             if (checkCollision()) {
                 gameOver();
                 return;
             }
-            
+
             if (snake[0].x === food.x && snake[0].y === food.y) {
                 renderer3D.createFoodParticles(food, food.color);
-                
+
                 score += food.points;
                 updateScore();
-                
+
                 if (food.effect) {
                     activatePowerUp(food.effect);
                 }
-                
+
                 createFood();
             } else {
                 snake.pop();
             }
-            
+
             renderer3D.renderSnake(snake, ghostMode);
             if (isAIMode) renderer3D.renderAISnake(aiSnake);
         }
-        
+
         // Movimentação da cobra do jogador
         function moveSnake() {
             direction = nextDirection;
-            
-            const head = {x: snake[0].x, y: snake[0].y};
-            
+
+            const head = { x: snake[0].x, y: snake[0].y };
+
             switch (direction) {
                 case 'up':
                     head.y--;
@@ -1288,9 +1386,9 @@
                     head.x++;
                     break;
             }
-            
+
             snake.unshift(head);
-            
+
             if (ghostMode) {
                 if (head.x < 0) snake[0].x = gridWidth - 1;
                 if (head.x >= gridWidth) snake[0].x = 0;
@@ -1298,12 +1396,12 @@
                 if (head.y >= gridHeight) snake[0].y = 0;
             }
         }
-        
+
         function moveAISnake() {
             aiDirection = aiNextDirection;
-            
-            const head = {x: aiSnake[0].x, y: aiSnake[0].y};
-            
+
+            const head = { x: aiSnake[0].x, y: aiSnake[0].y };
+
             switch (aiDirection) {
                 case 'up':
                     head.y--;
@@ -1318,58 +1416,58 @@
                     head.x++;
                     break;
             }
-            
+
             aiSnake.unshift(head);
-            
+
             if (aiGhostMode) {
                 if (head.x < 0) aiSnake[0].x = gridWidth - 1;
                 if (head.x >= gridWidth) aiSnake[0].x = 0;
                 if (head.y < 0) aiSnake[0].y = gridHeight - 1;
                 if (head.y >= gridHeight) aiSnake[0].y = 0;
             }
-            
+
             aiSnake.pop();
         }
-        
+
         // IA da cobra adversária - define próximos movimentos
         function updateAIDirection() {
             const aiHead = aiSnake[0];
             const dx = food.x - aiHead.x;
             const dy = food.y - aiHead.y;
-            
+
             let newDirection = aiDirection;
-            
+
             if (!aiGhostMode) {
                 const nextPos = getNextPosition(aiHead.x, aiHead.y, newDirection);
-                
+
                 if (isWallCollision(nextPos.x, nextPos.y)) {
                     const safeDirections = ['up', 'down', 'left', 'right'].filter(dir => {
                         if (dir === 'up' && aiDirection === 'down') return false;
                         if (dir === 'down' && aiDirection === 'up') return false;
                         if (dir === 'left' && aiDirection === 'right') return false;
                         if (dir === 'right' && aiDirection === 'left') return false;
-                        
+
                         const newPos = getNextPosition(aiHead.x, aiHead.y, dir);
                         return !isWallCollision(newPos.x, newPos.y);
                     });
-                    
+
                     if (safeDirections.length > 0) {
                         const rankedDirections = safeDirections.map(dir => {
                             const newPos = getNextPosition(aiHead.x, aiHead.y, dir);
                             const distanceToFood = Math.abs(food.x - newPos.x) + Math.abs(food.y - newPos.y);
                             return { direction: dir, distance: distanceToFood };
                         }).sort((a, b) => a.distance - b.distance);
-                        
+
                         newDirection = rankedDirections[0].direction;
                     }
                 }
             }
-            
+
             if (aiGhostMode || !isNextMoveWallCollision(aiHead, newDirection)) {
                 if (dx !== 0) {
                     const horizontalDirection = dx > 0 ? 'right' : 'left';
                     if (
-                        (horizontalDirection === 'right' && aiDirection !== 'left') || 
+                        (horizontalDirection === 'right' && aiDirection !== 'left') ||
                         (horizontalDirection === 'left' && aiDirection !== 'right')
                     ) {
                         const nextPos = getNextPosition(aiHead.x, aiHead.y, horizontalDirection);
@@ -1377,11 +1475,11 @@
                             newDirection = horizontalDirection;
                         }
                     }
-                } 
+                }
                 else if (dy !== 0) {
                     const verticalDirection = dy > 0 ? 'down' : 'up';
                     if (
-                        (verticalDirection === 'down' && aiDirection !== 'up') || 
+                        (verticalDirection === 'down' && aiDirection !== 'up') ||
                         (verticalDirection === 'up' && aiDirection !== 'down')
                     ) {
                         const nextPos = getNextPosition(aiHead.x, aiHead.y, verticalDirection);
@@ -1391,28 +1489,28 @@
                     }
                 }
             }
-            
+
             let nextX = aiHead.x;
             let nextY = aiHead.y;
-            
+
             switch (newDirection) {
                 case 'up': nextY--; break;
                 case 'down': nextY++; break;
                 case 'left': nextX--; break;
                 case 'right': nextX++; break;
             }
-            
+
             if (!aiGhostMode && isWallCollision(nextX, nextY)) {
                 const safeDirections = ['up', 'down', 'left', 'right'].filter(dir => {
                     if (dir === 'up' && aiDirection === 'down') return false;
                     if (dir === 'down' && aiDirection === 'up') return false;
                     if (dir === 'left' && aiDirection === 'right') return false;
                     if (dir === 'right' && aiDirection === 'left') return false;
-                    
+
                     const pos = getNextPosition(aiHead.x, aiHead.y, dir);
                     return !isWallCollision(pos.x, pos.y);
                 });
-                
+
                 if (safeDirections.length > 0) {
                     newDirection = safeDirections[Math.floor(Math.random() * safeDirections.length)];
                     nextX = aiHead.x;
@@ -1425,20 +1523,20 @@
                     }
                 }
             }
-            
+
             if (nextX < 0) nextX = gridWidth - 1;
             if (nextX >= gridWidth) nextX = 0;
             if (nextY < 0) nextY = gridHeight - 1;
             if (nextY >= gridHeight) nextY = 0;
-            
-            const wouldCollideWithSelf = aiSnake.some((segment, index) => 
+
+            const wouldCollideWithSelf = aiSnake.some((segment, index) =>
                 index > 0 && segment.x === nextX && segment.y === nextY
             );
-            
-            const wouldCollideWithPlayer = snake.some(segment => 
+
+            const wouldCollideWithPlayer = snake.some(segment =>
                 segment.x === nextX && segment.y === nextY
             );
-            
+
             if (wouldCollideWithSelf || wouldCollideWithPlayer) {
                 const possibleDirections = ['up', 'down', 'left', 'right']
                     .filter(dir => {
@@ -1446,38 +1544,38 @@
                         if (dir === 'down' && aiDirection === 'up') return false;
                         if (dir === 'left' && aiDirection === 'right') return false;
                         if (dir === 'right' && aiDirection === 'left') return false;
-                        
+
                         let testX = aiHead.x;
                         let testY = aiHead.y;
-                        
+
                         switch (dir) {
                             case 'up': testY--; break;
                             case 'down': testY++; break;
                             case 'left': testX--; break;
                             case 'right': testX++; break;
                         }
-                        
+
                         if (!aiGhostMode && isWallCollision(testX, testY)) {
                             return false;
                         }
-                        
+
                         if (testX < 0) testX = gridWidth - 1;
                         if (testX >= gridWidth) testX = 0;
                         if (testY < 0) testY = gridHeight - 1;
                         if (testY >= gridHeight) testY = 0;
-                        
+
                         return !aiSnake.some(segment => segment.x === testX && segment.y === testY) &&
-                              !snake.some(segment => segment.x === testX && segment.y === testY);
+                            !snake.some(segment => segment.x === testX && segment.y === testY);
                     });
-                
+
                 if (possibleDirections.length > 0) {
                     newDirection = possibleDirections[Math.floor(Math.random() * possibleDirections.length)];
                 }
             }
-            
+
             aiNextDirection = newDirection;
         }
-        
+
         function getNextPosition(x, y, direction) {
             switch (direction) {
                 case 'up': return { x: x, y: y - 1 };
@@ -1487,27 +1585,27 @@
                 default: return { x: x, y: y };
             }
         }
-        
+
         function isWallCollision(x, y) {
             return x < 0 || x >= gridWidth || y < 0 || y >= gridHeight;
         }
-        
+
         function isNextMoveWallCollision(head, direction) {
             const nextPos = getNextPosition(head.x, head.y, direction);
             return isWallCollision(nextPos.x, nextPos.y);
         }
-        
+
         // Sistema de colisões e verificação de fim de jogo
         function checkCollision() {
             const head = snake[0];
-            
+
             if (!ghostMode) {
                 if (head.x < 0 || head.x >= gridWidth || head.y < 0 || head.y >= gridHeight) {
                     winner = 'IA';
                     return true;
                 }
             }
-            
+
             if (!ghostMode) {
                 for (let i = 1; i < snake.length; i++) {
                     if (head.x === snake[i].x && head.y === snake[i].y) {
@@ -1516,29 +1614,29 @@
                     }
                 }
             }
-            
+
             if (isAIMode) {
                 const aiHead = aiSnake[0];
-                
+
                 if (!aiGhostMode && (aiHead.x < 0 || aiHead.x >= gridWidth || aiHead.y < 0 || aiHead.y >= gridHeight)) {
                     winner = 'Jogador';
                     return true;
                 }
-                
+
                 for (let i = 1; i < aiSnake.length; i++) {
                     if (aiHead.x === aiSnake[i].x && aiHead.y === aiSnake[i].y) {
                         winner = 'Jogador';
                         return true;
                     }
                 }
-                
+
                 for (let i = 0; i < snake.length; i++) {
                     if (aiHead.x === snake[i].x && aiHead.y === snake[i].y) {
                         winner = 'Jogador';
                         return true;
                     }
                 }
-                
+
                 for (let i = 0; i < aiSnake.length; i++) {
                     if (head.x === aiSnake[i].x && head.y === aiSnake[i].y) {
                         winner = 'IA';
@@ -1546,14 +1644,14 @@
                     }
                 }
             }
-            
+
             return false;
         }
-        
+
         function getRandomFruitType() {
             const random = Math.random() * 100;
             let cumulativeChance = 0;
-            
+
             for (const type in FRUIT_TYPES) {
                 cumulativeChance += FRUIT_TYPES[type].chance;
                 if (random <= cumulativeChance) {
@@ -1563,7 +1661,7 @@
                     };
                 }
             }
-            
+
             return {
                 color: '#FF5252',
                 points: 10,
@@ -1572,24 +1670,24 @@
                 type: 'NORMAL'
             };
         }
-        
+
         // Geração e gerenciamento das frutas/power-ups
         function createFood() {
             const fruitType = getRandomFruitType();
-            
+
             while (true) {
                 const x = Math.floor(Math.random() * gridWidth);
                 const y = Math.floor(Math.random() * gridHeight);
-                
+
                 let validPosition = true;
-                
+
                 for (let segment of snake) {
                     if (segment.x === x && segment.y === y) {
                         validPosition = false;
                         break;
                     }
                 }
-                
+
                 if (isAIMode) {
                     for (let segment of aiSnake) {
                         if (segment.x === x && segment.y === y) {
@@ -1598,7 +1696,7 @@
                         }
                     }
                 }
-                
+
                 if (validPosition) {
                     food = {
                         x,
@@ -1608,28 +1706,28 @@
                         effect: fruitType.effect,
                         class: fruitType.class
                     };
-                    
+
                     renderer3D.renderFood(food);
                     break;
                 }
             }
         }
-        
+
         function drawGame() {
             ctx.fillStyle = '#111';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
+
             ctx.fillStyle = food.color;
             ctx.beginPath();
             ctx.arc(
-                food.x * gridSize + gridSize/2, 
-                food.y * gridSize + gridSize/2, 
-                gridSize/2 - 1, 
-                0, 
+                food.x * gridSize + gridSize / 2,
+                food.y * gridSize + gridSize / 2,
+                gridSize / 2 - 1,
+                0,
                 Math.PI * 2
             );
             ctx.fill();
-            
+
             snake.forEach((segment, index) => {
                 if (index === 0) {
                     ctx.fillStyle = ghostMode ? '#C5CAE9' : '#4CAF50';
@@ -1641,17 +1739,17 @@
                         ctx.fillStyle = `rgb(${139 - gradientProgress * 50}, ${195 - gradientProgress * 40}, ${74 - gradientProgress * 30})`;
                     }
                 }
-                
+
                 ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
-                
+
                 ctx.strokeStyle = ghostMode ? '#5C6BC0' : '#005000';
                 ctx.strokeRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
-                
+
                 if (index === 0) {
                     ctx.fillStyle = '#FFF';
-                    
+
                     let leftEyeX, leftEyeY, rightEyeX, rightEyeY;
-                    
+
                     switch (direction) {
                         case 'up':
                             leftEyeX = segment.x * gridSize + gridSize * 0.25;
@@ -1678,7 +1776,7 @@
                             rightEyeY = segment.y * gridSize + gridSize * 0.75;
                             break;
                     }
-                    
+
                     ctx.beginPath();
                     ctx.arc(leftEyeX, leftEyeY, 2, 0, Math.PI * 2);
                     ctx.arc(rightEyeX, rightEyeY, 2, 0, Math.PI * 2);
@@ -1686,46 +1784,46 @@
                 }
             });
         }
-        
+
         // Sistema de pontuação e recordes
         function updateScore() {
             scoreDisplay.textContent = `Pontuação: ${score}`;
             highScoreDisplay.textContent = `Recorde: ${highScore}`;
         }
-        
+
         // Gerenciamento do fim de jogo
         function gameOver() {
             gameActive = false;
             clearInterval(gameLoop);
-            
+
             resetBorderEffect();
-            
+
             renderer3D.clearAll();
-            
+
             const particles = document.querySelectorAll('.particle');
             particles.forEach(particle => {
                 if (particle.parentNode) {
                     particle.parentNode.removeChild(particle);
                 }
             });
-            
+
             finalScoreDisplay.textContent = score;
             finalHighScoreDisplay.textContent = highScore;
-            
+
             if (isAIMode) {
                 winnerMessage.textContent = winner === 'Jogador' ? 'Você venceu!' : 'A IA venceu!';
             } else {
                 winnerMessage.textContent = `Sua pontuação: ${score}`;
             }
-            
+
             gameOverScreen.style.display = 'block';
-            
+
             if (score > highScore) {
                 highScore = score;
                 localStorage.setItem('snakeHighScore', highScore);
             }
         }
-        
+
         // Controles e eventos do teclado
         document.addEventListener('keydown', (event) => {
             switch (event.key) {
@@ -1741,7 +1839,7 @@
                 case 'ArrowRight':
                     if (direction !== 'left') nextDirection = 'right';
                     break;
-                    
+
                 case 'w':
                 case 'W':
                     if (direction !== 'down') nextDirection = 'up';
@@ -1758,7 +1856,7 @@
                 case 'D':
                     if (direction !== 'left') nextDirection = 'right';
                     break;
-                    
+
                 case ' ':
                     if (gameActive) {
                         if (isPaused) {
@@ -1776,7 +1874,7 @@
                             powerUpDisplay.style.color = '#FF5252';
                             powerUpDisplay.style.backgroundColor = 'rgba(255, 82, 82, 0.3)';
                             powerUpDisplay.style.opacity = '0.7';
-                            
+
                             setTimeout(() => {
                                 powerUpDisplay.style.opacity = '0';
                             }, 2000);
@@ -1785,22 +1883,22 @@
                     break;
             }
         });
-        
+
         // Eventos e inicialização do jogo
-        restartBtn.addEventListener('click', function() {
+        restartBtn.addEventListener('click', function () {
             toggleInfoPanel(true);
             initGame();
         });
-        toggleAiBtn.addEventListener('click', function() {
+        toggleAiBtn.addEventListener('click', function () {
             toggleInfoPanel(true);
             toggleAIMode();
         });
-        
+
         document.addEventListener('DOMContentLoaded', () => {
             gameActive = false;
-            
+
             toggleInfoPanel(false);
-            
+
             const particleContainer = document.getElementById('particle-container');
             if (particleContainer) {
                 particleContainer.style.position = 'absolute';
@@ -1812,22 +1910,22 @@
                 particleContainer.style.zIndex = '500';
                 particleContainer.style.overflow = 'hidden';
             }
-            
-            document.getElementById('solo-btn').addEventListener('click', function() {
+
+            document.getElementById('solo-btn').addEventListener('click', function () {
                 isAIMode = false;
                 document.getElementById('welcome-screen').style.display = 'none';
                 toggleInfoPanel(true);
                 initGame();
             });
-            
-            document.getElementById('vs-ai-btn').addEventListener('click', function() {
+
+            document.getElementById('vs-ai-btn').addEventListener('click', function () {
                 isAIMode = true;
                 document.getElementById('welcome-screen').style.display = 'none';
                 toggleInfoPanel(true);
                 initGame();
             });
         });
-        
+
         (function configureParticleContainer() {
             const particleContainer = document.getElementById('particle-container');
             if (particleContainer) {
@@ -1841,7 +1939,7 @@
                 particleContainer.style.overflow = 'hidden';
             }
         })();
-        
+
         function toggleInfoPanel(show) {
             const infoPanel = document.querySelector('.info');
             if (infoPanel) {
@@ -1851,4 +1949,5 @@
     </script>
     <!-- Fim: JavaScript do jogo -->
 </body>
+
 </html>
