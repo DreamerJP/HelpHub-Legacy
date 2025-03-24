@@ -1,5 +1,5 @@
 /* ========================================================
-   CONFIGURAÇÃO BÁSICA E ELEMENTOS ESTRUTURAIS
+    CONFIGURAÇÃO BÁSICA E ELEMENTOS ESTRUTURAIS
    ======================================================== */
 
 /* Configuração básica da página com padding, background claro e layout flexível */
@@ -102,7 +102,7 @@ footer p i.bi-envelope {
 }
 
 /* ========================================================
-   TEMA ESCURO (DARK MODE)
+    TEMA ESCURO (DARK MODE)
    ======================================================== */
 
 /* Cores de fundo e texto para o tema escuro */
@@ -134,11 +134,17 @@ body.dark-mode footer p {
 
 /* Ajusta a cor do texto para telefone e email no modo escuro */
 body.dark-mode .text-muted {
-    color: rgba(255, 255, 255, 0.8) !important; /* Lighter color for better readability */
+    color: rgba(255, 255, 255, 0.8) !important;
+    /* Lighter color for better readability */
+}
+
+/* Texto de dicas do formulário em modo escuro */
+body.dark-mode .form-text {
+    color: #adb5bd !important;
 }
 
 /* ========================================================
-   SISTEMA DE NAVEGAÇÃO EM ABAS
+    SISTEMA DE NAVEGAÇÃO EM ABAS
    ======================================================== */
 
 /* Estilo base para as abas de navegação */
@@ -191,7 +197,7 @@ body.dark-mode .nav-tabs .nav-link.active {
 }
 
 /* ========================================================
-   NAVEGAÇÃO PRINCIPAL (MENU SUPERIOR)
+    NAVEGAÇÃO PRINCIPAL (MENU SUPERIOR)
    ======================================================== */
 
 /* Links na barra de navegação principal */
@@ -210,7 +216,7 @@ body.dark-mode .nav-tabs .nav-link.active {
 /* Estilo do link ativo/selecionado no menu */
 .navbar-nav .nav-link.active {
     background-color: #007bff;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     border-radius: 5px;
     font-size: 1.1em;
     font-weight: bold;
@@ -224,11 +230,11 @@ body.dark-mode .navbar-nav .nav-link {
 /* Link ativo do menu em modo escuro */
 body.dark-mode .navbar-nav .nav-link.active {
     background-color: #0056b3;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 /* ========================================================
-   TABELAS E LISTAGENS DE DADOS
+    TABELAS E LISTAGENS DE DADOS
    ======================================================== */
 
 /* Destaque para linha selecionada na tabela */
@@ -237,40 +243,49 @@ body.dark-mode .navbar-nav .nav-link.active {
 }
 
 /* ========================================================
-   SISTEMA DE NAVEGAÇÃO PARA ANDAMENTOS DE CHAMADOS
+    SISTEMA DE NAVEGAÇÃO PARA ANDAMENTOS DE CHAMADOS
    ======================================================== */
 
 /* Container para seção de descrição e andamentos */
 #description-and-andamentos-container {
     display: flex;
     overflow: hidden;
-    position: relative; /* Necessário para o posicionamento absoluto dos andamentos */
-    width: 100%; /* Garante que ocupe toda a largura */
+    position: relative;
+    /* Necessário para o posicionamento absoluto dos andamentos */
+    width: 100%;
+    /* Garante que ocupe toda a largura */
 }
 
 /* Estilo comum para as seções de descrição e andamentos */
-#description-section, #andamentos-section {
+#description-section,
+#andamentos-section {
     flex: 1;
     transition: transform 0.5s ease;
     padding: 20px;
-    box-sizing: border-box; /* Inclui o preenchimento no cálculo da largura */
-    width: 100%; /* Cada seção deve ocupar toda a largura */
+    box-sizing: border-box;
+    /* Inclui o preenchimento no cálculo da largura */
+    width: 100%;
+    /* Cada seção deve ocupar toda a largura */
 }
 
 /* Posicionamento da seção de andamentos (inicialmente oculta) */
 #andamentos-section {
-    transform: translateX(100%); /* Inicialmente escondida */
-    position: absolute; /* Posicionada sobre a seção de descrição */
+    transform: translateX(100%);
+    /* Inicialmente escondida */
+    position: absolute;
+    /* Posicionada sobre a seção de descrição */
     top: 0;
     left: 0;
     width: 100%;
-    margin-left: -20px; /* Ajuste o valor conforme necessário */
+    margin-left: -20px;
+    /* Ajuste o valor conforme necessário */
     overflow-x: hidden;
 }
 
 /* Oculta o título da seção de andamentos */
 #andamentos-section h2 {
-    display: none; /* Oculta o título da seção de andamentos */
+    display: none;
+    /* Oculta o título da seção de andamentos */
 }
 
 /* Container de rolagem horizontal para andamentos */
@@ -278,11 +293,14 @@ body.dark-mode .navbar-nav .nav-link.active {
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
-    padding-bottom: 10px; /* Adiciona espaço para a barra de rolagem */
+    padding-bottom: 10px;
+    /* Adiciona espaço para a barra de rolagem */
     width: 100%;
     /* Esconde a barra de rolagem, mas mantém a funcionalidade */
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE e Edge */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE e Edge */
 }
 
 /* Remove a barra de rolagem visível para navegadores baseados em WebKit */
@@ -291,11 +309,13 @@ body.dark-mode .navbar-nav .nav-link.active {
 }
 
 /* Dimensionamento dos itens de andamento no carrossel */
-#andamentos-carousel > div {
+#andamentos-carousel>div {
     flex: 0 0 auto;
     width: 1250px;
-    min-width: 1250px; /* Garante a largura mínima */
-    max-width: 1250px; /* Garante a largura máxima */
+    min-width: 1250px;
+    /* Garante a largura mínima */
+    max-width: 1250px;
+    /* Garante a largura máxima */
     padding: 10px;
     margin-right: 10px;
     scroll-snap-align: start;
@@ -305,31 +325,37 @@ body.dark-mode .navbar-nav .nav-link.active {
 /* Ajustes para campos de texto dentro dos andamentos */
 #andamentos-carousel textarea,
 #andamentos-section .form-control {
-    width: calc(100% - 50px) !important; /* Reduz a largura para dar espaço aos botões */
-    margin: 0 25px !important; /* Adiciona margem nas laterais */
+    width: calc(100% - 50px) !important;
+    /* Reduz a largura para dar espaço aos botões */
+    margin: 0 25px !important;
+    /* Adiciona margem nas laterais */
     padding: 8px !important;
     box-sizing: border-box !important;
     border: 1px solid #ccc !important;
 }
 
 /* Estilo para botões nos cards de andamentos */
-#andamentos-carousel > div .btn {
-    margin-left: 25px;  /* Mesma margem das textareas */
-    margin-right: 5px;  /* Pequeno espaçamento entre os botões */
+#andamentos-carousel>div .btn {
+    margin-left: 25px;
+    /* Mesma margem das textareas */
+    margin-right: 5px;
+    /* Pequeno espaçamento entre os botões */
 }
 
 /* Agrupamento de botões nos andamentos */
-#andamentos-carousel > div .btn + .btn {
-    margin-left: 5px;  /* Espaçamento menor entre botões consecutivos */
+#andamentos-carousel>div .btn+.btn {
+    margin-left: 5px;
+    /* Espaçamento menor entre botões consecutivos */
 }
 
 /* Redução de espaçamentos no formulário de detalhes */
 #detalhes-chamado-form .mb-3 {
-    margin-bottom: 8px !important; /* Ajuste conforme necessário */
+    margin-bottom: 8px !important;
+    /* Ajuste conforme necessário */
 }
 
 /* Espaçamento entre botões no formulário de detalhes do chamado */
-#detalhes-chamado-form .btn + .btn {
+#detalhes-chamado-form .btn+.btn {
     margin-left: 10px;
 }
 
@@ -340,19 +366,21 @@ body.dark-mode .navbar-nav .nav-link.active {
 }
 
 /* ========================================================
-   CONTROLES DE NAVEGAÇÃO DO CARROSSEL
+    CONTROLES DE NAVEGAÇÃO DO CARROSSEL
    ======================================================== */
 
 /* Botões de navegação do carrossel de andamentos */
 .nav-button {
     position: absolute;
     top: 0;
-    height: calc(100% - 40px); /* Ajusta à altura da textarea */
+    height: calc(100% - 40px);
+    /* Ajusta à altura da textarea */
     background: rgba(0, 0, 0, 0.1);
     border: none;
     color: #495057;
     font-size: 24px;
-    padding: 0 4px; /* Diminuído de 12px para 8px */
+    padding: 0 4px;
+    /* Diminuído de 12px para 8px */
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
@@ -368,14 +396,16 @@ body.dark-mode .navbar-nav .nav-link.active {
 
 /* Posicionamento do botão esquerdo */
 .nav-button.left {
-    left: 25px; /* Alinha com a margem da textarea */
+    left: 25px;
+    /* Alinha com a margem da textarea */
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
 }
 
 /* Posicionamento do botão direito */
 .nav-button.right {
-    right: 25px; /* Alinha com a margem da textarea */
+    right: 25px;
+    /* Alinha com a margem da textarea */
     border-top-right-radius: 4px;
     border-bottom-right-radius: 4px;
 }
@@ -395,19 +425,22 @@ body.dark-mode .nav-button:hover {
 /* Indicador de posição no carrossel (contador) */
 .andamento-counter {
     position: absolute;
-    bottom: 20px; /* Ajustado para ficar mais para cima */
-    right: 45px; /* Ajustado para alinhar com o final da caixa de texto */
+    bottom: 20px;
+    /* Ajustado para ficar mais para cima */
+    right: 45px;
+    /* Ajustado para alinhar com o final da caixa de texto */
     font-size: 14px;
     color: #495057;
 }
 
 /* Contador de andamentos em modo escuro */
 body.dark-mode .andamento-counter {
-    color: #f8f9fa; /* Ajustado para melhorar a visibilidade no modo escuro */
+    color: #f8f9fa;
+    /* Ajustado para melhorar a visibilidade no modo escuro */
 }
 
 /* ========================================================
-   RESULTADOS DE BUSCA DE CLIENTES
+    RESULTADOS DE BUSCA DE CLIENTES
    ======================================================== */
 
 /* Container dos resultados da busca de clientes */
@@ -416,7 +449,7 @@ body.dark-mode .andamento-counter {
     z-index: 1000;
     border: 1px solid #dee2e6;
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Item individual na lista de resultados */
@@ -448,7 +481,7 @@ body.dark-mode #resultados_cliente .list-group-item:hover {
 }
 
 /* ========================================================
-   AJUSTES DE CORES PARA MODO ESCURO (ELEMENTOS DE FORMULÁRIO)
+    AJUSTES DE CORES PARA MODO ESCURO (ELEMENTOS DE FORMULÁRIO)
    ======================================================== */
 
 /* Campos de entrada em modo escuro */
@@ -511,13 +544,13 @@ body.dark-mode .modal-footer {
 }
 
 /* Linhas zebradas ímpares em tabelas no modo escuro */
-body.dark-mode .table-striped > tbody > tr:nth-of-type(odd) {
+body.dark-mode .table-striped>tbody>tr:nth-of-type(odd) {
     background-color: rgba(255, 255, 255, 0.05);
     color: #f8f9fa;
 }
 
 /* Linhas zebradas pares em tabelas no modo escuro */
-body.dark-mode .table-striped > tbody > tr:nth-of-type(even) {
+body.dark-mode .table-striped>tbody>tr:nth-of-type(even) {
     background-color: transparent;
     color: #f8f9fa;
 }
@@ -529,7 +562,7 @@ body.dark-mode .table-warning {
 }
 
 /* ========================================================
-   ESTILOS DA PÁGINA DE LOGIN
+    ESTILOS DA PÁGINA DE LOGIN
    ======================================================== */
 
 /* Container principal da página de login */
@@ -631,8 +664,36 @@ body.dark-mode .form-control::placeholder {
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
 }
 
+/* Estilos para o container de login */
+.login-box {
+    background-color: rgba(33, 37, 41, 0.8);
+    /* Fundo escuro semi transparente */
+    color: #fff;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* Estilo para os inputs no formulário de login */
+.login-box .form-control {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.login-box .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Estilo para o texto do sistema */
+.login-box .text-muted {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
 /* ========================================================
-   MODAL DE AVISO DE SESSÃO
+    MODAL DE AVISO DE SESSÃO
    ======================================================== */
 
 /* Efeito de desfoque no fundo do modal de aviso de sessão */
@@ -673,7 +734,7 @@ body.dark-mode #sessionWarningModal .modal-body {
 }
 
 /* ========================================================
-   ESTILIZAÇÃO DE TABELAS MODERNAS
+    ESTILIZAÇÃO DE TABELAS MODERNAS
    ======================================================== */
 
 /* Estilo base para tabelas modernas */
@@ -724,7 +785,7 @@ body.dark-mode #sessionWarningModal .modal-body {
 .modern-table tbody tr:hover {
     background-color: #f8f9fa;
     transform: translateY(-1px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 /* Linha selecionada em tabelas modernas */
@@ -734,7 +795,7 @@ body.dark-mode #sessionWarningModal .modal-body {
 }
 
 /* ========================================================
-   BADGES DE STATUS
+    BADGES DE STATUS
    ======================================================== */
 
 /* Estilo base para badges de status */
@@ -775,7 +836,7 @@ body.dark-mode .status-finalizado {
 }
 
 /* ========================================================
-   ESTILOS PARA ABAS DE CHAMADOS DE CLIENTE
+    ESTILOS PARA ABAS DE CHAMADOS DE CLIENTE
    ======================================================== */
 
 /* Tabela na aba de chamados do cliente */
@@ -789,7 +850,7 @@ body.dark-mode .status-finalizado {
 }
 
 /* ========================================================
-   COMPONENTES DE PAGINAÇÃO
+    COMPONENTES DE PAGINAÇÃO
    ======================================================== */
 
 /* Container para controles de paginação */
@@ -809,7 +870,7 @@ body.dark-mode .status-finalizado {
     border-radius: 8px;
     color: #495057;
     font-weight: 500;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     transition: all 0.2s ease;
 }
 
@@ -823,7 +884,7 @@ body.dark-mode .status-finalizado {
 .modern-pagination button:not(:disabled):hover {
     background: #f8f9fa;
     transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
 }
 
 /* Texto de informação da página atual */
@@ -835,7 +896,7 @@ body.dark-mode .status-finalizado {
 }
 
 /* ========================================================
-   TABELAS MODERNAS EM MODO ESCURO
+    TABELAS MODERNAS EM MODO ESCURO
    ======================================================== */
 
 /* Tabelas modernas em modo escuro */
@@ -889,7 +950,7 @@ body.dark-mode .modern-pagination .page-info {
 }
 
 /* ========================================================
-   BARRA DE FERRAMENTAS MODERNA
+    BARRA DE FERRAMENTAS MODERNA
    ======================================================== */
 
 /* Container principal da barra de ferramentas */
@@ -899,7 +960,7 @@ body.dark-mode .modern-pagination .page-info {
     padding: 15px;
     background: white;
     border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     margin-bottom: 20px;
 }
 
@@ -924,7 +985,7 @@ body.dark-mode .modern-toolbar {
 }
 
 /* ========================================================
-   CAMPO DE BUSCA
+    CAMPO DE BUSCA
    ======================================================== */
 
 /* Container do campo de busca */
@@ -985,7 +1046,7 @@ body.dark-mode .modern-search input:focus {
     border-radius: 20px;
     padding: 0.5rem 1rem 0.5rem 2.5rem;
     border: 1px solid #ddd;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     width: 100%;
     transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
@@ -1024,7 +1085,7 @@ body.dark-mode .modern-search::before {
 }
 
 /* ========================================================
-   ESTILOS PERSONALIZADOS DE ABAS
+    ESTILOS PERSONALIZADOS DE ABAS
    ======================================================== */
 
 /* Abas ativas no modo claro */
@@ -1039,8 +1100,24 @@ body.dark-mode .nav-tabs .nav-link.active {
     color: #fff !important;
 }
 
+/* Abas no modo escuro */
+body.dark-mode #clienteTabs .nav-link {
+    color: #fff;
+}
+
+body.dark-mode #clienteTabs .nav-link:hover:not(.active) {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode #clienteTabs .nav-link.active {
+    color: #0d6efd;
+    background-color: transparent;
+    border-bottom: 3px solid #0d6efd;
+}
+
 /* ========================================================
-   ESTILOS DE BOTÕES
+    ESTILOS DE BOTÕES
    ======================================================== */
 
 /* Botões outline-secondary em modo escuro */
@@ -1087,8 +1164,58 @@ body.dark-mode .btn-primary:hover {
     border-color: #2b4764;
 }
 
+/* Ajustes para botões específicos */
+.btn-maps {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-maps:hover {
+    color: #fff;
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+/* No modo escuro */
+body.dark-mode .btn-maps {
+    color: #fff;
+    background-color: #375a7f;
+    border-color: #375a7f;
+}
+
+body.dark-mode .btn-maps:hover {
+    background-color: #2b4764;
+    border-color: #2b4764;
+}
+
+/* Botão Novo Chamado sempre preenchido */
+.btn-new-ticket {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-new-ticket:hover {
+    color: #fff;
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+/* No modo escuro */
+body.dark-mode .btn-new-ticket {
+    color: #fff;
+    background-color: #375a7f;
+    border-color: #375a7f;
+}
+
+body.dark-mode .btn-new-ticket:hover {
+    background-color: #2b4764;
+    border-color: #2b4764;
+}
+
 /* ========================================================
-   TABELA ESPECÍFICA PARA CHAMADOS DE CLIENTE
+    TABELA ESPECÍFICA PARA CHAMADOS DE CLIENTE
    ======================================================== */
 
 /* Layout da tabela de chamados do cliente */
@@ -1131,7 +1258,7 @@ body.dark-mode .btn-primary:hover {
 }
 
 /* ========================================================
-   DROPDOWN PARA SELEÇÃO DE CHAMADOS
+    DROPDOWN PARA SELEÇÃO DE CHAMADOS
    ======================================================== */
 
 /* Dropdown de chamados base */
@@ -1142,7 +1269,7 @@ body.dark-mode .btn-primary:hover {
     width: calc(100% - 2rem);
     z-index: 1000;
     background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border-radius: 4px;
     display: none;
 }
@@ -1185,20 +1312,20 @@ body.dark-mode #chamado-selecionado {
 }
 
 /* ========================================================
-   TOOLTIPS PARA CALENDÁRIO
+    TOOLTIPS PARA CALENDÁRIO
    ======================================================== */
 
 /* Estilo base para tooltips do calendário */
 .tippy-box[data-theme~='light'] {
     background-color: #fff;
     color: #333;
-    box-shadow: 0 0 20px rgba(0,0,0,0.15);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
     border-radius: 8px;
     font-size: 0.9em;
 }
 
 /* Seta do tooltip no tema claro */
-.tippy-box[data-theme~='light'][data-placement^='top'] > .tippy-arrow::before {
+.tippy-box[data-theme~='light'][data-placement^='top']>.tippy-arrow::before {
     border-top-color: #fff;
 }
 
@@ -1227,12 +1354,12 @@ body.dark-mode .tippy-box[data-theme~='light'] {
 }
 
 /* Seta do tooltip no modo escuro */
-body.dark-mode .tippy-box[data-theme~='light'][data-placement^='top'] > .tippy-arrow::before {
+body.dark-mode .tippy-box[data-theme~='light'][data-placement^='top']>.tippy-arrow::before {
     border-top-color: #333;
 }
 
 /* ========================================================
-   PERSONALIZAÇÃO DA VISUALIZAÇÃO DE LISTA NO FULLCALENDAR
+    PERSONALIZAÇÃO DA VISUALIZAÇÃO DE LISTA NO FULLCALENDAR
    ======================================================== */
 
 /* Efeito hover nas linhas da lista de eventos em modo escuro */
@@ -1247,7 +1374,7 @@ body.dark-mode .fc-list-event:hover .fc-list-event-time {
 }
 
 /* ========================================================
-   ELEMENTOS DE REDIMENSIONAMENTO NO FULLCALENDAR
+    ELEMENTOS DE REDIMENSIONAMENTO NO FULLCALENDAR
    ======================================================== */
 
 /* Indicador de redimensionamento para eventos do calendário */
@@ -1260,13 +1387,15 @@ body.dark-mode .fc-list-event:hover .fc-list-event-time {
     bottom: -2px !important;
     left: 0;
     cursor: s-resize;
-    border-bottom: 2px dotted rgba(0, 0, 0, 0.4) !important; /* Linha pontilhada sempre visível */
+    border-bottom: 2px dotted rgba(0, 0, 0, 0.4) !important;
+    /* Linha pontilhada sempre visível */
 }
 
 /* Exibição do indicador de redimensionamento no hover */
 .fc-event:hover .fc-event-resizer {
     background: rgba(0, 0, 0, 0.2) !important;
-    height: 12px !important; /* Aumenta ainda mais no hover */
+    height: 12px !important;
+    /* Aumenta ainda mais no hover */
 }
 
 /* Pontos de redimensionamento nas extremidades dos eventos */
@@ -1275,7 +1404,8 @@ body.dark-mode .fc-list-event:hover .fc-list-event-time {
 .fc-v-event .fc-event-resizer-bottom,
 .fc-v-event .fc-event-resizer-top {
     cursor: s-resize;
-    display: flex !important; /* Alterado para flex para centralizar o conteúdo */
+    display: flex !important;
+    /* Alterado para flex para centralizar o conteúdo */
     align-items: center;
     justify-content: center;
     width: 100%;
@@ -1310,7 +1440,8 @@ body.dark-mode .fc-list-event:hover .fc-list-event-time {
 
 /* Detalhe visual da "alça" para eventos */
 .fc-event-main::after {
-    content: "≡";  /* Símbolo de menu "hambúrguer" como indicador visual */
+    content: "≡";
+    /* Símbolo de menu "hambúrguer" como indicador visual */
     position: absolute;
     bottom: 0;
     left: 50%;
@@ -1321,7 +1452,7 @@ body.dark-mode .fc-list-event:hover .fc-list-event-time {
 }
 
 /* ========================================================
-   ELEMENTOS DE REDIMENSIONAMENTO NO MODO ESCURO
+    ELEMENTOS DE REDIMENSIONAMENTO NO MODO ESCURO
    ======================================================== */
 
 /* Indicador de redimensionamento em modo escuro */
@@ -1360,7 +1491,7 @@ body.dark-mode .fc-event-main::after {
 }
 
 /* ========================================================
-   ESTILOS PARA A PÁGINA DE BACKUPS
+    ESTILOS PARA A PÁGINA DE BACKUPS
    ======================================================== */
 
 .backup-info {
@@ -1389,7 +1520,7 @@ body.dark-mode .backup-info {
     background-color: #fff;
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .notes-actions {
@@ -1421,7 +1552,7 @@ body.dark-mode .backup-info {
     margin: 20px 0;
     background-color: #fff;
     border-radius: 0.25rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .notas-label {
@@ -1453,7 +1584,7 @@ body.dark-mode .tox .tox-toolbar-overlord {
 }
 
 /* ========================================================
-   MELHORIAS ESPECÍFICAS PARA O LAYOUT DA HOME PAGE
+    MELHORIAS ESPECÍFICAS PARA O LAYOUT DA HOME PAGE
    ======================================================== */
 
 /* Variáveis personalizáveis para ajuste manual dos tamanhos dos cards */
@@ -1461,16 +1592,16 @@ body.dark-mode .tox .tox-toolbar-overlord {
     /* Variáveis de tamanho dos cards - largura e altura para cada card */
     --search-card-width: 70%;
     --search-card-height: auto;
-    
+
     --system-summary-width: 28%;
     --system-summary-height: auto;
-    
-    --statistics-card-width: 35%; 
+
+    --statistics-card-width: 35%;
     --statistics-card-height: auto;
-    
+
     --recent-tickets-width: 55%;
     --recent-tickets-height: auto;
-    
+
     /* Variáveis de espaçamento */
     --cards-gap: 1rem;
     --section-gap: 1.5rem;
@@ -1522,19 +1653,21 @@ body.dark-mode .tox .tox-toolbar-overlord {
 }
 
 .recent-tickets-wrapper {
-  width: 500px !important;
-  max-width: 500px !important;
+    width: 500px !important;
+    max-width: 500px !important;
 }
 
 /* Cards */
-.home-card, .search-card {
+.home-card,
+.search-card {
     height: 100%;
     margin-bottom: 0;
     display: flex;
     flex-direction: column;
 }
 
-.home-card .card-body, .search-card .card-body {
+.home-card .card-body,
+.search-card .card-body {
     padding: 1rem;
     flex: 1;
     display: flex;
@@ -1614,6 +1747,7 @@ body.dark-mode .tox .tox-toolbar-overlord {
 
 /* Layout responsivo para telas menores */
 @media (max-width: 992px) {
+
     /* Em telas médias, ajustar proporções mas manter layout */
     :root {
         --search-card-width: 65%;
@@ -1621,19 +1755,20 @@ body.dark-mode .tox .tox-toolbar-overlord {
         --statistics-card-width: 40%;
         --recent-tickets-width: 58%;
     }
-    
+
     .chart-container {
         min-height: 200px;
     }
 }
 
 @media (max-width: 768px) {
+
     /* Em telas pequenas, empilhar todos os elementos */
     .top-section,
     .bottom-section {
         flex-direction: column;
     }
-    
+
     .search-card-wrapper,
     .system-summary-wrapper,
     .statistics-wrapper,
@@ -1641,24 +1776,35 @@ body.dark-mode .tox .tox-toolbar-overlord {
         width: 100%;
         margin-bottom: var(--cards-gap);
     }
-    
+
     /* Reordenar elementos para experiência mobile */
     .home-page-container {
         display: flex;
         flex-direction: column;
     }
-    
-    .search-card-wrapper { order: 1; }
-    .statistics-wrapper { order: 2; }
-    .recent-tickets-wrapper { order: 3; }
-    .system-summary-wrapper { order: 4; }
+
+    .search-card-wrapper {
+        order: 1;
+    }
+
+    .statistics-wrapper {
+        order: 2;
+    }
+
+    .recent-tickets-wrapper {
+        order: 3;
+    }
+
+    .system-summary-wrapper {
+        order: 4;
+    }
 }
 
 @media (max-width: 576px) {
     .search-card h2 {
         font-size: 1.25rem;
     }
-    
+
     .home-card h5 {
         font-size: 0.95rem;
     }
@@ -1678,92 +1824,628 @@ body.dark-mode #ultimos-chamados.list-group .list-group-item {
 
 /* Estilo para o componente "Últimos Chamados" */
 #ultimos-chamados {
-  max-height: 350px;
-  overflow-y: auto;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  scrollbar-width: thin;
+    max-height: 350px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    scrollbar-width: thin;
 }
 
 /* Oculta a barra de rolagem no Chrome sem perder a funcionalidade */
 #ultimos-chamados::-webkit-scrollbar {
-  width: 6px;
+    width: 6px;
 }
 
 #ultimos-chamados::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
+    background: #f1f1f1;
+    border-radius: 10px;
 }
 
 #ultimos-chamados::-webkit-scrollbar-thumb {
-  background: #ddd;
-  border-radius: 10px;
+    background: #ddd;
+    border-radius: 10px;
 }
 
 body.dark-mode #ultimos-chamados::-webkit-scrollbar-track {
-  background: #343a40;
+    background: #343a40;
 }
 
 body.dark-mode #ultimos-chamados::-webkit-scrollbar-thumb {
-  background: #666;
+    background: #666;
 }
 
 /* Estilo para cada item da lista de chamados */
 .chamado-item {
-  background-color: #ffffff;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  padding: 10px !important;
-  margin-bottom: 8px !important;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  border: 1px solid #eee !important;
+    background-color: #ffffff;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    padding: 10px !important;
+    margin-bottom: 8px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eee !important;
 }
 
 .chamado-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-  border-color: #dee2e6 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    border-color: #dee2e6 !important;
 }
 
 /* Estilo para o modo escuro */
 body.dark-mode .chamado-item {
-  background-color: #2c3034;
-  border-color: #495057 !important;
+    background-color: #2c3034;
+    border-color: #495057 !important;
 }
 
 body.dark-mode .chamado-item:hover {
-  background-color: #343a40;
-  border-color: #6c757d !important;
+    background-color: #343a40;
+    border-color: #6c757d !important;
 }
 
 /* Estilos para o texto e elementos dentro dos items */
 .chamado-cliente {
-  font-size: 0.9rem;
-  color: #343a40;
+    font-size: 0.9rem;
+    color: #343a40;
 }
 
 .chamado-assunto {
-  font-size: 0.85rem;
-  color: #495057;
+    font-size: 0.85rem;
+    color: #495057;
 }
 
 .chamado-protocolo {
-  font-size: 0.75rem;
+    font-size: 0.75rem;
 }
 
 body.dark-mode .chamado-cliente {
-  color: #e9ecef;
+    color: #e9ecef;
 }
 
 body.dark-mode .chamado-assunto {
-  color: #ced4da;
+    color: #ced4da;
 }
 
 body.dark-mode .chamado-protocolo {
-  color: #adb5bd;
+    color: #adb5bd;
 }
 
 /* Cor data/hora no Últimos Chamados no modo escuro */
 body.dark-mode .chamado-data {
-  color: #adb5bd !important;
+    color: #adb5bd !important;
+}
+
+/* ========================================================
+    ESTILOS PARA ORDEM DE SERVIÇO
+   ======================================================== */
+
+/* Estilos para o modal da ordem de serviço */
+#serviceOrderModal .modal-xl {
+    max-width: 1140px;
+}
+
+/* Estilos para o conteúdo imprimível da ordem de serviço */
+#service-order-printable {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    color: #333;
+}
+
+/* Cabeçalho da ordem de serviço */
+.service-order-header {
+    margin-bottom: 20px;
+}
+
+.company-name {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #2c3e50;
+}
+
+.company-info {
+    font-size: 14px;
+    color: #555;
+}
+
+.order-number {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.order-number h3 {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.order-number h4 {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.service-order-separator {
+    border-bottom: 2px solid #333;
+    margin: 15px 0;
+}
+
+/* Seções da ordem de serviço */
+.client-info-section,
+.service-request-section,
+.service-history-section {
+    margin-bottom: 25px;
+}
+
+.client-info-section h4,
+.service-request-section h4,
+.service-history-section h4 {
+    background-color: #f0f0f0;
+    padding: 8px 10px;
+    border-left: 4px solid #0d6efd;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+/* Descrição do problema */
+.problem-description {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    min-height: 100px;
+    background-color: #f9f9f9;
+    margin-bottom: 15px;
+}
+
+/* Linha de assinatura */
+.signatures-section {
+    margin-top: 50px;
+}
+
+.signature-line {
+    border-top: 1px solid #333;
+    width: 80%;
+    margin: 50px auto 10px;
+}
+
+/* Timeline para histórico de andamentos */
+.timeline {
+    list-style: none;
+    padding: 0;
+    position: relative;
+}
+
+.timeline:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #ddd;
+    left: 20px;
+    margin-left: -1px;
+}
+
+.timeline>li {
+    position: relative;
+    margin-bottom: 20px;
+    margin-left: 40px;
+}
+
+.timeline>li:before,
+.timeline>li:after {
+    content: " ";
+    display: table;
+}
+
+.timeline>li:after {
+    clear: both;
+}
+
+.timeline-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    color: #fff;
+    text-align: center;
+    line-height: 40px;
+    position: absolute;
+    left: -40px;
+    top: 0;
+}
+
+.timeline-panel {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    position: relative;
+}
+
+.timeline-title {
+    margin: 0;
+    color: #333;
+    font-weight: bold;
+}
+
+/* Estilos para impressão */
+@media print {
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    .modal,
+    .modal-backdrop,
+    .navbar,
+    footer,
+    #mensagem,
+    #loading {
+        display: none !important;
+    }
+
+    #service-order-printable {
+        width: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        margin: 0;
+        padding: 15px;
+    }
+
+    .service-order-header {
+        margin-bottom: 20px;
+    }
+
+    .company-name {
+        font-size: 20px;
+        margin-bottom: 5px;
+        color: #000;
+    }
+
+    .company-info {
+        font-size: 10px;
+        color: #333;
+    }
+
+    .order-number {
+        font-size: 16px;
+        font-weight: bold;
+        color: #000;
+    }
+
+    .service-order-separator {
+        border-bottom: 2px solid #000;
+        margin: 10px 0;
+    }
+
+    .client-info-section h4,
+    .service-request-section h4,
+    .service-history-section h4 {
+        font-size: 14px;
+        background-color: #f0f0f0;
+        padding: 5px;
+        border-left: 4px solid #000;
+        margin-top: 15px;
+        margin-bottom: 10px;
+    }
+
+    .problem-description {
+        border: 1px solid #ccc;
+        padding: 8px;
+        min-height: 60px;
+        background-color: #fff;
+    }
+
+    .signatures-section {
+        margin-top: 40px;
+        page-break-inside: avoid;
+    }
+
+    .signature-line {
+        border-top: 1px solid #000;
+        width: 70%;
+        margin: 30px auto 5px;
+    }
+
+    .timeline-panel {
+        border: 1px solid #ccc;
+        padding: 8px;
+        margin-bottom: 10px;
+        page-break-inside: avoid;
+    }
+
+    .timeline-badge {
+        display: none;
+    }
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+    #serviceOrderModal .modal-xl {
+        max-width: 100%;
+    }
+
+    .service-order-header .row .col-8,
+    .service-order-header .row .col-4 {
+        width: 100%;
+        text-align: center;
+    }
+
+    .order-number {
+        margin-top: 15px;
+    }
+}
+
+/* Estilos para a Ordem de Serviço */
+#service-order-printable {
+    font-family: Arial, sans-serif;
+    color: #333;
+    line-height: 1.5;
+}
+
+.service-order-header {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
+.company-name {
+    font-size: 20pt;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 3px;
+}
+
+.company-info {
+    font-size: 9pt;
+    color: #555;
+    line-height: 1.2;
+}
+
+.order-number {
+    border: 2px solid #2c3e50;
+    padding: 8px;
+    text-align: center;
+    border-radius: 5px;
+}
+
+.order-number h3 {
+    font-size: 14pt;
+    margin: 0;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.order-number h4 {
+    font-size: 16pt;
+    margin: 5px 0;
+    font-weight: bold;
+    color: #e74c3c;
+}
+
+.service-order-separator {
+    border-bottom: 2px solid #2c3e50;
+    margin: 5px 0 15px 0;
+}
+
+.client-info-section,
+.service-request-section,
+.service-history-section,
+.agendamento-section {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
+.signatures-section {
+    margin-top: 30px;
+}
+
+.signature-line {
+    border-top: 1px solid #333;
+    width: 80%;
+    margin: 40px auto 5px;
+}
+
+/* Estilos para impressão */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    #serviceOrderModal,
+    #serviceOrderModal * {
+        visibility: visible;
+    }
+
+    #serviceOrderModal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+
+    .modal-header,
+    .modal-footer {
+        display: none;
+    }
+}
+
+/* Estilo base para card-header */
+#conteudo .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem 1.5rem;
+}
+
+/* Ajuste para modo escuro */
+body.dark-mode #conteudo .card-header {
+    background-color: #212529;
+    border-bottom: 1px solid #495057;
+    color: #fff;
+}
+
+/* ========================================================
+    Estilos modernizados para a página de edição de cliente
+   ======================================================== */
+
+#cliente-form-container .card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+#cliente-form-container .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem 1.5rem;
+}
+
+#cliente-form-container .card-body {
+    padding: 1.5rem;
+}
+
+#cliente-form-container h2 {
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+}
+
+/* Tabs personalizadas */
+#cliente-form-container #clienteTabs .nav-link {
+    padding: 0.75rem 1rem;
+    border: none;
+    color: #6c757d;
+    font-weight: 500;
+    border-radius: 0;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+#cliente-form-container #clienteTabs .nav-link.active {
+    color: #007bff;
+    background-color: transparent;
+    border-bottom: 3px solid #007bff;
+}
+
+#cliente-form-container #clienteTabs .nav-link:hover:not(.active) {
+    color: #495057;
+    background-color: #f8f9fa;
+}
+
+/* Formulários mais compactos */
+#cliente-form-container .form-label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+    color: #495057;
+}
+
+#cliente-form-container .form-control,
+#cliente-form-container .form-select {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.2s ease;
+}
+
+#cliente-form-container .form-control:focus,
+#cliente-form-container .form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+#cliente-form-container .input-group {
+    margin-bottom: 0.75rem;
+}
+
+/* Layout de 2 colunas para campos menores */
+#cliente-form-container .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -8px;
+    margin-left: -8px;
+}
+
+#cliente-form-container .form-col {
+    flex: 0 0 50%;
+    max-width: 50%;
+    padding-right: 8px;
+    padding-left: 8px;
+}
+
+/* Espaçamento vertical mais compacto */
+#cliente-form-container .mb-3 {
+    margin-bottom: 0.75rem !important;
+}
+
+/* Botões mais modernos */
+#cliente-form-container .btn {
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+#cliente-form-container .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+#cliente-form-container .btn-primary:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+#cliente-form-container .btn i {
+    margin-right: 6px;
+}
+
+/* Melhoria para área de notas */
+#cliente-form-container .notes-container {
+    padding: 1rem 0;
+}
+
+#cliente-form-container #cliente-notas {
+    width: 100%;
+    min-height: 200px;
+    padding: 1rem;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    resize: vertical;
+}
+
+#cliente-form-container .notes-actions {
+    margin-top: 1rem;
+    text-align: right;
+}
+
+/* Estilos para a lista de chamados */
+#cliente-form-container .chamados-cliente-container {
+    padding: 1rem 0;
+}
+
+#cliente-form-container #chamados-cliente-lista {
+    border-radius: 6px;
+}
+
+/* Feedback visuais */
+#cliente-form-container .form-text {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+/* ID estilizado */
+#cliente-form-container .client-id {
+    background-color: #f8f9fa;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    display: inline-block;
+    font-weight: 600;
+    color: #495057;
 }
