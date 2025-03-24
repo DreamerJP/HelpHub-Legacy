@@ -7,7 +7,7 @@
 let clientNotesEditor = null;
 
 // CSS para estilos de impressão - Adicionado ao cabeçalho do documento
-(function() {
+(function () {
     const printStylesheet = document.createElement('style');
     printStylesheet.type = 'text/css';
     printStylesheet.innerHTML = `
@@ -68,7 +68,7 @@ let clientNotesEditor = null;
     /* Abordagem alternativa para impressão */
     /* Em vez de ocultar tudo e tornar apenas um elemento visível,
        vamos ocultar seletivamente elementos que não queremos imprimir */
-       
+    
     /* Ocultar elementos fora da área de impressão */
     body > *:not(#serviceOrderModal) {
         display: none !important;
@@ -251,27 +251,27 @@ function initClientNotesEditor() {
     if (clientNotesEditor) {
         return;
     }
-    
+
     // Verifica se o elemento existe antes de tentar inicializar o editor
     const editorElement = document.getElementById('cliente-notas');
     if (!editorElement) {
         console.log('Elemento cliente-notas não encontrado, ignorando inicialização do editor');
         return;
     }
-    
+
     // Calcula a altura máxima baseada na altura da tela
     const viewportHeight = window.innerHeight;
     const maxEditorHeight = Math.floor(viewportHeight * 1.5);
-    
+
     // Remover qualquer contador de caracteres existente antes de criar um novo
     const oldCounters = document.querySelectorAll('.character-count');
     oldCounters.forEach(counter => counter.remove());
-    
+
     // Inicializa o CKEditor no elemento cliente-notas
     ClassicEditor
         .create(editorElement, {
             toolbar: [
-                'heading', '|', 
+                'heading', '|',
                 'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
                 'outdent', 'indent', '|',
                 'blockQuote', 'insertTable', 'undo', 'redo'
@@ -299,7 +299,7 @@ function initClientNotesEditor() {
             characterCount.style.padding = '5px';
             characterCount.style.fontSize = '0.8em';
             characterCount.style.color = '#666';
-            
+
             // Adiciona o contador após o editor
             editor.ui.view.element.parentNode.insertBefore(
                 characterCount,
@@ -310,7 +310,7 @@ function initClientNotesEditor() {
             editor.model.document.on('change:data', () => {
                 const currentLength = editor.getData().replace(/<[^>]*>/g, '').length;
                 characterCount.innerHTML = `${currentLength} / 10000 caracteres`;
-                
+
                 // Muda a cor para vermelho quando estiver próximo do limite
                 if (currentLength > 9000) {
                     characterCount.style.color = '#c92d2d';
@@ -343,13 +343,13 @@ function initClientNotesEditor() {
 async function loadClientNotes(clientId) {
     try {
         const response = await fetch(`/clientes/${clientId}/notas`);
-        
+
         if (!response.ok) {
             throw new Error('Não foi possível carregar as notas');
         }
-        
+
         const data = await response.json();
-        
+
         // Aguarda o editor estar pronto
         if (clientNotesEditor) {
             // Define o conteúdo no editor
@@ -362,7 +362,7 @@ async function loadClientNotes(clientId) {
                 }
             }, 100);
         }
-        
+
         return true;
     } catch (error) {
         console.error('Erro ao carregar notas:', error);
@@ -381,29 +381,29 @@ async function saveClientNotes(clientId) {
                 throw new Error('Editor não está inicializado');
             }
         }
-        
+
         // Recupera o conteúdo do editor
         const notesContent = clientNotesEditor.getData();
-        
+
         // Verifica o tamanho do texto (sem as tags HTML)
         const textLength = notesContent.replace(/<[^>]*>/g, '').length;
-        
+
         // Verifica se excede o limite de caracteres
         if (textLength > 10000) {
             exibirMensagem(`Texto muito longo (${textLength}/10000 caracteres). Reduza o conteúdo para salvar.`, 'erro');
             return false;
         }
-        
+
         // Se o conteúdo estiver vazio ou contiver apenas HTML vazio, confirma com o usuário
         const isContentEmpty = !notesContent.trim() || notesContent.replace(/<[^>]*>/g, '').trim() === '';
-        
+
         if (isContentEmpty) {
             if (!confirm('O conteúdo está vazio. Isso removerá todas as informações adicionais deste cliente. Deseja continuar?')) {
                 return false;
             }
             // O usuário confirmou a deleção do conteúdo
         }
-        
+
         const response = await fetch(`/clientes/${clientId}/notas`, {
             method: 'POST',
             headers: {
@@ -413,9 +413,9 @@ async function saveClientNotes(clientId) {
                 notas: notesContent
             })
         });
-        
+
         const data = await response.json();
-        
+
         // Se a resposta contém success ou o status é ok, consideramos como sucesso
         if (data.success || response.ok) {
             if (isContentEmpty) {
@@ -425,12 +425,12 @@ async function saveClientNotes(clientId) {
             }
             return true;
         }
-        
+
         // Caso contrário, logamos o erro mas não lançamos exceção
         console.warn('Aviso ao salvar notas:', data.error || 'Status não esperado');
         exibirMensagem('Notas salvas, mas com aviso', 'aviso');
         return true;
-        
+
     } catch (error) {
         console.error('Erro ao salvar notas:', error);
         exibirMensagem('Erro ao salvar notas, mas as alterações foram mantidas', 'erro');
@@ -456,8 +456,15 @@ function destroyClientNotesEditor() {
 
 // Adiciona um listener para inicializar o CKEditor quando a aba de notas for selecionada
 document.addEventListener('shown.bs.tab', function (event) {
-    if (event.target.id === 'notas-tab') {
-        const clientId = document.getElementById('id')?.value?.replace('#', '');
+    // Verifica se é a aba de notas que foi selecionada
+    if (event.target.id === 'notas-tab' || event.target.getAttribute('href') === '#notas') {
+        // Tenta obter o ID do cliente de várias formas possíveis
+        const clientId = document.querySelector('.client-id')?.textContent?.replace('#', '') || // Novo local do ID
+            document.getElementById('id')?.value?.replace('#', '') ||
+            document.querySelector('[data-cliente-id]')?.dataset?.clienteId;
+
+        console.log('ID do cliente encontrado:', clientId); // Log para debug
+
         if (clientId) {
             destroyClientNotesEditor(); // Garante que qualquer instância anterior seja destruída
             setTimeout(() => {
@@ -466,6 +473,8 @@ document.addEventListener('shown.bs.tab', function (event) {
                     loadClientNotes(clientId);
                 }, 300);
             }, 100);
+        } else {
+            console.warn('ID do cliente não encontrado');
         }
     } else {
         // Se mudar para outra aba, destrói o editor
@@ -477,8 +486,8 @@ document.addEventListener('shown.bs.tab', function (event) {
 // pois ele não é mais necessário e pode causar problemas ao reinicializar o editor
 
 // Substitui a área de notas em modais existentes
-document.addEventListener('DOMContentLoaded', function() {
-    document.addEventListener('shown.bs.modal', function(event) {
+document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('shown.bs.modal', function (event) {
         // Verifica se o modal aberto é o de detalhes do cliente
         if (event.target.id === 'clienteDetalhesModal') {
             // Não inicializa o editor, apenas carrega as notas para visualização
@@ -499,8 +508,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         // Mantém o comportamento original para outros modais ou elementos que contenham notas editáveis
-        else if (event.target.contains(document.getElementById('notas')) && 
-                 document.getElementById('cliente-notas')) {
+        else if (event.target.contains(document.getElementById('notas')) &&
+            document.getElementById('cliente-notas')) {
             const clientId = document.querySelector('[data-cliente-id]')?.dataset?.clienteId;
             if (clientId) {
                 destroyClientNotesEditor(); // Garante que qualquer instância anterior seja destruída
@@ -514,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    document.addEventListener('hidden.bs.modal', function(event) {
+    document.addEventListener('hidden.bs.modal', function (event) {
         // Sempre destroi o editor quando o modal for fechado
         destroyClientNotesEditor();
     });
@@ -565,7 +574,7 @@ function generateServiceOrder(chamadoId) {
 function displayServiceOrderModal(chamado, cliente) {
     // Formatar a data atual para o cabeçalho da OS
     const dataAtual = new Date().toLocaleDateString('pt-BR');
-    
+
     // Formatar a data de abertura do chamado
     let dataAbertura = 'N/A';
     try {
@@ -594,12 +603,12 @@ function displayServiceOrderModal(chamado, cliente) {
 
     if (cliente) {
         clienteInfo = `<strong>${cliente.nome || ''}</strong>${cliente.nome_fantasia ? ' (' + cliente.nome_fantasia + ')' : ''}`;
-        
+
         // Informações de documento
         if (cliente.cnpj_cpf) {
             clienteInfo += `<br>${cliente.tipo_cliente === 'Pessoa Física' ? 'CPF' : 'CNPJ'}: ${cliente.cnpj_cpf}`;
         }
-        
+
         // Contato
         let contatos = [];
         if (cliente.telefone) contatos.push(`Telefone: ${cliente.telefone}`);
@@ -607,7 +616,7 @@ function displayServiceOrderModal(chamado, cliente) {
         if (contatos.length > 0) {
             clienteContato = contatos.join('<br>');
         }
-        
+
         // Endereço
         let enderecoPartes = [];
         if (cliente.rua) {
@@ -617,7 +626,7 @@ function displayServiceOrderModal(chamado, cliente) {
         }
         if (cliente.complemento) enderecoPartes.push(cliente.complemento);
         if (cliente.bairro) enderecoPartes.push(cliente.bairro);
-        
+
         let cidadeEstado = '';
         if (cliente.cidade) cidadeEstado += cliente.cidade;
         if (cliente.estado) {
@@ -625,9 +634,9 @@ function displayServiceOrderModal(chamado, cliente) {
             cidadeEstado += cliente.estado;
         }
         if (cidadeEstado) enderecoPartes.push(cidadeEstado);
-        
+
         if (cliente.cep) enderecoPartes.push(`CEP: ${cliente.cep}`);
-        
+
         if (enderecoPartes.length > 0) {
             clienteEndereco = enderecoPartes.join('<br>');
         }
@@ -648,7 +657,7 @@ function displayServiceOrderModal(chamado, cliente) {
             } catch (e) {
                 console.error('Erro ao formatar data do andamento:', e);
             }
-            
+
             andamentosHTML += `
                 <li>
                     <div class="timeline-badge"><i class="bi bi-clock-history"></i></div>
@@ -675,7 +684,7 @@ function displayServiceOrderModal(chamado, cliente) {
         `
         : '<p><strong>Agendamento:</strong> Nenhum agendamento encontrado</p>';
 
-    
+
     // Construir o conteúdo do modal da ordem de serviço
     const modalContent = `
         <!-- Área que será impressa -->
@@ -784,7 +793,7 @@ function displayServiceOrderModal(chamado, cliente) {
 
     // Atualizar o conteúdo do modal
     document.getElementById('serviceOrderModalBody').innerHTML = modalContent;
-    
+
     // Exibir o modal
     const modalElement = document.getElementById('serviceOrderModal');
     const modal = new bootstrap.Modal(document.getElementById('serviceOrderModal'));
@@ -799,7 +808,7 @@ function printServiceOrder() {
 // Função para exportar a ordem de serviço como PDF
 function exportOrderToPDF() {
     const element = document.getElementById('service-order-printable');
-    
+
     // Configurações do PDF
     const opt = {
         margin: [10, 10, 10, 10],
@@ -808,10 +817,10 @@ function exportOrderToPDF() {
         html2canvas: { scale: 2, useCORS: true, logging: false },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
-    
+
     // Mostrar indicador de carregamento
     showLoading();
-    
+
     // Converter e baixar como PDF
     html2pdf().set(opt).from(element).save().then(() => {
         hideLoading();
@@ -825,10 +834,10 @@ function exportOrderToPDF() {
 // Função para exportar a ordem de serviço como PNG
 function exportOrderToPNG() {
     const element = document.getElementById('service-order-printable');
-    
+
     // Mostrar indicador de carregamento
     showLoading();
-    
+
     // Usar html2canvas para converter para imagem
     html2canvas(element, {
         scale: 2,
@@ -848,7 +857,7 @@ function exportOrderToPNG() {
         link.download = 'ordem-servico.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
-        
+
         hideLoading();
     }).catch(error => {
         console.error('Erro ao gerar PNG:', error);
@@ -860,10 +869,10 @@ function exportOrderToPNG() {
 // Função para exportar a ordem de serviço como JPG
 function exportOrderToJPG() {
     const element = document.getElementById('service-order-printable');
-    
+
     // Mostrar indicador de carregamento
     showLoading();
-    
+
     // Usar html2canvas para converter para imagem
     html2canvas(element, {
         scale: 2,
@@ -883,7 +892,7 @@ function exportOrderToJPG() {
         link.download = 'ordem-servico.jpg';
         link.href = canvas.toDataURL('image/jpeg', 0.9);
         link.click();
-        
+
         hideLoading();
     }).catch(error => {
         console.error('Erro ao gerar JPG:', error);
