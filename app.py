@@ -1,6 +1,6 @@
 import os
 import math
-from flask import Flask, request, jsonify, send_from_directory, session, redirect, url_for, g
+from flask import Flask, request, jsonify, send_from_directory, session, redirect, url_for, g, render_template, abort
 from flask_cors import CORS
 import sqlite3
 from datetime import datetime, timedelta
@@ -14,6 +14,7 @@ from functools import wraps
 import secrets
 import threading
 import re
+import html
 
 # ========================================================
 # INICIALIZAÇÃO E CONFIGURAÇÃO BÁSICA
@@ -34,6 +35,12 @@ def setup_critical_logger():
     critical_handler.setFormatter(critical_formatter)
     critical_logger.addHandler(critical_handler)
     return critical_logger
+
+# Sanitiza o texto HTML para evitar ataques XSS
+def sanitize_html(text):
+    if text is None:
+        return ""
+    return html.escape(str(text))
 
 # Inicializa logger crítico para erros de setup que possam ocorrer antes da inicialização completa
 critical_logger = setup_critical_logger()
@@ -374,9 +381,10 @@ def criar_tabelas():
         cursor.execute('''CREATE TABLE IF NOT EXISTS usuarios (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
+            password TEXT,
             role TEXT NOT NULL DEFAULT 'guest',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            senha_inicial_definida BOOLEAN DEFAULT FALSE
         )''')
         
         # Tabela configurações - armazena parâmetros globais do sistema
@@ -398,14 +406,10 @@ def criar_tabelas():
         # Verifica se já existe um usuário admin e cria se necessário
         cursor.execute('SELECT COUNT(*) FROM usuarios WHERE username = "admin"')
         if cursor.fetchone()[0] == 0:
-            # Cria o usuário admin padrão com senha hash segura
-            admin_pass = generate_password_hash('admin')
-            cursor.execute('INSERT INTO usuarios (username, password, role) VALUES (?, ?, ?)',
-                         ('admin', admin_pass, 'admin'))
+            # Cria o usuário admin sem senha definida
+            cursor.execute('INSERT INTO usuarios (username, password, role, senha_inicial_definida) VALUES (?, NULL, ?, ?)',
+                        ('admin', 'admin', False))
         
-        # Salva as alterações no banco de dados
-        conn.commit()
-
         # Adiciona a coluna 'notas' à tabela clientes se ela não existir
         cursor.execute('''
             SELECT COUNT(*) FROM pragma_table_info('clientes') WHERE name='notas'
@@ -420,7 +424,19 @@ def criar_tabelas():
             notas TEXT,
             FOREIGN KEY(cliente_id) REFERENCES clientes(id) ON DELETE CASCADE
         )''')
+        
+        # Adiciona a coluna senha_inicial_definida se não existir
+        cursor.execute('''
+            SELECT COUNT(*) FROM pragma_table_info('usuarios') 
+            WHERE name='senha_inicial_definida'
+        ''')
+        if cursor.fetchone()[0] == 0:
+            cursor.execute('ALTER TABLE usuarios ADD COLUMN senha_inicial_definida BOOLEAN DEFAULT TRUE')
+            # Define como TRUE para usuários existentes
+            cursor.execute('UPDATE usuarios SET senha_inicial_definida = TRUE WHERE password IS NOT NULL')
             
+        conn.commit()
+
 # Executa a criação das tabelas ao iniciar o aplicativo
 criar_tabelas()
 
@@ -591,6 +607,19 @@ def static_files(path):
     app_logger.info(f"Acessando arquivo estático: {path}")
     return send_from_directory('static', path)
 
+@app.route('/help')
+def help_page():
+    return send_from_directory('static', 'help.html')
+
+@app.route('/static/docs/<topic>')
+def serve_markdown(topic):
+    # Adiciona a extensão .md ao nome do arquivo
+    file_path = f"{topic}.md"
+    try:
+        return send_from_directory('static/docs', file_path)
+    except FileNotFoundError:
+        abort(404)
+
 # ========================================================
 # ROTA PARA O EASTER EGG (JOGO SNAKE)
 # ========================================================
@@ -628,13 +657,13 @@ def listar_clientes():
         
         # Query SQL para selecionar clientes com paginação
         query = f"""
-         SELECT id, nome, nome_fantasia, email, telefone, ativo,
+        SELECT id, nome, nome_fantasia, email, telefone, ativo,
                 tipo_cliente, cnpj_cpf, ie_rg, contribuinte_icms, rg_orgao_emissor,
                 nacionalidade, naturalidade, estado_nascimento, data_nascimento,
                 sexo, profissao, estado_civil, inscricao_municipal,
                 cep, rua, numero, complemento, bairro, cidade, estado, pais
-         FROM clientes
-         {order_clause} LIMIT ? OFFSET ?
+        FROM clientes
+        {order_clause} LIMIT ? OFFSET ?
         """
         
         with get_db_connection() as conn:
@@ -677,12 +706,6 @@ def cadastrar_cliente():
         if not dados or not dados.get('nome') or len(dados['nome'].strip()) == 0:
             app_logger.warning("Tentativa de cadastrar cliente sem nome")
             return jsonify({'erro': 'Nome é obrigatório'}), 400
-
-        # Validação de formato de email, se fornecido
-        if 'email' in dados and dados['email']:
-            if '@' not in dados['email'] or '.' not in dados['email']:
-                app_logger.warning(f"Tentativa de cadastrar cliente com email inválido: {dados['email']}")
-                return jsonify({'erro': 'Email inválido'}), 400
 
         # Processa os dados e insere no banco
         with get_db_connection() as conn:
@@ -878,13 +901,13 @@ def buscar_clientes():
         
         # Query SQL para buscar clientes com base no termo de pesquisa
         query = """
-         SELECT id, nome, nome_fantasia, email, telefone, ativo,
+        SELECT id, nome, nome_fantasia, email, telefone, ativo,
                 tipo_cliente, cnpj_cpf, ie_rg, contribuinte_icms, rg_orgao_emissor,
                 nacionalidade, naturalidade, estado_nascimento, data_nascimento,
                 sexo, profissao, estado_civil, inscricao_municipal
-         FROM clientes
-         WHERE id LIKE ? OR nome LIKE ? OR email LIKE ?
-         COLLATE NOCASE
+        FROM clientes
+        WHERE id LIKE ? OR nome LIKE ? OR email LIKE ?
+        COLLATE NOCASE
         """
         
         with get_db_connection() as conn:
@@ -1372,8 +1395,8 @@ def obter_chamado(id):
             # Seleciona os dados do chamado, incluindo o nome do cliente através de um JOIN
             cursor.execute('''
                 SELECT ch.id, ch.cliente_id, ch.descricao, ch.status, ch.data_abertura, 
-                       ch.data_fechamento, ch.protocolo, ch.assunto, ch.telefone, ch.solicitante,
-                       cl.nome as cliente_nome, cl.telefone as cliente_telefone
+                    ch.data_fechamento, ch.protocolo, ch.assunto, ch.telefone, ch.solicitante,
+                    cl.nome as cliente_nome, cl.telefone as cliente_telefone
                 FROM chamados ch
                 LEFT JOIN clientes cl ON ch.cliente_id = cl.id
                 WHERE ch.id = ?
@@ -1419,17 +1442,24 @@ def obter_chamado(id):
             return jsonify({
                 'id': chamado[0],
                 'cliente_id': chamado[1],
-                'descricao': chamado[2],
+                'descricao': sanitize_html(chamado[2]),
                 'status': chamado[3],
                 'data_abertura': chamado[4],
                 'data_fechamento': chamado[5],
                 'protocolo': chamado[6],
-                'assunto': chamado[7],
+                'assunto': sanitize_html(chamado[7]),
                 'telefone': chamado[8],
-                'solicitante': chamado[9],
+                'solicitante': sanitize_html(chamado[9]),
                 'cliente_nome': chamado[10],
                 'cliente_telefone': chamado[11],
-                'andamentos': andamentos_list,
+                'andamentos': [
+                    {
+                        'id': a['id'],
+                        'data_hora': a['data_hora'],
+                        'texto': sanitize_html(a['texto'])
+                    }
+                    for a in andamentos_list
+                ],
                 'agendamento': agendamento_data
             })
     except Exception as e:
@@ -1637,20 +1667,41 @@ def auth_login():
             auth_logger.warning(f"Tentativa de login sem usuário ou senha - IP: {client_ip}")
             return jsonify({'success': False, 'error': 'Usuário e senha são obrigatórios'}), 400
         
+        # Busca o usuário no banco de dados
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            # Busca o usuário no banco de dados
-            cursor.execute('SELECT id, username, password, role FROM usuarios WHERE username = ?', (username,))
+            cursor.execute('''
+                SELECT id, username, password, role, senha_inicial_definida 
+                FROM usuarios 
+                WHERE username = ?
+            ''', (username,))
             usuario = cursor.fetchone()
             
-            # Verifica se o usuário existe e se a senha está correta
-            if usuario and check_password_hash(usuario[2], password):
-                # Armazena os dados do usuário na sessão
+            if not usuario:
+                auth_logger.warning(f"Usuário não encontrado: {username} - IP: {client_ip}")
+                return jsonify({'success': False, 'error': 'Credenciais inválidas'}), 401
+
+            # Se senha não estiver definida, verifica se é o primeiro acesso
+            if usuario[2] is None and not usuario[4]:
+                # Primeiro acesso do admin - verifica se a senha corresponde à padrão "admin"
+                if username == "admin" and password == "admin":
+                    session['user_id'] = usuario[0]
+                    session['username'] = usuario[1]
+                    session['role'] = usuario[3]
+                    auth_logger.info(f"Primeiro acesso do admin - IP: {client_ip}")
+                    return jsonify({
+                        'success': False, 
+                        'initial_password_required': True
+                    })
+                return jsonify({'success': False, 'error': 'Credenciais inválidas'}), 401
+
+            # Verifica se a senha está correta
+            if usuario[2] and check_password_hash(usuario[2], password):
                 session['user_id'] = usuario[0]
                 session['username'] = usuario[1]
                 session['role'] = usuario[3]
                 session.permanent = True
-                
+
                 auth_logger.info(f"Login bem-sucedido para o usuário {username} - IP: {client_ip}")
                 
                 # Verifica se é necessário fazer backup
@@ -1684,11 +1735,57 @@ def auth_login():
                     'backup': backup_info
                 })
             else:
-                auth_logger.warning(f"Tentativa de login malsucedida para o usuário {username} - IP: {client_ip}")
+                auth_logger.warning(f"Senha incorreta para usuário {username} - IP: {client_ip}")
                 return jsonify({'success': False, 'error': 'Credenciais inválidas'}), 401
-                
+
     except Exception as e:
         auth_logger.error(f"Erro no login: {e} - IP: {client_ip}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/auth/set_initial_password', methods=['POST'])
+@login_required
+def set_initial_password():
+    try:
+        if session.get('username') != 'admin':
+            auth_logger.warning(f"Usuário não autorizado tentou definir senha inicial")
+            return jsonify({'success': False, 'error': 'Não autorizado'}), 403
+
+        dados = request.json
+        nova_senha = dados.get('password')
+        
+        if not nova_senha or len(nova_senha) < 8:
+            return jsonify({'success': False, 'error': 'Senha deve ter pelo menos 8 caracteres'}), 400
+
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Verifica se o usuário ainda não definiu a senha inicial
+            cursor.execute('''
+                SELECT senha_inicial_definida 
+                FROM usuarios 
+                WHERE username = 'admin'
+            ''')
+            result = cursor.fetchone()
+            
+            if not result or result[0]:
+                auth_logger.warning("Tentativa de redefinir senha inicial já definida")
+                return jsonify({'success': False, 'error': 'Senha inicial já foi definida'}), 403
+
+            # Gera o hash da nova senha e atualiza o registro
+            hashed_password = generate_password_hash(nova_senha)
+            cursor.execute('''
+                UPDATE usuarios 
+                SET password = ?, senha_inicial_definida = TRUE 
+                WHERE username = 'admin'
+            ''', (hashed_password,))
+            
+            conn.commit()
+            
+            auth_logger.info("Senha inicial do admin definida com sucesso")
+            return jsonify({'success': True, 'message': 'Senha definida com sucesso'})
+
+    except Exception as e:
+        auth_logger.error(f"Erro ao definir senha inicial: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 # Rota para logout de usuários
@@ -1720,6 +1817,29 @@ def renew_session():
         return jsonify({'success': True})
     app_logger.warning("Tentativa de renovar sessão sem user_id na sessão.")
     return jsonify({'success': False}), 401
+
+@app.route('/auth/check-first-access', methods=['GET'])
+def check_first_access():
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT senha_inicial_definida 
+                FROM usuarios 
+                WHERE username = 'admin'
+            ''')
+            result = cursor.fetchone()
+            
+            # Se result[0] for False ou NULL, é primeiro acesso
+            is_first_access = not result[0] if result else True
+            
+            return jsonify({
+                'is_first_access': is_first_access
+            })
+            
+    except Exception as e:
+        app_logger.error(f"Erro ao verificar primeiro acesso: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # Rota para obter informações sobre os backups
 @app.route('/system/backups', methods=['GET'])
@@ -2229,7 +2349,7 @@ def listar_agendamentos():
                     cl.telefone AS cliente_telefone,
                     cl.rua || ', ' || cl.numero || 
                         CASE WHEN cl.complemento IS NOT NULL AND cl.complemento != '' 
-                             THEN ' - ' || cl.complemento ELSE '' END || 
+                            THEN ' - ' || cl.complemento ELSE '' END || 
                         ' - ' || cl.bairro || ' - ' || cl.cidade || '/' || cl.estado AS endereco_completo
                 FROM agendamentos ag
                 JOIN chamados ch ON ag.chamado_id = ch.id
@@ -2400,7 +2520,7 @@ def obter_agendamento(id):
                     cl.telefone AS cliente_telefone,
                     cl.rua || ', ' || cl.numero || 
                         CASE WHEN cl.complemento IS NOT NULL AND cl.complemento != '' 
-                             THEN ' - ' || cl.complemento ELSE '' END || 
+                            THEN ' - ' || cl.complemento ELSE '' END || 
                         ' - ' || cl.bairro || ' - ' || cl.cidade || '/' || cl.estado AS endereco_completo
                 FROM agendamentos ag
                 JOIN chamados ch ON ag.chamado_id = ch.id
@@ -2636,11 +2756,11 @@ def obter_cliente(id):
             # Query SQL para selecionar os dados do cliente
             cursor.execute("""
                 SELECT id, nome, nome_fantasia, email, telefone, ativo,
-                       tipo_cliente, cnpj_cpf, ie_rg, contribuinte_icms,
-                       rg_orgao_emissor, nacionalidade, naturalidade,
-                       estado_nascimento, data_nascimento, sexo, profissao,
-                       estado_civil, inscricao_municipal, cep, rua, numero,
-                       complemento, bairro, cidade, estado, pais
+                    tipo_cliente, cnpj_cpf, ie_rg, contribuinte_icms,
+                    rg_orgao_emissor, nacionalidade, naturalidade,
+                    estado_nascimento, data_nascimento, sexo, profissao,
+                    estado_civil, inscricao_municipal, cep, rua, numero,
+                    complemento, bairro, cidade, estado, pais
                 FROM clientes 
                 WHERE id = ?
             """, (id,))
@@ -2754,41 +2874,37 @@ def table_data(table_name):
     """
     if session.get('role') != 'admin':
         return jsonify({'error': 'Acesso negado'}), 403
-    
+
     try:
         # Sanitizar nome da tabela para evitar SQL injection
         # Os nomes de tabela SQLite não podem conter caracteres especiais, apenas letras, números e underscores
         if not re.match(r'^[a-zA-Z0-9_]+$', table_name):
             return jsonify({'error': 'Nome de tabela inválido'}), 400
-        
+
         with get_db_connection() as conn:
             # Tornar o dicionário acessível por nome de coluna
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            
+
             # Verificar se a tabela existe
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
             if not cursor.fetchone():
                 return jsonify({'error': 'Tabela não encontrada'}), 404
-            
+
             # Obter informações sobre colunas
             cursor.execute(f"PRAGMA table_info({table_name})")
             columns = [row['name'] for row in cursor.fetchall()]
-            
+
             # Obter todos os registros
             cursor.execute(f"SELECT * FROM {table_name}")
             records = [dict(row) for row in cursor.fetchall()]
-            
+
             # Estimar tamanho da tabela
             estimated_size = 0
             for record in records:
                 for key, value in record.items():
                     if value is not None:
-                        if isinstance(value, str):
-                            estimated_size += len(value.encode('utf-8'))
-                        else:
-                            estimated_size += 8  # Estimativa para números e outros tipos
-            
+                        estimated_size += len(value.encode('utf-8')) if isinstance(value, str) else 8
             # Converter para KB ou MB
             size_text = ''
             if estimated_size > 1024 * 1024:
@@ -2797,10 +2913,10 @@ def table_data(table_name):
                 size_text = f"{estimated_size / 1024:.2f} KB"
             else:
                 size_text = f"{estimated_size} bytes"
-            
+
             # Registra acesso no log
             app_logger.info(f"Administrador {session.get('username')} visualizou dados da tabela {table_name}")
-            
+
             return jsonify({
                 'columns': columns,
                 'records': records,
