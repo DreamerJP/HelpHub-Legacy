@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,22 +19,22 @@
     <link href="https://unpkg.com/@popperjs/core@2.11.6/dist/umd/popper.min.css" rel="stylesheet">
     <link href="https://unpkg.com/tippy.js@6.3.7/themes/light.css" rel="stylesheet">
     <link href="https://unpkg.com/tippy.js@6.3.7/animations/shift-away.css" rel="stylesheet">
-    
+
     <!-- CKEditor 5 -->
     <script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
-    
+
     <!-- Bibliotecas para exportação -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
+
 <body>
     <!-- Barra de navegação principal usando Bootstrap 5 -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <!-- Logo da aplicação com link para a home -->
             <a class="navbar-brand" href="#" onclick="carregarHome()">
-                <img src="logo.png" alt="Logo" height="30" class="d-inline-block align-text-top">
-                HelpHub
+                <img src="logo.png" alt="Logo" height="50" class="d-inline-block align-text-top">
             </a>
             <!-- Botão hambúrguer para menu responsivo em dispositivos móveis -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -81,6 +82,12 @@
                             <i class="bi bi-server"></i> Database Viewer
                         </a>
                     </li>
+                    <!-- Link para a página de ajuda -->
+                    <li class="nav-item">
+                        <a id="menu-help" class="nav-link" href="/help" target="_blank">
+                            <i class="bi bi-question-circle"></i> Ajuda
+                        </a>
+                    </li>
                 </ul>
                 <!-- Controles à direita: informações do usuário, tema e logout -->
                 <ul class="navbar-nav ms-auto">
@@ -110,7 +117,7 @@
     </nav>
 
     <!-- Container principal - área de conteúdo dinâmico -->
-    <div class="container mt-4" id="conteudo">
+    <div class="container mt-2" id="conteudo">
         <!-- Conteúdo inicial (Home) - será substituído via JavaScript -->
         <div class="row">
             <!-- Área esquerda (pesquisa e estatísticas) -->
@@ -121,7 +128,8 @@
                         <h2><i class="bi bi-search"></i> Buscar Cliente</h2>
                         <div class="input-group mb-3">
                             <span class="input-group-text"><i class="bi bi-person-search"></i></span>
-                            <input type="text" id="busca-cliente" class="form-control" placeholder="Digite nome ou email...">
+                            <input type="text" id="busca-cliente" class="form-control"
+                                placeholder="Digite nome ou email...">
                             <button class="btn btn-primary" onclick="buscarClientes()">
                                 <i class="bi bi-search"></i> Buscar
                             </button>
@@ -141,8 +149,10 @@
                                     <canvas id="grafico-chamados"></canvas>
                                 </div>
                                 <div class="mt-3">
-                                    <p><i class="bi bi-hourglass-split"></i> Total de Chamados Abertos: <span id="total-abertos">0</span></p>
-                                    <p><i class="bi bi-check-circle"></i> Total de Chamados Fechados: <span id="total-fechados">0</span></p>
+                                    <p><i class="bi bi-hourglass-split"></i> Total de Chamados Abertos: <span
+                                            id="total-abertos">0</span></p>
+                                    <p><i class="bi bi-check-circle"></i> Total de Chamados Fechados: <span
+                                            id="total-fechados">0</span></p>
                                 </div>
                             </div>
                         </div>
@@ -184,6 +194,344 @@
         </div>
     </div>
 
+    <!-- Templates para conteúdo dinâmico -->
+    <template id="home-template">
+        <div class="home-page-container">
+            <!-- Seção superior -->
+            <div class="top-section">
+                <div class="search-card-wrapper">
+                    <div class="card search-card">
+                        <div class="card-body">
+                            <h2><i class="bi bi-search"></i> Buscar Cliente</h2>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="bi bi-person-search"></i></span>
+                                <input type="text" id="busca-cliente" class="form-control"
+                                    placeholder="Digite nome ou email...">
+                                <button class="btn btn-primary" onclick="buscarClientes()">
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                            </div>
+                            <div id="resultado-busca"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="system-summary-wrapper">
+                    <div class="card home-card">
+                        <div class="card-body">
+                            <h5><i class="bi bi-clipboard-data"></i> Resumo do Sistema</h5>
+                            <ul class="list-group" id="estatisticas-gerais"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção inferior -->
+            <div class="bottom-section">
+                <div class="statistics-wrapper">
+                    <div class="card home-card">
+                        <div class="card-body">
+                            <h5><i class="bi bi-graph-up"></i> Estatísticas de Chamados</h5>
+                            <div class="period-selector">
+                                <select id="periodo-estatisticas" class="form-select form-select-sm">
+                                    <option value="total">Todo o período</option>
+                                    <option value="mensal">Mensal (mês atual)</option>
+                                    <option value="semanal">Semanal (semana atual)</option>
+                                    <option value="diario">Diário (hoje)</option>
+                                </select>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="grafico-chamados"></canvas>
+                            </div>
+                            <div class="stats-summary">
+                                <p><i class="bi bi-hourglass-split"></i> Total de Chamados Abertos: <span
+                                        id="total-abertos">0</span></p>
+                                <p><i class="bi bi-check-circle"></i> Total de Chamados Fechados: <span
+                                        id="total-fechados">0</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-tickets-wrapper">
+                    <div class="card home-card">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3"><i class="bi bi-clock-history"></i> Últimos Chamados</h5>
+                            <div id="ultimos-chamados" class="recent-tickets-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template para página de edição de cliente -->
+    <template id="editar-cliente-template">
+        <div id="cliente-form-container" class="cliente-form-container">
+            <div class="row">
+                <div class="col-md-10 offset-md-1">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h2 class="m-0">Editar Cliente</h2>
+                            <span class="client-id">#${cliente[0]}</span>
+                        </div>
+                        <div class="card-body">
+                            <!-- Tabs de navegação -->
+                            <ul class="nav nav-tabs" id="clienteTabs">...</ul>
+
+                            <!-- Conteúdo das tabs -->
+                            <div class="tab-content pt-4" id="clienteTabsContent">...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Templates adicionais -->
+    <template id="chamados-abertos-template">
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="mb-4">Chamados Abertos</h2>
+
+                <div class="modern-search mb-3">
+                    <input type="text" id="pesquisa-chamados-aberto" class="form-control"
+                        placeholder="Pesquisar por cliente, protocolo ou assunto...">
+                </div>
+
+                <div class="modern-toolbar">
+                    <button id="btn-abrir" class="btn btn-info" onclick="abrirDetalhesChamado(selectedChamadoId)"
+                        disabled>
+                        <i class="bi bi-folder2-open"></i> Visualizar
+                    </button>
+                    <button id="btn-finalizar" class="btn btn-success" onclick="finalizarChamado(selectedChamadoId)"
+                        disabled>
+                        <i class="bi bi-check-lg"></i> Finalizar
+                    </button>
+                    <button id="btn-excluir" class="btn btn-danger" onclick="excluirChamado(selectedChamadoId)"
+                        disabled>
+                        <i class="bi bi-trash"></i> Excluir
+                    </button>
+                </div>
+
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Protocolo</th>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th onclick="sortChamados('data')">Data</th>
+                            <th>Assunto</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chamados-list">
+                    </tbody>
+                </table>
+
+                <div class="modern-pagination">
+                    <button id="btn-anterior-chamados-aberto" onclick="paginaAnteriorChamados('Aberto')">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </button>
+                    <span class="page-info" id="pagina-atual-chamados-aberto">
+                        Página 1
+                    </span>
+                    <button id="btn-proximo-chamados-aberto" onclick="proximaPaginaChamados('Aberto')">
+                        Próxima <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template para chamados finalizados -->
+    <template id="chamados-finalizados-template">
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="mb-4">Chamados Finalizados</h2>
+
+                <div class="modern-search mb-3">
+                    <input type="text" id="pesquisa-chamados-finalizado" class="form-control"
+                        placeholder="Pesquisar por cliente, protocolo ou assunto...">
+                </div>
+
+                <div class="modern-toolbar">
+                    <button id="btn-abrir" class="btn btn-info" onclick="abrirDetalhesChamado(selectedChamadoId)"
+                        disabled>
+                        <i class="bi bi-folder2-open"></i> Visualizar
+                    </button>
+                    <button id="btn-reabrir" class="btn btn-warning" onclick="reabrirChamado(selectedChamadoId)"
+                        disabled>
+                        <i class="bi bi-arrow-clockwise"></i> Reabrir
+                    </button>
+                    <button id="btn-excluir" class="btn btn-danger" onclick="excluirChamado(selectedChamadoId)"
+                        disabled>
+                        <i class="bi bi-trash"></i> Excluir
+                    </button>
+                </div>
+
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Protocolo</th>
+                            <th>Cliente</th>
+                            <th onclick="sortChamados('data')">Data</th>
+                            <th>Assunto</th>
+                            <th>Data Fechamento</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chamados-finalizados">
+                    </tbody>
+                </table>
+
+                <div class="modern-pagination">
+                    <button id="btn-anterior-chamados-finalizado" onclick="paginaAnteriorChamados('Finalizado')">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </button>
+                    <span class="page-info" id="pagina-atual-chamados-finalizado">
+                        Página 1
+                    </span>
+                    <button id="btn-proximo-chamados-finalizado" onclick="proximaPaginaChamados('Finalizado')">
+                        Próxima <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template para página de clientes -->
+    <template id="clientes-page-template">
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="mb-4">Clientes Cadastrados</h2>
+
+                <!-- Barra de pesquisa moderna -->
+                <div class="modern-search">
+                    <input type="text" id="pesquisa-cliente" class="form-control"
+                        placeholder="Pesquisar por nome, ID ou e-mail...">
+                </div>
+
+                <!-- Toolbar moderna -->
+                <div class="modern-toolbar">
+                    <button id="btn-novo-cliente" class="btn btn-success" onclick="carregarNovoClientePage()">
+                        <i class="bi bi-plus-lg"></i> Novo Cliente
+                    </button>
+                    <button id="btn-editar-cliente" class="btn btn-info" onclick="editarClienteSelecionado()" disabled>
+                        <i class="bi bi-pencil"></i> Visualizar
+                    </button>
+                    <button id="btn-excluir-cliente" class="btn btn-danger" onclick="excluirClienteSelecionado()"
+                        disabled>
+                        <i class="bi bi-trash"></i> Excluir
+                    </button>
+                </div>
+
+                <!-- Tabela moderna -->
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th onclick="ordenarClientes('id')">ID - Nome</th>
+                            <th>Nome Fantasia</th>
+                            <th>E-mail</th>
+                            <th>Telefone</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientes">
+                        <!-- Dados serão renderizados aqui -->
+                    </tbody>
+                </table>
+
+                <!-- Paginação moderna -->
+                <div class="modern-pagination">
+                    <button id="btn-anterior" onclick="paginaAnteriorClientes()">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </button>
+                    <span class="page-info" id="pagina-atual">
+                        Página ${paginaAtualClientes}/${totalPaginasClientes}
+                    </span>
+                    <button id="btn-proximo" onclick="proximaPaginaClientes()">
+                        Próxima <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template para abrir novo chamado -->
+    <template id="abrir-chamado-template">
+        <div class="row">
+            <div class="col-md-12">
+                <h2 class="mb-4">Abrir Novo Chamado</h2>
+                <form id="chamado-form">
+                    <div class="mb-3">
+                        <label for="cliente_busca" class="form-label">Cliente:</label>
+                        <input type="text" class="form-control" id="cliente_busca"
+                            placeholder="Digite para buscar cliente...">
+                        <input type="hidden" id="cliente_id">
+                        <div id="resultados_cliente" class="list-group mt-2"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="solicitante" class="form-label">Solicitante:</label>
+                        <input type="text" class="form-control" id="solicitante" placeholder="Nome do solicitante">
+                    </div>
+                    <div class="mb-3">
+                        <label for="telefone_chamado" class="form-label">Telefone:</label>
+                        <input type="text" class="form-control" id="telefone_chamado">
+                    </div>
+                    <div class="mb-3">
+                        <label for="assunto" class="form-label">Assunto:</label>
+                        <input type="text" class="form-control" id="assunto" placeholder="Resumo do problema"
+                            maxlength="70">
+                        <div class="form-text">Máximo 70 caracteres</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="descricao" class="form-label">Descrição:</label>
+                        <textarea class="form-control" id="descricao" rows="5"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Abrir Chamado</button>
+                </form>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template para o indicador de carregamento do Google Maps -->
+    <template id="loading-maps-template">
+        <div id="loading-maps-container"
+            style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+            <div style="background: white; padding: 20px; border-radius: 8px; text-align: center;">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2">Obtendo sua localização...</p>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template para página de chamados -->
+    <template id="chamados-page-template">
+        <div id="chamados-subnav" class="mb-3">
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <a id="tab-abrir" class="nav-link active" href="#"
+                        onclick="event.preventDefault(); selecionarAbaChamados('abrir'); carregarAbrirChamado();">
+                        Novo Chamado
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a id="tab-abertos" class="nav-link" href="#"
+                        onclick="event.preventDefault(); selecionarAbaChamados('abertos'); carregarChamadosAbertos();">
+                        Chamados Abertos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a id="tab-finalizados" class="nav-link" href="#"
+                        onclick="event.preventDefault(); selecionarAbaChamados('finalizados'); carregarChamadosFinalizados();">
+                        Chamados Finalizados
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div id="chamados-content"></div>
+    </template>
+
     <!-- Modal: Detalhes do cliente -->
     <div class="modal fade" id="clienteModal" tabindex="-1">
         <div class="modal-dialog">
@@ -224,11 +572,10 @@
                 <div class="modal-body">
                     <form id="agendamentoForm">
                         <div class="mb-3">
-                            <label for="busca-chamado" class="form-label"><i class="bi bi-search"></i> Buscar Chamado:</label>
-                            <input type="text" 
-                                   id="busca-chamado" 
-                                   class="form-control" 
-                                   placeholder="Digite protocolo, assunto ou nome do cliente...">
+                            <label for="busca-chamado" class="form-label"><i class="bi bi-search"></i> Buscar
+                                Chamado:</label>
+                            <input type="text" id="busca-chamado" class="form-control"
+                                placeholder="Digite protocolo, assunto ou nome do cliente...">
                             <div id="lista-chamados" class="list-group mt-2 chamados-dropdown">
                                 <!-- Resultados da busca de chamados aparecem aqui -->
                             </div>
@@ -237,17 +584,20 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="data_agendamento" class="form-label"><i class="bi bi-calendar-event"></i> Data Inicial:</label>
+                            <label for="data_agendamento" class="form-label"><i class="bi bi-calendar-event"></i> Data
+                                Inicial:</label>
                             <input type="datetime-local" class="form-control" id="data_agendamento" required>
                         </div>
                         <div class="mb-3">
-                            <label for="data_final_agendamento" class="form-label"><i class="bi bi-calendar-check"></i> Data Final:</label>
+                            <label for="data_final_agendamento" class="form-label"><i class="bi bi-calendar-check"></i>
+                                Data Final:</label>
                             <input type="datetime-local" class="form-control" id="data_final_agendamento" required>
                         </div>
                         <div class="mb-3">
-                            <label for="observacoes_agendamento" class="form-label"><i class="bi bi-pencil-square"></i> Observações:</label>
-                            <textarea class="form-control" id="observacoes_agendamento" rows="3" 
-                                      placeholder="Observações adicionais para este agendamento..."></textarea>
+                            <label for="observacoes_agendamento" class="form-label"><i class="bi bi-pencil-square"></i>
+                                Observações:</label>
+                            <textarea class="form-control" id="observacoes_agendamento" rows="3"
+                                placeholder="Observações adicionais para este agendamento..."></textarea>
                         </div>
                     </form>
                 </div>
@@ -274,7 +624,8 @@
                 <div class="modal-body">
                     <form id="finalizarChamadoForm">
                         <div class="mb-3">
-                            <label for="relatorio_visita_modal" class="form-label"><i class="bi bi-file-text"></i> Relatório da Visita:</label>
+                            <label for="relatorio_visita_modal" class="form-label"><i class="bi bi-file-text"></i>
+                                Relatório da Visita:</label>
                             <textarea class="form-control" id="relatorio_visita_modal" rows="3" required></textarea>
                         </div>
                     </form>
@@ -321,7 +672,8 @@
     </div>
 
     <!-- Modal: Visualização detalhada de agendamento -->
-    <div class="modal fade" id="agendamentoDetalhesModal" tabindex="-1" aria-labelledby="agendamentoDetalhesModalLabel" aria-hidden="true">
+    <div class="modal fade" id="agendamentoDetalhesModal" tabindex="-1" aria-labelledby="agendamentoDetalhesModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -339,27 +691,35 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p><i class="bi bi-hash"></i> <strong>Protocolo:</strong> <span id="detalhe-protocolo"></span></p>
-                                    <p><i class="bi bi-person"></i> <strong>Cliente:</strong> <span id="detalhe-cliente"></span></p>
-                                    <p><i class="bi bi-chat-left-text"></i> <strong>Assunto:</strong> <span id="detalhe-assunto"></span></p>
+                                    <p><i class="bi bi-hash"></i> <strong>Protocolo:</strong> <span
+                                            id="detalhe-protocolo"></span></p>
+                                    <p><i class="bi bi-person"></i> <strong>Cliente:</strong> <span
+                                            id="detalhe-cliente"></span></p>
+                                    <p><i class="bi bi-chat-left-text"></i> <strong>Assunto:</strong> <span
+                                            id="detalhe-assunto"></span></p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p><i class="bi bi-telephone"></i> <strong>Telefone:</strong> <span id="detalhe-telefone"></span></p>
-                                    <p><i class="bi bi-geo-alt"></i> <strong>Endereço:</strong> <span id="detalhe-endereco"></span></p>
-                                    <p><i class="bi bi-check-square"></i> <strong>Status:</strong> <span id="detalhe-status"></span></p>
+                                    <p><i class="bi bi-telephone"></i> <strong>Telefone:</strong> <span
+                                            id="detalhe-telefone"></span></p>
+                                    <p><i class="bi bi-geo-alt"></i> <strong>Endereço:</strong> <span
+                                            id="detalhe-endereco"></span></p>
+                                    <p><i class="bi bi-check-square"></i> <strong>Status:</strong> <span
+                                            id="detalhe-status"></span></p>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p><i class="bi bi-calendar-plus"></i> <strong>Data Início:</strong> <span id="detalhe-data"></span></p>
+                                    <p><i class="bi bi-calendar-plus"></i> <strong>Data Início:</strong> <span
+                                            id="detalhe-data"></span></p>
                                 </div>
                                 <div class="col-md-6">
-                                    <p><i class="bi bi-calendar-check"></i> <strong>Data Fim:</strong> <span id="detalhe-data-fim"></span></p>
+                                    <p><i class="bi bi-calendar-check"></i> <strong>Data Fim:</strong> <span
+                                            id="detalhe-data-fim"></span></p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Seção: Descrição original do chamado -->
                     <div class="card mb-3">
                         <div class="card-header bg-secondary text-white">
@@ -390,10 +750,11 @@
                                 <label for="relatorio_visita_detalhe" class="form-label">
                                     <i class="bi bi-file-earmark-text"></i> Relatório da Visita:
                                 </label>
-                                <textarea class="form-control" id="relatorio_visita" rows="4" 
-                                          placeholder="Descreva detalhadamente o relatório da visita técnica (campo obrigatório)..."></textarea>
+                                <textarea class="form-control" id="relatorio_visita" rows="4"
+                                    placeholder="Descreva detalhadamente o relatório da visita técnica (campo obrigatório)..."></textarea>
                                 <div class="form-text text-danger fw-bold">
-                                    <i class="bi bi-exclamation-triangle"></i> Atenção: Este campo é obrigatório para finalizar o agendamento.
+                                    <i class="bi bi-exclamation-triangle"></i> Atenção: Este campo é obrigatório para
+                                    finalizar o agendamento.
                                 </div>
                             </div>
                             <input type="hidden" id="detalhe-chamado-id">
@@ -413,7 +774,8 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="bi bi-x-circle"></i> Fechar
                     </button>
-                    <button id="detalhe-btn-finalizar" type="button" class="btn btn-success" onclick="finalizarOrdemServicoModal()">
+                    <button id="detalhe-btn-finalizar" type="button" class="btn btn-success"
+                        onclick="finalizarOrdemServicoModal()">
                         <i class="bi bi-check-circle"></i> Finalizar Ordem de Serviço
                     </button>
                 </div>
@@ -422,7 +784,8 @@
     </div>
 
     <!-- Modal: Ordem de Serviço para Impressão -->
-    <div class="modal fade" id="serviceOrderModal" tabindex="-1" aria-labelledby="serviceOrderModalLabel" aria-hidden="true">
+    <div class="modal fade" id="serviceOrderModal" tabindex="-1" aria-labelledby="serviceOrderModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
@@ -434,13 +797,17 @@
                 </div>
                 <div class="modal-footer">
                     <div class="dropdown me-2">
-                        <button class="btn btn-info dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button class="btn btn-info dropdown-toggle" type="button" id="exportDropdown"
+                            data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-save"></i> Exportar
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="exportDropdown">
-                            <li><a class="dropdown-item" href="#" onclick="exportOrderToPDF()"><i class="bi bi-file-pdf"></i> Exportar como PDF</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="exportOrderToPNG()"><i class="bi bi-file-image"></i> Exportar como PNG</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="exportOrderToJPG()"><i class="bi bi-file-image"></i> Exportar como JPG</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="exportOrderToPDF()"><i
+                                        class="bi bi-file-pdf"></i> Exportar como PDF</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="exportOrderToPNG()"><i
+                                        class="bi bi-file-image"></i> Exportar como PNG</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="exportOrderToJPG()"><i
+                                        class="bi bi-file-image"></i> Exportar como JPG</a></li>
                         </ul>
                     </div>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -466,19 +833,20 @@
 
     <!-- Sistema de notificação para feedback ao usuário -->
     <div id="mensagem" class="alert" style="display: none;"></div>
-    
+
     <!-- Indicador de carregamento (spinner) -->
     <div id="loading" class="loading" style="display: none;">
-    <!-- Carregamento de scripts externos -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/locales-all.min.js"></script>
-    <script src="https://unpkg.com/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://unpkg.com/tippy.js@6.3.7/dist/tippy-bundle.umd.min.js"></script>
-    <!-- Script principal da aplicação -->
-    <script src="script.js"></script>
-    <!-- Script para funcionalidades adicionais -->
-    <script src="client-notes.js"></script>
+        <!-- Carregamento de scripts externos -->
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/locales-all.min.js"></script>
+        <script src="https://unpkg.com/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+        <script src="https://unpkg.com/tippy.js@6.3.7/dist/tippy-bundle.umd.min.js"></script>
+        <!-- Script principal da aplicação -->
+        <script src="script.js"></script>
+        <!-- Script para funcionalidades adicionais -->
+        <script src="client-notes.js"></script>
 </body>
+
 </html>
