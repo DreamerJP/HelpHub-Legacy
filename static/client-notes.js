@@ -1,7 +1,6 @@
-/**
- * Este arquivo contém as funções relacionadas às notas de clientes usando o CKEditor 5
- * e funcionalidades de impressão para o sistema
- */
+/* ======================================================== 
+    GERENCIAMENTO DO EDITOR DE NOTAS DE CLIENTES 
+======================================================== */
 
 // Variável para guardar a instância do editor
 let clientNotesEditor = null;
@@ -529,9 +528,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-/**
- * Funções para geração e manipulação de Ordem de Serviço
- */
+
+/* ======================================================== 
+    GERENCIADOR DE ORDEM DE SERVIÇO
+ ======================================================== */
 
 // Função para gerar e exibir a ordem de serviço para impressão
 function generateServiceOrder(chamadoId) {
@@ -900,3 +900,7 @@ function exportOrderToJPG() {
         exibirMensagem('Erro ao gerar imagem JPG. Por favor, tente novamente.', 'erro');
     });
 }
+
+/* ======================================================== 
+    NOVAS FUNCIONALIDADES
+ ======================================================== */
