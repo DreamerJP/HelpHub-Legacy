@@ -1,6 +1,7 @@
 // Variáveis globais
 let paginaAtualClientes = 1; // Página atual da listagem de clientes
 const limitePorPagina = 10; // Limite de clientes por página
+
 let graficoChamados; // Para armazenar a instância do gráfico de chamados
 let paginaAtualChamadosAbertos = 1; // Página atual da listagem de chamados abertos
 let paginaAtualChamadosFinalizados = 1; // Página atual da listagem de chamados finalizados
@@ -24,7 +25,7 @@ let lastUserActivity = Date.now();
 const SESSION_WARNING_TIME = 30;  // 30 minutos
 const SESSION_TIMEOUT = 480;   // 8 horas (480 minutos)
 
-// Monitora atividade do usuário
+// Função usada apenas para monitorar tempo de espiração da sessão.
 document.addEventListener('mousemove', updateUserActivity);
 document.addEventListener('keypress', updateUserActivity);
 document.addEventListener('click', updateUserActivity);
@@ -299,6 +300,18 @@ async function buscarClientes(termo) {
 }
 
 /**
+ * Abre o formulário para criar um novo chamado para um cliente específico.
+ * @param {number} clienteId - ID do cliente para o qual o chamado será criado.
+ */
+async function novoChamadoCliente(clienteId) {
+    // Primeiro carrega a página de chamados
+    await carregarChamadosPage();
+    // Depois seleciona a aba correta e carrega o formulário
+    selecionarAbaChamados('abrir');
+    await carregarAbrirChamado(clienteId);
+}
+
+/**
  * Carrega a página de chamados com as abas disponíveis
  */
 async function carregarChamadosPage() {
@@ -338,30 +351,42 @@ function selecionarAbaChamados(aba) {
 
 /**
  * Carrega a subpágina para abrir um novo chamado
+ * @param {number} [clienteId=null] - ID do cliente para pré-preenchimento opcional
  * @returns {Promise<void>}
  */
-function carregarAbrirChamado() {
-    return new Promise((resolve) => {
-        // Limpa o conteúdo anterior
+function carregarAbrirChamado(clienteId = null) {
+    return new Promise((resolve, reject) => {
         const chamadosContent = document.getElementById('chamados-content');
-        chamadosContent.innerHTML = '';
-
-        // Obtém e clona o template
+        if (!chamadosContent) {
+            console.error('Elemento chamados-content não encontrado no DOM.');
+            reject('Elemento chamados-content não encontrado.');
+            return;
+        }
+        chamadosContent.innerHTML = ''; // Limpa o conteúdo anterior
         const template = document.getElementById('abrir-chamado-template');
+        if (!template) {
+            console.error('Template abrir-chamado-template não encontrado.');
+            reject('Template abrir-chamado-template não encontrado.');
+            return;
+        }
         const clone = template.content.cloneNode(true);
-
-        // Adiciona o novo conteúdo
         chamadosContent.appendChild(clone);
-
-        // Aguarda o próximo ciclo de eventos para garantir que o DOM seja atualizado
         setTimeout(async () => {
             try {
-                await configurarFormularioChamado(); // Configura o formulário de chamado
-                configurarBuscaClienteChamado(); // Configura a busca de cliente no formulário de chamado
-                resolve(); // Resolve a Promise
+                await configurarFormularioChamado();
+                configurarBuscaClienteChamado();
+                if (clienteId) {
+                    const clienteIdInput = document.getElementById('cliente_id');
+                    const clienteBuscaInput = document.getElementById('cliente_busca');
+                    if (clienteIdInput && clienteBuscaInput) {
+                        clienteIdInput.value = clienteId;
+                        clienteBuscaInput.value = `Cliente #${clienteId}`;
+                    }
+                }
+                resolve();
             } catch (erro) {
                 console.error('Erro ao carregar formulário de chamado:', erro);
-                exibirMensagem('Erro ao carregar formulário', 'erro');
+                reject(erro);
             }
         }, 0);
     });
@@ -616,10 +641,8 @@ function carregarChamados(status = 'Aberto') {
     try {
         const paginaAtual = status === 'Aberto' ? paginaAtualChamadosAbertos : paginaAtualChamadosFinalizados;
         const url = `/chamados?pagina=${paginaAtual}&limite=${limiteChamados}&status=${status}`; // Define a URL da API
-        console.log('Carregando chamados da URL:', url); // log
         fetchWithLoading(url) // Envia a requisição para a API com tela de carregamento
             .then(data => {
-                console.log('Resposta da API:', data); // log
                 // Verifica explicitamente undefined
                 if (data.chamados === undefined) {
                     throw new Error('Formato de resposta inválido'); // Lança um erro se o formato da resposta for inválido
