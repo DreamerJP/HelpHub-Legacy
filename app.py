@@ -15,6 +15,7 @@ import secrets
 import threading
 import re
 import html
+from html import escape
 
 # ========================================================
 # INICIALIZAÇÃO E CONFIGURAÇÃO BÁSICA
@@ -253,6 +254,131 @@ def before_request():
     # Renova a sessão se o usuário estiver ativo
     if 'user_id' in session:
         session.modified = True  # Atualiza o timestamp da sessão
+
+# ========================================================
+# AUTENTICAÇÃO E AUTORIZAÇÃO
+# ========================================================
+
+# Decorador para proteger rotas que requerem autenticação
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return jsonify({
+                'success': False,
+                'error': 'Autenticação necessária'
+            }), 401
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Rota para login de usuários
+@app.route('/auth/login', methods=['POST'])
+def auth_login():
+    try:
+        dados = request.json
+        username = dados.get('username', '')
+        password = dados.get('password', '')
+        
+        # Obtém o IP real do cliente
+        client_ip = get_real_ip()
+        
+        if not username or not password:
+            auth_logger.warning(f"Tentativa de login sem usuário ou senha - IP: {client_ip}")
+            return jsonify({'success': False, 'error': 'Usuário e senha são obrigatórios'}), 400
+        
+        # Busca o usuário no banco de dados
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT id, username, password, role, senha_inicial_definida 
+                FROM usuarios 
+                WHERE username = ?
+            ''', (username,))
+            usuario = cursor.fetchone()
+            
+            if not usuario:
+                auth_logger.warning(f"Usuário não encontrado: {username} - IP: {client_ip}")
+                return jsonify({'success': False, 'error': 'Credenciais inválidas'}), 401
+
+            # Se senha não estiver definida, verifica se é o primeiro acesso
+            if usuario[2] is None and not usuario[4]:
+                # Primeiro acesso do admin - verifica se a senha corresponde à padrão "admin"
+                if username == "admin" and password == "admin":
+                    session['user_id'] = usuario[0]
+                    session['username'] = usuario[1]
+                    session['role'] = usuario[3]
+                    auth_logger.info(f"Primeiro acesso do admin - IP: {client_ip}")
+                    return jsonify({
+                        'success': False, 
+                        'initial_password_required': True
+                    })
+                return jsonify({'success': False, 'error': 'Credenciais inválidas'}), 401
+
+            # Verifica se a senha está correta
+            if usuario[2] and check_password_hash(usuario[2], password):
+                session['user_id'] = usuario[0]
+                session['username'] = usuario[1]
+                session['role'] = usuario[3]
+                session.permanent = True
+
+                auth_logger.info(f"Login bem-sucedido para o usuário {username} - IP: {client_ip}")
+                
+                # Verifica se é necessário fazer backup
+                backup_info = None
+                hoje = datetime.now().strftime('%Y-%m-%d')
+                
+                # Verifica se já foi feito backup hoje
+                arquivos_hoje = glob.glob(os.path.join(BACKUP_DIR, f'backup_{hoje}_*.db'))
+                
+                if not arquivos_hoje:
+                    # Nenhum backup feito hoje, então realiza o backup
+                    sucesso, mensagem = realizar_backup_diario()
+                    backup_info = {
+                        'realizado': sucesso,
+                        'mensagem': mensagem
+                    }
+                    app_logger.info(f"Verificação de backup após login: {mensagem}")
+                else:
+                    backup_info = {
+                        'realizado': False,
+                        'mensagem': f"Backup já realizado hoje ({len(arquivos_hoje)} arquivo(s))"
+                    }
+                    app_logger.info(f"Verificação de backup após login: já realizado hoje")
+                
+                return jsonify({
+                    'success': True, 
+                    'user': {
+                        'username': usuario[1],
+                        'role': usuario[3]
+                    },
+                    'backup': backup_info
+                })
+            else:
+                auth_logger.warning(f"Senha incorreta para usuário {username} - IP: {client_ip}")
+                return jsonify({'success': False, 'error': 'Credenciais inválidas'}), 401
+
+    except Exception as e:
+        auth_logger.error(f"Erro no login: {e} - IP: {client_ip}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ========================================================
+# FUNÇÃO PARA SANITIZAR ENTRADAS DE DADOS
+# ========================================================
+
+def sanitize_input(data):
+    """
+    Sanitiza entradas de dados para evitar injeção de código malicioso.
+    Aceita strings, listas e dicionários.
+    """
+    if isinstance(data, str):
+        return escape(data.strip())
+    elif isinstance(data, list):
+        return [sanitize_input(item) for item in data]
+    elif isinstance(data, dict):
+        return {key: sanitize_input(value) for key, value in data.items()}
+    return data
+
 
 # ========================================================
 # ACESSO AO BANCO DE DADOS
@@ -608,10 +734,12 @@ def static_files(path):
     return send_from_directory('static', path)
 
 @app.route('/help')
+@login_required
 def help_page():
     return send_from_directory('static', 'help.html')
 
 @app.route('/static/docs/<topic>')
+@login_required
 def serve_markdown(topic):
     # Adiciona a extensão .md ao nome do arquivo
     file_path = f"{topic}.md"
@@ -625,6 +753,7 @@ def serve_markdown(topic):
 # ========================================================
 
 @app.route('/snake.html')
+@login_required
 def snake_game():
     app_logger.info("Easter Egg Acessado: Jogo Snake")
     return send_from_directory('static', 'snake.html')
@@ -635,6 +764,7 @@ def snake_game():
 
 # Rota para listar clientes com paginação e ordenação
 @app.route('/clientes', methods=['GET'])
+@login_required
 def listar_clientes():
     try:
         # Parâmetros de paginação e ordenação
@@ -697,10 +827,10 @@ def listar_clientes():
 
 # Rota para cadastrar um novo cliente
 @app.route('/clientes', methods=['POST'])
+@login_required
 def cadastrar_cliente():
     try:
-        # Obtém os dados do cliente do corpo da requisição
-        dados = request.json
+        dados = sanitize_input(request.json)  # Sanitiza os dados recebidos
         
         # Validação básica dos dados recebidos
         if not dados or not dados.get('nome') or len(dados['nome'].strip()) == 0:
@@ -773,10 +903,10 @@ def cadastrar_cliente():
 
 # Rota para editar um cliente existente
 @app.route('/clientes/<int:id>', methods=['PUT'])
+@login_required
 def editar_cliente(id):
     try:
-        # Obtém os dados do cliente do corpo da requisição
-        dados = request.json
+        dados = sanitize_input(request.json)  # Sanitiza os dados recebidos
         
         # Validação básica dos dados recebidos
         if not dados or 'nome' not in dados:
@@ -853,6 +983,7 @@ def editar_cliente(id):
 
 # Rota para excluir um cliente existente
 @app.route('/clientes/<int:id>', methods=['DELETE'])
+@login_required
 def excluir_cliente(id):
     try:
         with get_db_connection() as conn:
@@ -894,6 +1025,7 @@ def excluir_cliente(id):
 
 # Rota para buscar clientes com base em um termo de pesquisa
 @app.route('/clientes/buscar', methods=['GET'])
+@login_required
 def buscar_clientes():
     try:
         # Obtém o termo de pesquisa da query string
@@ -934,6 +1066,7 @@ def buscar_clientes():
 
 # Novos endpoints para gerenciar notas dos clientes
 @app.route('/clientes/<int:id>/notas', methods=['GET'])
+@login_required
 def obter_notas_cliente(id):
     try:
         with get_db_connection() as conn:
@@ -951,9 +1084,10 @@ def obter_notas_cliente(id):
         return jsonify({'erro': 'Erro ao obter notas do cliente'}), 500
 
 @app.route('/clientes/<int:id>/notas', methods=['POST'])
+@login_required
 def salvar_notas_cliente(id):
     try:
-        dados = request.json
+        dados = sanitize_input(request.json)  # Sanitiza os dados recebidos
         notas = dados.get('notas', '')
         
         with get_db_connection() as conn:
@@ -996,10 +1130,10 @@ def salvar_notas_cliente(id):
 
 # Rota para abrir um novo chamado
 @app.route('/chamados', methods=['POST'])
+@login_required
 def abrir_chamado():
     try:
-        # Obtém os dados do chamado do corpo da requisição
-        dados = request.json
+        dados = sanitize_input(request.json)  # Sanitiza os dados recebidos
         
         # Validação básica dos dados recebidos
         if not dados or 'cliente_id' not in dados or 'descricao' not in dados:
@@ -1058,6 +1192,7 @@ def abrir_chamado():
 
 # Rota para listar chamados com paginação e filtro por status
 @app.route('/chamados', methods=['GET'])
+@login_required
 def listar_chamados():
     try:
         # Parâmetros de paginação e filtro
@@ -1127,17 +1262,17 @@ def listar_chamados():
 
 # Rota para editar um chamado existente
 @app.route('/chamados/<int:id>', methods=['PUT'])
+@login_required
 def editar_chamado(id):
     try:
-# Obtém os dados do chamado do corpo da requisição
-        dados = request.json
+        dados = sanitize_input(request.json)  # Sanitiza os dados recebidos
         app_logger.debug(f"Dados recebidos para edição do chamado {id}: {dados}")  # Log dos dados recebidos
         
-# Validação do tamanho do assunto
+        # Validação do tamanho do assunto
         if 'assunto' in dados and dados['assunto'] and len(dados['assunto']) > 70:
             return jsonify({'erro': 'O assunto deve ter no máximo 70 caracteres'}), 400
 
-# Validação básica dos dados recebidos
+        # Validação básica dos dados recebidos
         if not dados:
             app_logger.warning(f"Tentativa de editar chamado {id} com dados inválidos")
             return jsonify({'erro': 'Dados inválidos'}), 400
@@ -1206,6 +1341,7 @@ def editar_chamado(id):
 
 # Rota para finalizar um chamado existente
 @app.route('/chamados/<int:id>/finalizar', methods=['PUT'])
+@login_required
 def finalizar_chamado(id):
     try:
         with get_db_connection() as conn:
@@ -1243,6 +1379,7 @@ def finalizar_chamado(id):
 
 # Rota para excluir um chamado existente
 @app.route('/chamados/<int:id>', methods=['DELETE'])
+@login_required
 def excluir_chamado(id):
     try:
         with get_db_connection() as conn:
@@ -1292,10 +1429,10 @@ def excluir_chamado(id):
 
 # Rota da API para adicionar uma entrada de progresso a um chamado
 @app.route('/chamados/<int:chamado_id>/andamentos', methods=['POST'])
+@login_required
 def adicionar_andamento(chamado_id):
     try:
-        # Obtém os dados da entrada de progresso do corpo da requisição
-        dados = request.json
+        dados = sanitize_input(request.json)  # Sanitiza os dados recebidos
         
         # Loga os dados recebidos para fins de depuração
         app_logger.debug(f"Recebendo dados para novo andamento: {dados}")
@@ -1357,6 +1494,7 @@ def adicionar_andamento(chamado_id):
 
 # Rota da API para excluir uma entrada de progresso de um chamado
 @app.route('/chamados/andamentos/<int:andamento_id>', methods=['DELETE'])
+@login_required
 def excluir_andamento(andamento_id):
     try:
         with get_db_connection() as conn:
@@ -1387,6 +1525,7 @@ def excluir_andamento(andamento_id):
 
 # Modifica o endpoint /chamados/<int:id> para incluir as entradas de progresso
 @app.route('/chamados/<int:id>', methods=['GET'])
+@login_required
 def obter_chamado(id):
     try:
         with get_db_connection() as conn:
@@ -1471,6 +1610,7 @@ def obter_chamado(id):
 
 # Rota para buscar chamados com base em um termo de pesquisa e status
 @app.route('/chamados/buscar', methods=['GET'])
+@login_required
 def buscar_chamados():
     try:
         # Obtém o termo de pesquisa e o status da query string
@@ -1534,68 +1674,75 @@ def buscar_chamados():
 
 # Rota para obter estatísticas gerais do sistema
 @app.route('/estatisticas', methods=['GET'])
+@login_required
 @retry_db_operation
 def obter_estatisticas():
     try:
         periodo = request.args.get('periodo', 'total')
-        
-        # Definir consulta SQL com base no período
-        query_filtro = ''
-        
-        if periodo == 'diario':
-            # Filtrar apenas para o dia atual
-            today = datetime.now().strftime('%Y-%m-%d')
-            query_filtro = f" WHERE date(data_abertura) = '{today}'"
-        elif periodo == 'semanal':
-            # Filtrar para a semana atual (últimos 7 dias)
-            today = datetime.now()
-            week_ago = (today - timedelta(days=7)).strftime('%Y-%m-%d')
-            today_str = today.strftime('%Y-%m-%d')
-            query_filtro = f" WHERE date(data_abertura) BETWEEN '{week_ago}' AND '{today_str}'"
-        elif periodo == 'mensal':
-            # Filtrar para o mês atual
-            today = datetime.now()
-            first_day = today.replace(day=1).strftime('%Y-%m-%d')
-            today_str = today.strftime('%Y-%m-%d')
-            query_filtro = f" WHERE date(data_abertura) BETWEEN '{first_day}' AND '{today_str}'"
-        
+
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            
+
             # Contar total de clientes (não filtrado por período)
             cursor.execute("SELECT COUNT(*) FROM clientes")
             total_clientes = cursor.fetchone()[0]
-            
-            # Contar chamados abertos com o filtro de período
-            cursor.execute(f"SELECT COUNT(*) FROM chamados WHERE status = 'Aberto'{query_filtro}")
-            chamados_abertos = cursor.fetchone()[0]
-            
-            # Contar chamados fechados com o filtro de período
-            cursor.execute(f"SELECT COUNT(*) FROM chamados WHERE status = 'Finalizado'{query_filtro}")
-            chamados_fechados = cursor.fetchone()[0]
-            
-            # Obter média diária de chamados (cálculo pode variar dependendo do período)
+
             if periodo == 'total':
-                # Para período total, calcular ao longo de todo o tempo
+                # Para período total, não usar filtro de data
+                cursor.execute("SELECT COUNT(*) FROM chamados WHERE status = 'Aberto'")
+                chamados_abertos = cursor.fetchone()[0]
+
+                cursor.execute("SELECT COUNT(*) FROM chamados WHERE status = 'Finalizado'")
+                chamados_fechados = cursor.fetchone()[0]
+
+                # Calcular média diária sobre todo o período
                 cursor.execute("SELECT MIN(date(data_abertura)), MAX(date(data_abertura)) FROM chamados")
                 data_min, data_max = cursor.fetchone()
-                
+
                 if data_min and data_max:
                     data_min = datetime.strptime(data_min, '%Y-%m-%d')
                     data_max = datetime.strptime(data_max, '%Y-%m-%d')
-                    dias = max(1, (data_max - data_min).days + 1)  # Evitar divisão por zero
-                    
+                    dias = max(1, (data_max - data_min).days + 1)
+
                     cursor.execute("SELECT COUNT(*) FROM chamados")
                     total_chamados = cursor.fetchone()[0]
                     media_diaria = round(total_chamados / dias, 1)
                 else:
                     media_diaria = 0
             else:
-                # Para períodos específicos, calcular com base nos dias do período
-                cursor.execute(f"SELECT COUNT(*) FROM chamados{query_filtro}")
+                # Define o filtro de período com base no parâmetro recebido
+                query_filtro = ''
+                params = []
+
+                if periodo == 'diario':
+                    today = datetime.now().strftime('%Y-%m-%d')
+                    query_filtro = "WHERE date(data_abertura) = ?"
+                    params.append(today)
+                elif periodo == 'semanal':
+                    today = datetime.now()
+                    week_ago = (today - timedelta(days=7)).strftime('%Y-%m-%d')
+                    today_str = today.strftime('%Y-%m-%d')
+                    query_filtro = "WHERE date(data_abertura) BETWEEN ? AND ?"
+                    params.extend([week_ago, today_str])
+                elif periodo == 'mensal':
+                    today = datetime.now()
+                    first_day = today.replace(day=1).strftime('%Y-%m-%d')
+                    today_str = today.strftime('%Y-%m-%d')
+                    query_filtro = "WHERE date(data_abertura) BETWEEN ? AND ?"
+                    params.extend([first_day, today_str])
+
+                # Contar chamados abertos com o filtro de período
+                cursor.execute(f"SELECT COUNT(*) FROM chamados {query_filtro} AND status = 'Aberto'", params)
+                chamados_abertos = cursor.fetchone()[0]
+
+                # Contar chamados fechados com o filtro de período
+                cursor.execute(f"SELECT COUNT(*) FROM chamados {query_filtro} AND status = 'Finalizado'", params)
+                chamados_fechados = cursor.fetchone()[0]
+
+                # Cálculo da média diária para períodos específicos
+                cursor.execute(f"SELECT COUNT(*) FROM chamados {query_filtro}", params)
                 total_chamados_periodo = cursor.fetchone()[0]
-                
-                # Calcular número de dias no período
+
                 if periodo == 'diario':
                     dias = 1
                 elif periodo == 'semanal':
@@ -1604,10 +1751,10 @@ def obter_estatisticas():
                     today = datetime.now()
                     first_day = today.replace(day=1)
                     dias = (today - first_day).days + 1
-                
+
                 media_diaria = round(total_chamados_periodo / dias, 1)
-            
-            # Obter os últimos 5 chamados (não filtrados por período para sempre mostrar os mais recentes)
+
+            # Obter os últimos 5 chamados (sem filtro de período)
             cursor.execute("""
                 SELECT c.id, c.assunto, c.data_abertura, c.status, cl.nome 
                 FROM chamados c
@@ -1615,16 +1762,17 @@ def obter_estatisticas():
                 ORDER BY c.data_abertura DESC
                 LIMIT 5
             """)
-            ultimos_chamados = []
-            for row in cursor.fetchall():
-                ultimos_chamados.append({
+            ultimos_chamados = [
+                {
                     'id': row[0],
                     'assunto': row[1],
                     'data_abertura': row[2],
                     'status': row[3],
                     'cliente_nome': row[4] or 'Cliente não encontrado'
-                })
-            
+                }
+                for row in cursor.fetchall()
+            ]
+
             return jsonify({
                 'total_clientes': total_clientes,
                 'chamados_abertos': chamados_abertos,
@@ -1636,111 +1784,6 @@ def obter_estatisticas():
         app_logger.error(f"Erro ao obter estatísticas: {e}")
         return jsonify({'error': str(e)}), 500
 
-# ========================================================
-# AUTENTICAÇÃO E AUTORIZAÇÃO
-# ========================================================
-
-# Decorador para proteger rotas que requerem autenticação
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return jsonify({
-                'success': False,
-                'error': 'Autenticação necessária'
-            }), 401
-        return f(*args, **kwargs)
-    return decorated_function
-
-# Rota para login de usuários
-@app.route('/auth/login', methods=['POST'])
-def auth_login():
-    try:
-        dados = request.json
-        username = dados.get('username', '')
-        password = dados.get('password', '')
-        
-        # Obtém o IP real do cliente
-        client_ip = get_real_ip()
-        
-        if not username or not password:
-            auth_logger.warning(f"Tentativa de login sem usuário ou senha - IP: {client_ip}")
-            return jsonify({'success': False, 'error': 'Usuário e senha são obrigatórios'}), 400
-        
-        # Busca o usuário no banco de dados
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute('''
-                SELECT id, username, password, role, senha_inicial_definida 
-                FROM usuarios 
-                WHERE username = ?
-            ''', (username,))
-            usuario = cursor.fetchone()
-            
-            if not usuario:
-                auth_logger.warning(f"Usuário não encontrado: {username} - IP: {client_ip}")
-                return jsonify({'success': False, 'error': 'Credenciais inválidas'}), 401
-
-            # Se senha não estiver definida, verifica se é o primeiro acesso
-            if usuario[2] is None and not usuario[4]:
-                # Primeiro acesso do admin - verifica se a senha corresponde à padrão "admin"
-                if username == "admin" and password == "admin":
-                    session['user_id'] = usuario[0]
-                    session['username'] = usuario[1]
-                    session['role'] = usuario[3]
-                    auth_logger.info(f"Primeiro acesso do admin - IP: {client_ip}")
-                    return jsonify({
-                        'success': False, 
-                        'initial_password_required': True
-                    })
-                return jsonify({'success': False, 'error': 'Credenciais inválidas'}), 401
-
-            # Verifica se a senha está correta
-            if usuario[2] and check_password_hash(usuario[2], password):
-                session['user_id'] = usuario[0]
-                session['username'] = usuario[1]
-                session['role'] = usuario[3]
-                session.permanent = True
-
-                auth_logger.info(f"Login bem-sucedido para o usuário {username} - IP: {client_ip}")
-                
-                # Verifica se é necessário fazer backup
-                backup_info = None
-                hoje = datetime.now().strftime('%Y-%m-%d')
-                
-                # Verifica se já foi feito backup hoje
-                arquivos_hoje = glob.glob(os.path.join(BACKUP_DIR, f'backup_{hoje}_*.db'))
-                
-                if not arquivos_hoje:
-                    # Nenhum backup feito hoje, então realiza o backup
-                    sucesso, mensagem = realizar_backup_diario()
-                    backup_info = {
-                        'realizado': sucesso,
-                        'mensagem': mensagem
-                    }
-                    app_logger.info(f"Verificação de backup após login: {mensagem}")
-                else:
-                    backup_info = {
-                        'realizado': False,
-                        'mensagem': f"Backup já realizado hoje ({len(arquivos_hoje)} arquivo(s))"
-                    }
-                    app_logger.info(f"Verificação de backup após login: já realizado hoje")
-                
-                return jsonify({
-                    'success': True, 
-                    'user': {
-                        'username': usuario[1],
-                        'role': usuario[3]
-                    },
-                    'backup': backup_info
-                })
-            else:
-                auth_logger.warning(f"Senha incorreta para usuário {username} - IP: {client_ip}")
-                return jsonify({'success': False, 'error': 'Credenciais inválidas'}), 401
-
-    except Exception as e:
-        auth_logger.error(f"Erro no login: {e} - IP: {client_ip}")
-        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/auth/set_initial_password', methods=['POST'])
 @login_required
@@ -2061,6 +2104,8 @@ def criar_usuario():
         return jsonify({'error': 'Unauthorized'}), 403
         
     try:
+        dados = sanitize_input(request.json)  # Sanitiza os dados recebidos
+        
         # Obtém os dados do novo usuário do corpo da requisição
         data = request.json
         username = data.get('username')
@@ -2114,6 +2159,8 @@ def atualizar_usuario(id):
         return jsonify({'error': 'Unauthorized'}), 403
         
     try:
+        dados = sanitize_input(request.json)  # Sanitiza os dados recebidos
+        
         # Obtém os dados do usuário do corpo da requisição
         data = request.json
         username = data.get('username')
@@ -2262,8 +2309,11 @@ def obter_usuario(id):
 
 # Rota para criar um novo agendamento
 @app.route('/agendamentos', methods=['POST'])
+@login_required
 def criar_agendamento():
     try:
+        dados = sanitize_input(request.json)  # Sanitiza os dados recebidos
+        
         # Obtém os dados do agendamento do corpo da requisição
         dados = request.json
         chamado_id = dados.get('chamado_id')
@@ -2329,6 +2379,7 @@ def criar_agendamento():
 
 # Rota para listar os agendamentos
 @app.route('/agendamentos', methods=['GET'])
+@login_required
 def listar_agendamentos():
     try:
         with get_db_connection() as conn:
@@ -2388,6 +2439,7 @@ def listar_agendamentos():
 
 # Rota para excluir um agendamento existente
 @app.route('/agendamentos/<int:id>', methods=['DELETE'])
+@login_required
 def excluir_agendamento(id):
     try:
         with get_db_connection() as conn:
@@ -2418,8 +2470,11 @@ def excluir_agendamento(id):
 
 # Rota para atualizar um agendamento existente
 @app.route('/agendamentos/<int:id>', methods=['PUT'])
+@login_required
 def atualizar_agendamento(id):
     try:
+        dados = sanitize_input(request.json)  # Sanitiza os dados recebidos
+        
         # Obtém os dados do agendamento do corpo da requisição
         dados = request.json
         data_agendamento = dados.get('data_agendamento')
@@ -2499,6 +2554,7 @@ def atualizar_agendamento(id):
 
 # Rota para obter detalhes de um agendamento específico
 @app.route('/agendamentos/<int:id>', methods=['GET'])
+@login_required
 def obter_agendamento(id):
     try:
         with get_db_connection() as conn:
@@ -2565,6 +2621,7 @@ def obter_agendamento(id):
 
 # Rota para finalizar a ordem de serviço (adicionar andamento e finalizar chamado)
 @app.route('/chamados/<int:chamado_id>/finalizar-ordem-servico', methods=['POST'])
+@login_required
 def finalizar_ordem_servico(chamado_id):
     try:
         # Log dos dados recebidos para depuração
@@ -2645,6 +2702,7 @@ def finalizar_ordem_servico(chamado_id):
 
 # Rota para buscar chamados abertos com base em um termo de pesquisa
 @app.route('/chamados/buscar-abertos', methods=['GET'])
+@login_required
 def buscar_chamados_abertos():
     try:
         # Obtém o termo de pesquisa da query string
@@ -2699,8 +2757,11 @@ def buscar_chamados_abertos():
 
 # Rota para atualizar o endereço de um cliente existente
 @app.route('/clientes/<int:id>/endereco', methods=['PUT'])
+@login_required
 def atualizar_endereco(id):
     try:
+        dados = sanitize_input(request.json)  # Sanitiza os dados recebidos
+        
         # Obtém os dados do endereço do corpo da requisição
         dados = request.json
         
@@ -2748,6 +2809,7 @@ def atualizar_endereco(id):
 
 # Rota para obter detalhes de um cliente específico
 @app.route('/clientes/<int:id>', methods=['GET'])
+@login_required
 def obter_cliente(id):
     try:
         with get_db_connection() as conn:
