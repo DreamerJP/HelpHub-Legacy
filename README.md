@@ -10,7 +10,7 @@ HelpHub/
 │   ├── gunicorn_config.py  # Configuração do servidor Gunicorn
 │   ├── dockerfile          # Arquivo para configuração do docker
 │   └── static/
-│       ├── client-notes.js # Script de notas dos clientes e funções auxiliares
+│       ├── client-notes.js # Funções do gerenciador de notas de clientes, e ordem de serviço.
 │       ├── db-viewer.html  # Página de visualização/import/export do banco de dados
 │       ├── favicon.ico     # Icone
 │       ├── index.html      # Página principal
