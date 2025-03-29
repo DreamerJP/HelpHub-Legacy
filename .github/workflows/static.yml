@@ -18,6 +18,12 @@ jobs:
       with:
         python-version: '3.9'  # Use a versão do Python compatível com seu projeto
 
+    - name: Clear Node.js cache (se necessário)
+      run: |
+        rm -rf ~/.npm
+        rm -rf node_modules
+        echo "Node.js cache limpo."
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
