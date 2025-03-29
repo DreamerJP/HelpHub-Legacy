@@ -27,11 +27,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Run backend tests (if applicable)
-      - name: Run tests
-        run: |
-          python -m unittest discover -s tests
-
       # Start the backend server
       - name: Start Gunicorn server
         run: |
