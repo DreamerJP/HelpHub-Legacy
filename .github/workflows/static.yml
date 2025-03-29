@@ -30,8 +30,14 @@ jobs:
     - name: Start Gunicorn server
       run: ./start_server.sh &  # Inicia o servidor Gunicorn em segundo plano
 
+    - name: Ensure static directory exists
+      run: |
+        mkdir -p ./static
+        echo "Verificando se o diretório 'static' existe ou foi criado."
+
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./static  # Substitua pelo diretório onde estão os arquivos do site
+        allow_empty_commit: true  # Permite commits mesmo se o diretório estiver vazio
