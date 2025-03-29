@@ -13,16 +13,18 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
+    - name: Setup Python
+      uses: actions/setup-python@v4
       with:
-        node-version: 'lts/*'  # Use a versão mais recente LTS do Node.js
+        python-version: '3.9'  # Use a versão do Python compatível com seu projeto
 
     - name: Install dependencies
-      run: npm install
+      run: |
+        python -m pip install --upgrade pip
+        pip install Flask>=2.0.1 flask-cors>=3.0.10 Werkzeug>=2.0.1 gunicorn>=20.1.0 openpyxl>=3.0.10 python-dateutil>=2.8.2 pytz>=2021.1 loguru>=0.5.3
 
     - name: Build the site
-      run: npm run build  # Substitua pelo comando de build do seu projeto, se necessário
+      run: python build.py  # Substitua pelo comando de build do seu projeto, se necessário
 
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
