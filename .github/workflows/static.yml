@@ -35,6 +35,12 @@ jobs:
         mkdir -p ./static
         echo "Verificando se o diretório 'static' existe ou foi criado."
 
+    - name: Configure Git remote
+      run: |
+        git remote remove origin || true
+        git remote add origin https://github.com/DreamerJP/HelpHub.git
+        echo "Git remoto configurado."
+
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:
