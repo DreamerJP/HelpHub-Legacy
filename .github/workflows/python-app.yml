@@ -34,4 +34,4 @@ jobs:
         FLASK_APP: app.py  # Substitua pelo nome do arquivo principal do Flask
         FLASK_ENV: development
       run: |
-        python -m flask run --host=0.0.0.0 --port=5000
+        python -m flask run --host=0.0.0.0 --port=5000 &
