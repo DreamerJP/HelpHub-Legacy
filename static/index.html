@@ -118,104 +118,32 @@
 
     <!-- Container principal - área de conteúdo dinâmico -->
     <div class="container mt-2" id="conteudo">
-        <!-- Conteúdo inicial (Home) - será substituído via JavaScript -->
-        <div class="row">
-            <!-- Área esquerda (pesquisa e estatísticas) -->
-            <div class="col-md-8">
-                <!-- Caixa de busca de clientes -->
-                <div class="card">
-                    <div class="card-body">
-                        <h2><i class="bi bi-search"></i> Buscar Cliente</h2>
-                        <div class="input-group mb-3">
-                            <span class="input-group-text"><i class="bi bi-person-search"></i></span>
-                            <input type="text" id="busca-cliente" class="form-control"
-                                placeholder="Digite nome ou email...">
-                            <button class="btn btn-primary" onclick="buscarClientes()">
-                                <i class="bi bi-search"></i> Buscar
-                            </button>
-                        </div>
-                        <div id="resultado-busca"></div>
-                    </div>
-                </div>
-
-                <!-- Gráficos e estatísticas -->
-                <div class="row mt-4">
-                    <!-- Gráfico de chamados -->
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5><i class="bi bi-graph-up"></i> Estatísticas de Chamados</h5>
-                                <div class="chart-container">
-                                    <canvas id="grafico-chamados"></canvas>
-                                </div>
-                                <div class="mt-3">
-                                    <p><i class="bi bi-hourglass-split"></i> Total de Chamados Abertos: <span
-                                            id="total-abertos">0</span></p>
-                                    <p><i class="bi bi-check-circle"></i> Total de Chamados Fechados: <span
-                                            id="total-fechados">0</span></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Lista de últimos chamados -->
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5><i class="bi bi-clock-history"></i> Últimos Chamados</h5>
-                                <div id="ultimos-chamados" class="list-group"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Área direita (resumo e ações rápidas) -->
-            <div class="col-md-4">
-                <!-- Estatísticas gerais do sistema -->
-                <div class="card">
-                    <div class="card-body">
-                        <h5><i class="bi bi-clipboard-data"></i> Resumo do Sistema</h5>
-                        <ul class="list-group" id="estatisticas-gerais"></ul>
-                    </div>
-                </div>
-                <!-- Botões de ação rápida -->
-                <div class="card mt-4">
-                    <div class="card-body">
-                        <h5><i class="bi bi-lightning-charge"></i> Ações Rápidas</h5>
-                        <button class="btn btn-success mb-2 w-100" onclick="carregarNovoClientePage()">
-                            <i class="bi bi-person-plus"></i> Novo Cliente
-                        </button>
-                        <button class="btn btn-primary w-100" onclick="carregarChamadosPage()">
-                            <i class="bi bi-ticket-detailed"></i> Novo Chamado
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- O conteúdo será carregado dinamicamente via JavaScript usando o template -->
     </div>
 
-    <!-- Templates para conteúdo dinâmico -->
     <template id="home-template">
         <div class="home-page-container">
-            <!-- Seção superior -->
+
+            <!-- Seção Superior -->
             <div class="top-section">
+                <!-- Widget HOME Buscar Cliente -->
                 <div class="search-card-wrapper">
                     <div class="card search-card">
                         <div class="card-body">
-                            <h2><i class="bi bi-search"></i> Buscar Cliente</h2>
+                            <h5><i class="bi bi-search"></i> Buscar Cliente</h5>
                             <div class="input-group mb-3">
-                                <span class="input-group-text"><i class="bi bi-person-search"></i></span>
                                 <input type="text" id="busca-cliente" class="form-control"
-                                    placeholder="Digite nome ou email...">
-                                <button class="btn btn-primary" onclick="buscarClientes()">
-                                    <i class="bi bi-search"></i> Buscar
-                                </button>
+                                    placeholder="Pesquisar por nome, ID ou e-mail...">
+                                <span class="input-group-text bg-transparent border-0" id="clear-search" style="cursor: pointer; margin-left: -40px; z-index: 100;">
+                                    <i class="bi bi-x-circle-fill text-secondary"></i>
+                                </span>
                             </div>
                             <div id="resultado-busca"></div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Widget HOME Resumo do Sistema -->
                 <div class="system-summary-wrapper">
                     <div class="card home-card">
                         <div class="card-body">
@@ -227,6 +155,7 @@
             </div>
 
             <!-- Seção inferior -->
+            <!-- Widget HOME Estatísticas de Chamados -->
             <div class="bottom-section">
                 <div class="statistics-wrapper">
                     <div class="card home-card">
@@ -253,6 +182,7 @@
                     </div>
                 </div>
 
+                <!-- Widget HOME Últimos Chamados -->
                 <div class="recent-tickets-wrapper">
                     <div class="card home-card">
                         <div class="card-body">
@@ -847,6 +777,23 @@
         <script src="script.js"></script>
         <!-- Script para funcionalidades adicionais -->
         <script src="client-notes.js"></script>
+        <script>
+        // Código para recolher o menu mobile automaticamente após seleção
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbarToggler = document.querySelector('.navbar-toggler');
+            const navbarCollapse = document.querySelector('.navbar-collapse');
+            
+            // Adiciona evento de clique para todos os links do menu
+            document.querySelectorAll('.navbar-nav .nav-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    // Verifica se o menu está expandido (visível em mobile)
+                    if (navbarCollapse.classList.contains('show')) {
+                        // Simula o clique no botão do menu para recolher
+                        navbarToggler.click();
+                    }
+                });
+            });
+        });
+    </script>
 </body>
-
 </html>
