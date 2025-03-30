@@ -1,8 +1,3 @@
-/* ========================================================
-    CONFIGURAÇÃO BÁSICA E ELEMENTOS ESTRUTURAIS
-   ======================================================== */
-
-/* Configuração básica da página com padding, background claro e layout flexível */
 body {
     padding: 20px;
     background-color: #f8f9fa;
@@ -11,37 +6,41 @@ body {
     min-height: 100vh;
 }
 
-/* Estilos para cartões com cantos arredondados e sombras suaves */
 .card {
     margin-bottom: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Estilização da barra de navegação principal com sombra */
+.card h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.card h2 i {
+    font-size: 1rem;
+    margin-right: 0.5rem;
+}
+
 .navbar {
     margin-bottom: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Configuração do container para os gráficos de estatísticas */
 .chart-container {
     position: relative;
     height: 300px;
 }
 
-/* Animação de transição para itens de lista */
 .list-group-item {
     transition: all 0.3s ease;
 }
 
-/* Efeito de hover para itens de lista (deslizamento e sombra) */
 .list-group-item:hover {
     transform: translateX(5px);
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* Rodapé fixado na parte inferior da página */
 footer {
     background-color: transparent;
     position: fixed;
@@ -79,7 +78,6 @@ footer p i.bi-envelope {
     margin-left: 10px;
 }
 
-/* Componente de mensagem de notificação flutuante */
 #mensagem {
     position: fixed;
     top: 10px;
@@ -87,7 +85,6 @@ footer p i.bi-envelope {
     z-index: 1000;
 }
 
-/* Indicador de carregamento centralizado na tela */
 .loading {
     position: fixed;
     top: 0;
@@ -101,28 +98,20 @@ footer p i.bi-envelope {
     z-index: 9999;
 }
 
-/* ========================================================
-    TEMA ESCURO (DARK MODE)
-   ======================================================== */
-
-/* Cores de fundo e texto para o tema escuro */
 body.dark-mode {
     background-color: #343a40 !important;
     color: #f8f9fa !important;
 }
 
-/* Cartões no tema escuro */
 body.dark-mode .card {
     background-color: #495057;
     border-color: #6c757d;
 }
 
-/* Barra de navegação no tema escuro */
 body.dark-mode .navbar {
     background-color: #212529;
 }
 
-/* Rodapé no tema escuro */
 body.dark-mode footer {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     background-color: rgba(33, 37, 41, 0.7);
@@ -132,22 +121,14 @@ body.dark-mode footer p {
     color: rgba(255, 255, 255, 0.5);
 }
 
-/* Ajusta a cor do texto para telefone e email no modo escuro */
 body.dark-mode .text-muted {
     color: rgba(255, 255, 255, 0.8) !important;
-    /* Lighter color for better readability */
 }
 
-/* Texto de dicas do formulário em modo escuro */
 body.dark-mode .form-text {
     color: #adb5bd !important;
 }
 
-/* ========================================================
-    SISTEMA DE NAVEGAÇÃO EM ABAS
-   ======================================================== */
-
-/* Estilo base para as abas de navegação */
 .nav-tabs .nav-link {
     background: transparent;
     color: #0d6efd;
@@ -160,12 +141,10 @@ body.dark-mode .form-text {
     padding: 0.5rem 1rem;
 }
 
-/* Estilo de hover para abas */
 .nav-tabs .nav-link:hover {
     background-color: rgba(13, 110, 253, 0.1);
 }
 
-/* Estilo da aba ativa/selecionada */
 .nav-tabs .nav-link.active {
     background-color: #0d6efd;
     color: #fff;
@@ -177,43 +156,33 @@ body.dark-mode .form-text {
     border-color: #dee2e6 #dee2e6 #fff;
 }
 
-/* Abas em modo escuro */
 body.dark-mode .nav-tabs .nav-link {
     color: #bbb;
 }
 
-/* Aba ativa em modo escuro */
 body.dark-mode .nav-tabs .nav-link.active {
     background-color: #375a7f;
     color: #fff;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
-/* Conteúdo dentro das abas */
 .tab-content {
     border: 1px solid #dee2e6;
     border-top: none;
     padding: 1rem;
 }
 
-/* ========================================================
-    NAVEGAÇÃO PRINCIPAL (MENU SUPERIOR)
-   ======================================================== */
-
-/* Links na barra de navegação principal */
 .navbar-nav .nav-link {
     color: #fff;
     padding: 10px 15px;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Efeito hover nos links do menu */
 .navbar-nav .nav-link:hover {
     background-color: rgba(255, 255, 255, 0.2);
     border-radius: 5px;
 }
 
-/* Estilo do link ativo/selecionado no menu */
 .navbar-nav .nav-link.active {
     background-color: #007bff;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -222,165 +191,114 @@ body.dark-mode .nav-tabs .nav-link.active {
     font-weight: bold;
 }
 
-/* Links do menu em modo escuro */
 body.dark-mode .navbar-nav .nav-link {
     color: #ddd;
 }
 
-/* Link ativo do menu em modo escuro */
 body.dark-mode .navbar-nav .nav-link.active {
     background-color: #0056b3;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
-/* ========================================================
-    TABELAS E LISTAGENS DE DADOS
-   ======================================================== */
-
-/* Destaque para linha selecionada na tabela */
 .table-warning {
     background-color: #ffc107 !important;
 }
 
-/* ========================================================
-    SISTEMA DE NAVEGAÇÃO PARA ANDAMENTOS DE CHAMADOS
-   ======================================================== */
-
-/* Container para seção de descrição e andamentos */
 #description-and-andamentos-container {
     display: flex;
     overflow: hidden;
     position: relative;
-    /* Necessário para o posicionamento absoluto dos andamentos */
     width: 100%;
-    /* Garante que ocupe toda a largura */
 }
 
-/* Estilo comum para as seções de descrição e andamentos */
 #description-section,
 #andamentos-section {
     flex: 1;
     transition: transform 0.5s ease;
     padding: 20px;
     box-sizing: border-box;
-    /* Inclui o preenchimento no cálculo da largura */
     width: 100%;
-    /* Cada seção deve ocupar toda a largura */
 }
 
-/* Posicionamento da seção de andamentos (inicialmente oculta) */
 #andamentos-section {
     transform: translateX(100%);
-    /* Inicialmente escondida */
     position: absolute;
-    /* Posicionada sobre a seção de descrição */
     top: 0;
     left: 0;
     width: 100%;
     margin-left: -20px;
-    /* Ajuste o valor conforme necessário */
     overflow-x: hidden;
 }
 
-/* Oculta o título da seção de andamentos */
 #andamentos-section h2 {
     display: none;
-    /* Oculta o título da seção de andamentos */
 }
 
-/* Container de rolagem horizontal para andamentos */
 #andamentos-carousel {
     display: flex;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     padding-bottom: 10px;
-    /* Adiciona espaço para a barra de rolagem */
     width: 100%;
-    /* Esconde a barra de rolagem, mas mantém a funcionalidade */
     scrollbar-width: none;
-    /* Firefox */
     -ms-overflow-style: none;
-    /* IE e Edge */
 }
 
-/* Remove a barra de rolagem visível para navegadores baseados em WebKit */
 #andamentos-carousel::-webkit-scrollbar {
     display: none;
 }
 
-/* Dimensionamento dos itens de andamento no carrossel */
 #andamentos-carousel>div {
     flex: 0 0 auto;
     width: 1250px;
     min-width: 1250px;
-    /* Garante a largura mínima */
     max-width: 1250px;
-    /* Garante a largura máxima */
     padding: 10px;
     margin-right: 10px;
     scroll-snap-align: start;
     box-sizing: border-box;
 }
 
-/* Ajustes para campos de texto dentro dos andamentos */
 #andamentos-carousel textarea,
 #andamentos-section .form-control {
     width: calc(100% - 50px) !important;
-    /* Reduz a largura para dar espaço aos botões */
     margin: 0 25px !important;
-    /* Adiciona margem nas laterais */
     padding: 8px !important;
     box-sizing: border-box !important;
     border: 1px solid #ccc !important;
 }
 
-/* Estilo para botões nos cards de andamentos */
 #andamentos-carousel>div .btn {
     margin-left: 25px;
-    /* Mesma margem das textareas */
     margin-right: 5px;
-    /* Pequeno espaçamento entre os botões */
 }
 
-/* Agrupamento de botões nos andamentos */
 #andamentos-carousel>div .btn+.btn {
     margin-left: 5px;
-    /* Espaçamento menor entre botões consecutivos */
 }
 
-/* Redução de espaçamentos no formulário de detalhes */
 #detalhes-chamado-form .mb-3 {
     margin-bottom: 8px !important;
-    /* Ajuste conforme necessário */
 }
 
-/* Espaçamento entre botões no formulário de detalhes do chamado */
 #detalhes-chamado-form .btn+.btn {
     margin-left: 10px;
 }
 
-/* Estilo para botões desabilitados */
 #detalhes-chamado-form button:disabled {
     opacity: 0.7;
     cursor: not-allowed;
 }
 
-/* ========================================================
-    CONTROLES DE NAVEGAÇÃO DO CARROSSEL
-   ======================================================== */
-
-/* Botões de navegação do carrossel de andamentos */
 .nav-button {
     position: absolute;
     top: 0;
     height: calc(100% - 40px);
-    /* Ajusta à altura da textarea */
     background: rgba(0, 0, 0, 0.1);
     border: none;
     color: #495057;
     font-size: 24px;
     padding: 0 4px;
-    /* Diminuído de 12px para 8px */
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
@@ -388,62 +306,45 @@ body.dark-mode .navbar-nav .nav-link.active {
     justify-content: center;
 }
 
-/* Efeito hover nos botões de navegação */
 .nav-button:hover {
     background: rgba(0, 0, 0, 0.2);
     color: #212529;
 }
 
-/* Posicionamento do botão esquerdo */
 .nav-button.left {
     left: 25px;
-    /* Alinha com a margem da textarea */
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
 }
 
-/* Posicionamento do botão direito */
 .nav-button.right {
     right: 25px;
-    /* Alinha com a margem da textarea */
     border-top-right-radius: 4px;
     border-bottom-right-radius: 4px;
 }
 
-/* Botões de navegação em modo escuro */
 body.dark-mode .nav-button {
     background: rgba(255, 255, 255, 0.1);
     color: #dee2e6;
 }
 
-/* Efeito hover em botões de navegação no modo escuro */
 body.dark-mode .nav-button:hover {
     background: rgba(255, 255, 255, 0.2);
     color: #ffffff;
 }
 
-/* Indicador de posição no carrossel (contador) */
 .andamento-counter {
     position: absolute;
     bottom: 20px;
-    /* Ajustado para ficar mais para cima */
     right: 45px;
-    /* Ajustado para alinhar com o final da caixa de texto */
     font-size: 14px;
     color: #495057;
 }
 
-/* Contador de andamentos em modo escuro */
 body.dark-mode .andamento-counter {
     color: #f8f9fa;
-    /* Ajustado para melhorar a visibilidade no modo escuro */
 }
 
-/* ========================================================
-    RESULTADOS DE BUSCA DE CLIENTES
-   ======================================================== */
-
-/* Container dos resultados da busca de clientes */
 #resultados_cliente {
     position: relative;
     z-index: 1000;
@@ -452,39 +353,51 @@ body.dark-mode .andamento-counter {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Item individual na lista de resultados */
 #resultados_cliente .list-group-item {
     cursor: pointer;
 }
 
-/* Efeito hover nos resultados da busca */
 #resultados_cliente .list-group-item:hover {
     background-color: #f8f9fa;
 }
 
-/* Ajustes para modo escuro nos resultados da busca */
 body.dark-mode #resultados_cliente {
     background-color: #343a40;
     border-color: #495057;
 }
 
-/* Itens de resultado em modo escuro */
 body.dark-mode #resultados_cliente .list-group-item {
     background-color: #343a40;
     color: #f8f9fa;
     border-color: #495057;
 }
 
-/* Efeito hover em itens de resultado no modo escuro */
 body.dark-mode #resultados_cliente .list-group-item:hover {
     background-color: #495057;
 }
 
-/* ========================================================
-    AJUSTES DE CORES PARA MODO ESCURO (ELEMENTOS DE FORMULÁRIO)
-   ======================================================== */
+#resultado-busca {
+    max-height: 300px;
+    overflow-y: auto;
+}
 
-/* Campos de entrada em modo escuro */
+#resultado-busca::-webkit-scrollbar {
+    width: 8px;
+}
+
+#resultado-busca::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+#resultado-busca::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+#resultado-busca::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
 body.dark-mode input,
 body.dark-mode textarea,
 body.dark-mode select,
@@ -494,41 +407,34 @@ body.dark-mode .form-control {
     border-color: #495057;
 }
 
-/* Labels de formulário em modo escuro */
 body.dark-mode .form-label {
     color: #f8f9fa;
 }
 
-/* Conteúdo de modais em modo escuro */
 body.dark-mode .modal-content {
     background-color: #343a40;
     color: #f8f9fa;
 }
 
-/* Tabelas em modo escuro */
 body.dark-mode .table {
     color: #f8f9fa;
 }
 
-/* Cartões em modo escuro */
 body.dark-mode .card {
     color: #f8f9fa;
 }
 
-/* Itens de lista em modo escuro */
 body.dark-mode .list-group-item {
     background-color: #343a40;
     color: #f8f9fa;
     border-color: #495057;
 }
 
-/* Placeholders em campos de formulário em modo escuro */
 body.dark-mode input::placeholder,
 body.dark-mode textarea::placeholder {
     color: #adb5bd;
 }
 
-/* Campos desabilitados em modo escuro */
 body.dark-mode input:disabled,
 body.dark-mode textarea:disabled,
 body.dark-mode select:disabled,
@@ -537,35 +443,26 @@ body.dark-mode .form-control:disabled {
     color: #adb5bd;
 }
 
-/* Cabeçalhos e rodapés de modais em modo escuro */
 body.dark-mode .modal-header,
 body.dark-mode .modal-footer {
     border-color: #495057;
 }
 
-/* Linhas zebradas ímpares em tabelas no modo escuro */
 body.dark-mode .table-striped>tbody>tr:nth-of-type(odd) {
     background-color: rgba(255, 255, 255, 0.05);
     color: #f8f9fa;
 }
 
-/* Linhas zebradas pares em tabelas no modo escuro */
 body.dark-mode .table-striped>tbody>tr:nth-of-type(even) {
     background-color: transparent;
     color: #f8f9fa;
 }
 
-/* Linha destacada (warning) em tabelas no modo escuro */
 body.dark-mode .table-warning {
     background-color: #664d03 !important;
     color: #fff !important;
 }
 
-/* ========================================================
-    ESTILOS DA PÁGINA DE LOGIN
-   ======================================================== */
-
-/* Container principal da página de login */
 .login-container {
     height: 100vh;
     display: flex;
@@ -574,7 +471,6 @@ body.dark-mode .table-warning {
     background-color: #f8f9fa;
 }
 
-/* Box central do formulário de login */
 .login-box {
     background: white;
     padding: 2rem;
@@ -584,7 +480,6 @@ body.dark-mode .table-warning {
     max-width: 400px;
 }
 
-/* Imagem de logo na página de login */
 .login-logo {
     display: block;
     margin: 0 auto 2rem;
@@ -592,30 +487,25 @@ body.dark-mode .table-warning {
     height: auto;
 }
 
-/* Container da página de login em modo escuro */
 body.dark-mode .login-container {
     background-color: #343a40;
 }
 
-/* Box de login em modo escuro */
 body.dark-mode .login-box {
     background-color: #212529;
     color: #f8f9fa;
 }
 
-/* Campos de formulário em modo escuro */
 body.dark-mode .form-control {
     background-color: #2c3034;
     border-color: #495057;
     color: #f8f9fa;
 }
 
-/* Placeholders em modo escuro */
 body.dark-mode .form-control::placeholder {
     color: #6c757d;
 }
 
-/* Background gradiente da página de login */
 .login-container {
     min-height: 100vh;
     width: 100vw;
@@ -633,7 +523,6 @@ body.dark-mode .form-control::placeholder {
     bottom: 0;
 }
 
-/* Caixa do formulário de login */
 .login-box {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 15px;
@@ -644,30 +533,24 @@ body.dark-mode .form-control::placeholder {
     backdrop-filter: blur(10px);
 }
 
-/* Título na página de login */
 .login-box h1 {
     color: #333;
 }
 
-/* Subtexto na página de login */
 .login-box .text-muted {
     color: #666 !important;
 }
 
-/* Campos de entrada na página de login */
 .login-box form .form-control {
     border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
-/* Efeito de foco nos campos da página de login */
 .login-box form .form-control:focus {
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
 }
 
-/* Estilos para o container de login */
 .login-box {
     background-color: rgba(33, 37, 41, 0.8);
-    /* Fundo escuro semi transparente */
     color: #fff;
     border-radius: 10px;
     padding: 30px;
@@ -676,7 +559,6 @@ body.dark-mode .form-control::placeholder {
     -webkit-backdrop-filter: blur(10px);
 }
 
-/* Estilo para os inputs no formulário de login */
 .login-box .form-control {
     background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -687,57 +569,40 @@ body.dark-mode .form-control::placeholder {
     color: rgba(255, 255, 255, 0.7);
 }
 
-/* Estilo para o texto do sistema */
 .login-box .text-muted {
     color: rgba(255, 255, 255, 0.7) !important;
 }
 
-/* ========================================================
-    MODAL DE AVISO DE SESSÃO
-   ======================================================== */
-
-/* Efeito de desfoque no fundo do modal de aviso de sessão */
 #sessionWarningModal {
     z-index: 9999;
 }
 
-/* Borda de destaque no modal de aviso de sessão */
 #sessionWarningModal .modal-content {
     border-left: 5px solid #ffc107;
 }
 
-/* Cabeçalho do modal de aviso de sessão */
 #sessionWarningModal .modal-header {
     background-color: #fff3cd;
 }
 
-/* Título do modal de aviso de sessão */
 #sessionWarningModal .modal-title {
     color: #856404;
 }
 
-/* Ajustes para o modal de sessão em modo escuro */
 body.dark-mode #sessionWarningModal .modal-content {
     background-color: #343a40;
     border-left: 5px solid #ffc107;
 }
 
-/* Cabeçalho do modal de sessão em modo escuro */
 body.dark-mode #sessionWarningModal .modal-header {
     background-color: #463e26;
 }
 
-/* Textos do modal de sessão em modo escuro */
 body.dark-mode #sessionWarningModal .modal-title,
 body.dark-mode #sessionWarningModal .modal-body {
     color: #ffc107;
 }
 
-/* ========================================================
-    ESTILIZAÇÃO DE TABELAS MODERNAS
-   ======================================================== */
-
-/* Estilo base para tabelas modernas */
 .modern-table {
     border-radius: 10px;
     overflow: hidden;
@@ -749,13 +614,11 @@ body.dark-mode #sessionWarningModal .modal-body {
     width: 100%;
 }
 
-/* Cabeçalho das tabelas modernas */
 .modern-table thead {
     background: #f8f9fa;
     border-bottom: 2px solid #dee2e6;
 }
 
-/* Células de cabeçalho das tabelas modernas */
 .modern-table th {
     padding: 15px 20px;
     font-weight: 600;
@@ -767,7 +630,6 @@ body.dark-mode #sessionWarningModal .modal-body {
     white-space: nowrap;
 }
 
-/* Células de dados das tabelas modernas */
 .modern-table td {
     padding: 12px 20px;
     vertical-align: middle;
@@ -776,29 +638,21 @@ body.dark-mode #sessionWarningModal .modal-body {
     transition: all 0.2s ease;
 }
 
-/* Linhas de tabelas modernas */
 .modern-table tbody tr {
     transition: all 0.2s ease;
 }
 
-/* Efeito hover nas linhas de tabelas modernas */
 .modern-table tbody tr:hover {
     background-color: #f8f9fa;
     transform: translateY(-1px);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
-/* Linha selecionada em tabelas modernas */
 .modern-table tbody tr.selected {
     background-color: #e3f2fd !important;
     border-left: 4px solid #1976d2;
 }
 
-/* ========================================================
-    BADGES DE STATUS
-   ======================================================== */
-
-/* Estilo base para badges de status */
 .status-badge {
     display: inline-block;
     padding: 0.25rem 0.5rem;
@@ -811,49 +665,34 @@ body.dark-mode #sessionWarningModal .modal-body {
     border-radius: 0.25rem;
 }
 
-/* Badge para status "aberto" */
 .status-aberto {
     background-color: #ffc107;
     color: #212529;
 }
 
-/* Badge para status "finalizado" */
 .status-finalizado {
     background-color: #28a745;
     color: #fff;
 }
 
-/* Badge "aberto" em modo escuro */
 body.dark-mode .status-aberto {
     background-color: #856404;
     color: #fff3cd;
 }
 
-/* Badge "finalizado" em modo escuro */
 body.dark-mode .status-finalizado {
     background-color: #155724;
     color: #d4edda;
 }
 
-/* ========================================================
-    ESTILOS PARA ABAS DE CHAMADOS DE CLIENTE
-   ======================================================== */
-
-/* Tabela na aba de chamados do cliente */
 #chamados-cliente .modern-table {
     margin-top: 1rem;
 }
 
-/* Botões na lista de chamados do cliente */
 #chamados-cliente-lista .btn {
     white-space: nowrap;
 }
 
-/* ========================================================
-    COMPONENTES DE PAGINAÇÃO
-   ======================================================== */
-
-/* Container para controles de paginação */
 .modern-pagination {
     display: flex;
     justify-content: center;
@@ -862,7 +701,6 @@ body.dark-mode .status-finalizado {
     margin: 20px 0;
 }
 
-/* Botões de paginação */
 .modern-pagination button {
     border: none;
     background: white;
@@ -874,20 +712,17 @@ body.dark-mode .status-finalizado {
     transition: all 0.2s ease;
 }
 
-/* Botões de paginação desabilitados */
 .modern-pagination button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-/* Efeito hover em botões de paginação */
 .modern-pagination button:not(:disabled):hover {
     background: #f8f9fa;
     transform: translateY(-1px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
 }
 
-/* Texto de informação da página atual */
 .modern-pagination .page-info {
     padding: 8px 16px;
     background: #f8f9fa;
@@ -895,65 +730,47 @@ body.dark-mode .status-finalizado {
     font-weight: 500;
 }
 
-/* ========================================================
-    TABELAS MODERNAS EM MODO ESCURO
-   ======================================================== */
-
-/* Tabelas modernas em modo escuro */
 body.dark-mode .modern-table {
     background: #2c3034;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* Cabeçalho de tabelas em modo escuro */
 body.dark-mode .modern-table thead {
     background: #212529;
 }
 
-/* Células de cabeçalho em modo escuro */
 body.dark-mode .modern-table th {
     color: #e9ecef;
 }
 
-/* Células de dados em modo escuro */
 body.dark-mode .modern-table td {
     color: #dee2e6;
     border-bottom-color: #495057;
 }
 
-/* Efeito hover em linhas de tabela em modo escuro */
 body.dark-mode .modern-table tbody tr:hover {
     background-color: #343a40;
 }
 
-/* Linha selecionada em modo escuro */
 body.dark-mode .modern-table tbody tr.selected {
     background-color: #1e3a5f !important;
     border-left: 4px solid #90caf9;
 }
 
-/* Botões de paginação em modo escuro */
 body.dark-mode .modern-pagination button {
     background: #343a40;
     color: #dee2e6;
 }
 
-/* Efeito hover em botões de paginação em modo escuro */
 body.dark-mode .modern-pagination button:not(:disabled):hover {
     background: #495057;
 }
 
-/* Texto de informação de página em modo escuro */
 body.dark-mode .modern-pagination .page-info {
     background: #343a40;
     color: #dee2e6;
 }
 
-/* ========================================================
-    BARRA DE FERRAMENTAS MODERNA
-   ======================================================== */
-
-/* Container principal da barra de ferramentas */
 .modern-toolbar {
     display: flex;
     gap: 10px;
@@ -964,7 +781,6 @@ body.dark-mode .modern-pagination .page-info {
     margin-bottom: 20px;
 }
 
-/* Botões na barra de ferramentas */
 .modern-toolbar .btn {
     padding: 8px 16px;
     border-radius: 8px;
@@ -974,27 +790,19 @@ body.dark-mode .modern-pagination .page-info {
     gap: 8px;
 }
 
-/* Ícones nos botões da barra de ferramentas */
 .modern-toolbar .btn i {
     font-size: 1.1em;
 }
 
-/* Barra de ferramentas em modo escuro */
 body.dark-mode .modern-toolbar {
     background: #2c3034;
 }
 
-/* ========================================================
-    CAMPO DE BUSCA
-   ======================================================== */
-
-/* Container do campo de busca */
 .modern-search {
     position: relative;
     margin-bottom: 20px;
 }
 
-/* Campo de entrada da busca */
 .modern-search input {
     width: 100%;
     padding: 12px 20px;
@@ -1006,14 +814,12 @@ body.dark-mode .modern-toolbar {
     transition: all 0.2s ease;
 }
 
-/* Efeito de foco no campo de busca */
 .modern-search input:focus {
     outline: none;
     border-color: #1976d2;
     box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.1);
 }
 
-/* Ícone de lupa no campo de busca */
 .modern-search::before {
     content: '🔍';
     position: absolute;
@@ -1023,20 +829,17 @@ body.dark-mode .modern-toolbar {
     color: #adb5bd;
 }
 
-/* Campo de busca em modo escuro */
 body.dark-mode .modern-search input {
     background: #2c3034;
     border-color: #495057;
     color: #dee2e6;
 }
 
-/* Efeito de foco em modo escuro */
 body.dark-mode .modern-search input:focus {
     border-color: #90caf9;
     box-shadow: 0 0 0 4px rgba(144, 202, 249, 0.1);
 }
 
-/* Estilo para o campo de pesquisa de chamados */
 .modern-search {
     position: relative;
     margin-bottom: 1rem;
@@ -1068,7 +871,6 @@ body.dark-mode .modern-search input:focus {
     pointer-events: none;
 }
 
-/* Adaptação para tema escuro */
 body.dark-mode .modern-search input {
     background-color: #333;
     border-color: #444;
@@ -1084,23 +886,37 @@ body.dark-mode .modern-search::before {
     color: #adb5bd;
 }
 
-/* ========================================================
-    ESTILOS PERSONALIZADOS DE ABAS
-   ======================================================== */
+#clear-search {
+    font-size: 1.2rem;
+    font-weight: bold;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
 
-/* Abas ativas no modo claro */
+#clear-search:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+#clear-search .bi-x {
+    stroke-width: 0.8;
+    font-weight: bold;
+}
+
+body.dark-mode #clear-search {
+    color: #fff !important;
+}
+
 .nav-tabs .nav-link.active {
     color: #000 !important;
     background-color: #0d6efd !important;
     border-color: #0d6efd !important;
 }
 
-/* Abas ativas no modo escuro */
 body.dark-mode .nav-tabs .nav-link.active {
     color: #fff !important;
 }
 
-/* Abas no modo escuro */
 body.dark-mode #clienteTabs .nav-link {
     color: #fff;
 }
@@ -1116,44 +932,34 @@ body.dark-mode #clienteTabs .nav-link.active {
     border-bottom: 3px solid #0d6efd;
 }
 
-/* ========================================================
-    ESTILOS DE BOTÕES
-   ======================================================== */
-
-/* Botões outline-secondary em modo escuro */
 body.dark-mode .btn-outline-secondary {
     color: #fff;
     background-color: #0d6efd;
     border-color: #0d6efd;
 }
 
-/* Efeito hover em botões outline-secondary em modo escuro */
 body.dark-mode .btn-outline-secondary:hover {
     color: #fff;
     background-color: #0b5ed7;
     border-color: #0a58ca;
 }
 
-/* Estilização consistente de botões outline-secondary */
 .btn-outline-secondary {
     color: #fff;
     background-color: #0d6efd;
     border-color: #0d6efd;
 }
 
-/* Efeito hover em botões outline-secondary */
 .btn-outline-secondary:hover {
     color: #fff;
     background-color: #0b5ed7;
     border-color: #0a58ca;
 }
 
-/* Estilo para o botão de rota do Google Maps */
 .btn i.bi-map {
     margin-right: 5px;
 }
 
-/* Ajuste para tema escuro */
 body.dark-mode .btn-primary {
     background-color: #375a7f;
     border-color: #375a7f;
@@ -1164,7 +970,6 @@ body.dark-mode .btn-primary:hover {
     border-color: #2b4764;
 }
 
-/* Ajustes para botões específicos */
 .btn-maps {
     color: #fff;
     background-color: #0d6efd;
@@ -1177,7 +982,6 @@ body.dark-mode .btn-primary:hover {
     border-color: #0a58ca;
 }
 
-/* No modo escuro */
 body.dark-mode .btn-maps {
     color: #fff;
     background-color: #375a7f;
@@ -1189,7 +993,6 @@ body.dark-mode .btn-maps:hover {
     border-color: #2b4764;
 }
 
-/* Botão Novo Chamado sempre preenchido */
 .btn-new-ticket {
     color: #fff;
     background-color: #0d6efd;
@@ -1202,7 +1005,6 @@ body.dark-mode .btn-maps:hover {
     border-color: #0a58ca;
 }
 
-/* No modo escuro */
 body.dark-mode .btn-new-ticket {
     color: #fff;
     background-color: #375a7f;
@@ -1214,54 +1016,39 @@ body.dark-mode .btn-new-ticket:hover {
     border-color: #2b4764;
 }
 
-/* ========================================================
-    TABELA ESPECÍFICA PARA CHAMADOS DE CLIENTE
-   ======================================================== */
-
-/* Layout da tabela de chamados do cliente */
 .table-cliente-chamados {
     font-size: 0.9rem;
     width: 100%;
     table-layout: fixed;
 }
 
-/* Células da tabela de chamados do cliente */
 .table-cliente-chamados th,
 .table-cliente-chamados td {
     padding: 0.5rem;
     vertical-align: middle;
 }
 
-/* Botões na tabela de chamados do cliente */
 .table-cliente-chamados .btn {
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
 }
 
-/* Badges de status na tabela de chamados */
 .table-cliente-chamados .status-badge {
     padding: 0.2rem 0.4rem;
     font-size: 0.7rem;
 }
 
-/* Textos truncados na tabela de chamados */
 .table-cliente-chamados .text-truncate {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-/* Ajustes para evitar rolagem horizontal na tabela */
 #chamados-cliente .table-responsive {
     max-width: 100%;
     overflow-x: auto;
 }
 
-/* ========================================================
-    DROPDOWN PARA SELEÇÃO DE CHAMADOS
-   ======================================================== */
-
-/* Dropdown de chamados base */
 .chamados-dropdown {
     max-height: 200px;
     overflow-y: auto;
@@ -1274,48 +1061,36 @@ body.dark-mode .btn-new-ticket:hover {
     display: none;
 }
 
-/* Estado visível do dropdown de chamados */
 .chamados-dropdown.show {
     display: block;
 }
 
-/* Item individual do dropdown de chamados */
 .chamados-dropdown .list-group-item {
     cursor: pointer;
     padding: 0.5rem 1rem;
 }
 
-/* Efeito hover nos itens do dropdown */
 .chamados-dropdown .list-group-item:hover {
     background-color: #f8f9fa;
 }
 
-/* Container para exibir o chamado selecionado */
 #chamado-selecionado {
     background-color: #f8f9fa;
 }
 
-/* Dropdown de chamados em modo escuro */
 body.dark-mode .chamados-dropdown {
     background: #343a40;
 }
 
-/* Efeito hover nos itens do dropdown em modo escuro */
 body.dark-mode .chamados-dropdown .list-group-item:hover {
     background-color: #495057;
 }
 
-/* Container do chamado selecionado em modo escuro */
 body.dark-mode #chamado-selecionado {
     background-color: #2c3034;
     color: #f8f9fa;
 }
 
-/* ========================================================
-    TOOLTIPS PARA CALENDÁRIO
-   ======================================================== */
-
-/* Estilo base para tooltips do calendário */
 .tippy-box[data-theme~='light'] {
     background-color: #fff;
     color: #333;
@@ -1324,60 +1099,43 @@ body.dark-mode #chamado-selecionado {
     font-size: 0.9em;
 }
 
-/* Seta do tooltip no tema claro */
 .tippy-box[data-theme~='light'][data-placement^='top']>.tippy-arrow::before {
     border-top-color: #fff;
 }
 
-/* Container principal do tooltip de agendamento */
 .agenda-tooltip {
     padding: 8px;
 }
 
-/* Cabeçalho do tooltip de agendamento */
 .agenda-tooltip .tooltip-header {
     border-bottom: 1px solid #eee;
     padding-bottom: 5px;
     margin-bottom: 5px;
 }
 
-/* Parágrafos no corpo do tooltip */
 .agenda-tooltip .tooltip-body p {
     margin: 5px 0;
     line-height: 1.4;
 }
 
-/* Estilização dos tooltips no modo escuro */
 body.dark-mode .tippy-box[data-theme~='light'] {
     background-color: #333;
     color: #fff;
 }
 
-/* Seta do tooltip no modo escuro */
 body.dark-mode .tippy-box[data-theme~='light'][data-placement^='top']>.tippy-arrow::before {
     border-top-color: #333;
 }
 
-/* ========================================================
-    PERSONALIZAÇÃO DA VISUALIZAÇÃO DE LISTA NO FULLCALENDAR
-   ======================================================== */
-
-/* Efeito hover nas linhas da lista de eventos em modo escuro */
 body.dark-mode .fc-list-event:hover td {
     background-color: #212529 !important;
 }
 
-/* Texto dos eventos na visualização em lista em modo escuro */
 body.dark-mode .fc-list-event:hover .fc-list-event-title,
 body.dark-mode .fc-list-event:hover .fc-list-event-time {
     color: #fff !important;
 }
 
-/* ========================================================
-    ELEMENTOS DE REDIMENSIONAMENTO NO FULLCALENDAR
-   ======================================================== */
-
-/* Indicador de redimensionamento para eventos do calendário */
 .fc-event-resizer {
     display: block !important;
     position: absolute;
@@ -1388,60 +1146,48 @@ body.dark-mode .fc-list-event:hover .fc-list-event-time {
     left: 0;
     cursor: s-resize;
     border-bottom: 2px dotted rgba(0, 0, 0, 0.4) !important;
-    /* Linha pontilhada sempre visível */
 }
 
-/* Exibição do indicador de redimensionamento no hover */
 .fc-event:hover .fc-event-resizer {
     background: rgba(0, 0, 0, 0.2) !important;
     height: 12px !important;
-    /* Aumenta ainda mais no hover */
 }
 
-/* Pontos de redimensionamento nas extremidades dos eventos */
 .fc-h-event .fc-event-resizer-end,
 .fc-h-event .fc-event-resizer-start,
 .fc-v-event .fc-event-resizer-bottom,
 .fc-v-event .fc-event-resizer-top {
     cursor: s-resize;
     display: flex !important;
-    /* Alterado para flex para centralizar o conteúdo */
     align-items: center;
     justify-content: center;
     width: 100%;
     height: 10px !important;
-    /* Adiciona um indicador visual com setas */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='4' viewBox='0 0 20 4'%3E%3Cline x1='0' y1='2' x2='20' y2='2' stroke='rgba(0,0,0,0.5)' stroke-width='2'/%3E%3C/svg%3E");
     background-repeat: repeat-x;
     background-position: center;
     border-bottom: 2px dotted rgba(0, 0, 0, 0.4);
 }
 
-/* Efeito de escala nos pontos de redimensionamento durante hover */
 .fc-h-event:hover .fc-event-resizer-end,
 .fc-h-event:hover .fc-event-resizer-start,
 .fc-v-event:hover .fc-event-resizer-bottom,
 .fc-v-event:hover .fc-event-resizer-top {
     background-color: rgba(0, 0, 0, 0.25) !important;
     height: 12px !important;
-    /* Altera a imagem no hover para destacar mais */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='8' viewBox='0 0 20 8'%3E%3Cpath d='M0,2 L20,2 M0,6 L20,6' stroke='rgba(0,0,0,0.7)' stroke-width='2'/%3E%3C/svg%3E");
 }
 
-/* Cursor específico para redimensionamento vertical */
 .fc .fc-event-resizable-bottom {
     cursor: s-resize !important;
 }
 
-/* Indicador visual de "alça" para arrastar eventos */
 .fc-event-main {
     position: relative;
 }
 
-/* Detalhe visual da "alça" para eventos */
 .fc-event-main::after {
     content: "≡";
-    /* Símbolo de menu "hambúrguer" como indicador visual */
     position: absolute;
     bottom: 0;
     left: 50%;
@@ -1451,48 +1197,33 @@ body.dark-mode .fc-list-event:hover .fc-list-event-time {
     line-height: 1;
 }
 
-/* ========================================================
-    ELEMENTOS DE REDIMENSIONAMENTO NO MODO ESCURO
-   ======================================================== */
-
-/* Indicador de redimensionamento em modo escuro */
 body.dark-mode .fc-event-resizer {
     border-bottom: 2px dotted rgba(255, 255, 255, 0.4) !important;
 }
 
-/* Pontos de redimensionamento em modo escuro */
 body.dark-mode .fc-event:hover .fc-event-resizer {
     background: rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Estilos específicos para pontos de redimensionamento em modo escuro */
 body.dark-mode .fc-h-event .fc-event-resizer-end,
 body.dark-mode .fc-h-event .fc-event-resizer-start,
 body.dark-mode .fc-v-event .fc-event-resizer-bottom,
 body.dark-mode .fc-v-event .fc-event-resizer-top {
-    /* Versão light do indicador visual para modo escuro */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='4' viewBox='0 0 20 4'%3E%3Cline x1='0' y1='2' x2='20' y2='2' stroke='rgba(255,255,255,0.5)' stroke-width='2'/%3E%3C/svg%3E");
     border-bottom: 2px dotted rgba(255, 255, 255, 0.4);
 }
 
-/* Efeito de escala em pontos de redimensionamento em modo escuro */
 body.dark-mode .fc-h-event:hover .fc-event-resizer-end,
 body.dark-mode .fc-h-event:hover .fc-event-resizer-start,
 body.dark-mode .fc-v-event:hover .fc-event-resizer-bottom,
 body.dark-mode .fc-v-event:hover .fc-event-resizer-top {
     background-color: rgba(255, 255, 255, 0.3) !important;
-    /* Versão light da imagem no hover para modo escuro */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='8' viewBox='0 0 20 8'%3E%3Cpath d='M0,2 L20,2 M0,6 L20,6' stroke='rgba(255,255,255,0.7)' stroke-width='2'/%3E%3C/svg%3E");
 }
 
-/* Detalhe visual da "alça" para eventos em modo escuro */
 body.dark-mode .fc-event-main::after {
     color: rgba(255, 255, 255, 0.5);
 }
-
-/* ========================================================
-    ESTILOS PARA A PÁGINA DE BACKUPS
-   ======================================================== */
 
 .backup-info {
     font-size: 0.95rem;
@@ -1509,13 +1240,11 @@ body.dark-mode .backup-info {
     word-break: break-all;
 }
 
-/* Espaçamento para tabela de backups */
 #lista-backups td {
     vertical-align: middle;
     word-break: break-word;
 }
 
-/* Estilos para a área de notas do cliente */
 .notes-container {
     background-color: #fff;
     border-radius: 8px;
@@ -1530,7 +1259,6 @@ body.dark-mode .backup-info {
     gap: 10px;
 }
 
-/* Tema escuro */
 .dark-mode .notes-container {
     background-color: #2b2b2b;
 }
@@ -1561,7 +1289,6 @@ body.dark-mode .backup-info {
     color: #495057;
 }
 
-
 .tox .tox-toolbar__group {
     padding: 4px !important;
     border-right: 1px solid #dee2e6 !important;
@@ -1583,31 +1310,19 @@ body.dark-mode .tox .tox-toolbar-overlord {
     background-color: #343a40 !important;
 }
 
-/* ========================================================
-    MELHORIAS ESPECÍFICAS PARA O LAYOUT DA HOME PAGE
-   ======================================================== */
-
-/* Variáveis personalizáveis para ajuste manual dos tamanhos dos cards */
 :root {
-    /* Variáveis de tamanho dos cards - largura e altura para cada card */
     --search-card-width: 70%;
     --search-card-height: auto;
-
     --system-summary-width: 28%;
     --system-summary-height: auto;
-
     --statistics-card-width: 35%;
     --statistics-card-height: auto;
-
     --recent-tickets-width: 55%;
     --recent-tickets-height: auto;
-
-    /* Variáveis de espaçamento */
     --cards-gap: 1rem;
     --section-gap: 1.5rem;
 }
 
-/* Layout principal como canvas flexível */
 .home-page-container {
     display: flex;
     flex-wrap: wrap;
@@ -1616,7 +1331,6 @@ body.dark-mode .tox .tox-toolbar-overlord {
     width: 100%;
 }
 
-/* Seção superior - wrap com flexbox */
 .top-section {
     display: flex;
     width: 100%;
@@ -1624,16 +1338,14 @@ body.dark-mode .tox .tox-toolbar-overlord {
     margin-bottom: var(--cards-gap);
 }
 
-/* Seção inferior - wrap com flexbox */
 .bottom-section {
     display: flex;
     width: 100%;
     gap: var(--cards-gap);
 }
 
-/* Wrappers individuais para cada card com tamanhos independentes */
 .search-card-wrapper {
-    width: var(--search-card-width);
+    width: calc(var(--search-card-width) - 20%);
     height: var(--search-card-height);
 }
 
@@ -1657,7 +1369,6 @@ body.dark-mode .tox .tox-toolbar-overlord {
     max-width: 500px !important;
 }
 
-/* Cards */
 .home-card,
 .search-card {
     height: 100%;
@@ -1674,7 +1385,6 @@ body.dark-mode .tox .tox-toolbar-overlord {
     flex-direction: column;
 }
 
-/* Espaçamento consistente para títulos de cards */
 .home-card h5 {
     font-size: 1rem;
     margin-bottom: 1rem;
@@ -1684,7 +1394,6 @@ body.dark-mode .tox .tox-toolbar-overlord {
     gap: 0.5rem;
 }
 
-/* Gráficos de estatísticas com tamanho responsivo */
 .chart-container {
     height: auto;
     min-height: 250px;
@@ -1692,7 +1401,6 @@ body.dark-mode .tox .tox-toolbar-overlord {
     flex: 1;
 }
 
-/* Lista de últimos chamados */
 #ultimos-chamados.list-group {
     max-height: 300px;
     overflow-y: auto;
@@ -1703,14 +1411,12 @@ body.dark-mode .tox .tox-toolbar-overlord {
     padding: 0.5rem 0.75rem;
 }
 
-/* Ajusta espaçamento nas estatísticas gerais */
 #estatisticas-gerais.list-group .list-group-item {
     padding: 0.5rem 0.75rem;
     display: flex;
     justify-content: space-between;
 }
 
-/* Ajustes para área de busca */
 .search-card {
     margin-bottom: 0;
 }
@@ -1724,7 +1430,6 @@ body.dark-mode .tox .tox-toolbar-overlord {
     margin-bottom: 1rem;
 }
 
-/* Botões de ação rápida */
 .actions-card .btn {
     margin-bottom: 0.5rem;
 }
@@ -1733,7 +1438,6 @@ body.dark-mode .tox .tox-toolbar-overlord {
     margin-bottom: 0;
 }
 
-/* Ajustes para seletor de período de estatísticas */
 .period-selector {
     display: flex;
     justify-content: flex-end;
@@ -1745,10 +1449,7 @@ body.dark-mode .tox .tox-toolbar-overlord {
     font-size: 0.85rem;
 }
 
-/* Layout responsivo para telas menores */
 @media (max-width: 992px) {
-
-    /* Em telas médias, ajustar proporções mas manter layout */
     :root {
         --search-card-width: 65%;
         --system-summary-width: 33%;
@@ -1763,7 +1464,6 @@ body.dark-mode .tox .tox-toolbar-overlord {
 
 @media (max-width: 768px) {
 
-    /* Em telas pequenas, empilhar todos os elementos */
     .top-section,
     .bottom-section {
         flex-direction: column;
@@ -1777,7 +1477,6 @@ body.dark-mode .tox .tox-toolbar-overlord {
         margin-bottom: var(--cards-gap);
     }
 
-    /* Reordenar elementos para experiência mobile */
     .home-page-container {
         display: flex;
         flex-direction: column;
@@ -1798,6 +1497,58 @@ body.dark-mode .tox .tox-toolbar-overlord {
     .system-summary-wrapper {
         order: 4;
     }
+
+    /* Ajuste para os botões ficarem na mesma linha e menores */
+    .modern-toolbar {
+        display: flex;
+        flex-wrap: nowrap !important;
+        gap: 4px;
+        overflow-x: hidden;
+        width: 100%;
+    }
+
+    .modern-toolbar button {
+        padding: 6px 8px !important;
+        font-size: 0.75rem !important;
+        flex: 0 1 auto !important;
+        min-width: unset !important;
+        white-space: nowrap;
+    }
+
+    .modern-toolbar button i {
+        font-size: 0.875rem;
+        margin-right: 2px;
+    }
+
+    /* Ajuste para widget de últimos chamados */
+    .recent-tickets-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 0 15px 0;
+    }
+
+    #ultimos-chamados {
+        width: 100%;
+        font-size: 0.8rem;
+    }
+
+    .chamado-item {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .chamado-cliente, 
+    .chamado-assunto, 
+    .chamado-protocolo {
+        width: 100%;
+        white-space: normal;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+        -webkit-box-orient: vertical;
+    }
 }
 
 @media (max-width: 576px) {
@@ -1810,7 +1561,6 @@ body.dark-mode .tox .tox-toolbar-overlord {
     }
 }
 
-/* Ajustes para tema escuro */
 body.dark-mode .home-card,
 body.dark-mode .search-card {
     background-color: #343a40;
@@ -1822,7 +1572,6 @@ body.dark-mode #ultimos-chamados.list-group .list-group-item {
     border-color: #495057;
 }
 
-/* Estilo para o componente "Últimos Chamados" */
 #ultimos-chamados {
     max-height: 350px;
     overflow-y: auto;
@@ -1831,7 +1580,6 @@ body.dark-mode #ultimos-chamados.list-group .list-group-item {
     scrollbar-width: thin;
 }
 
-/* Oculta a barra de rolagem no Chrome sem perder a funcionalidade */
 #ultimos-chamados::-webkit-scrollbar {
     width: 6px;
 }
@@ -1854,7 +1602,6 @@ body.dark-mode #ultimos-chamados::-webkit-scrollbar-thumb {
     background: #666;
 }
 
-/* Estilo para cada item da lista de chamados */
 .chamado-item {
     background-color: #ffffff;
     border-radius: 6px;
@@ -1871,7 +1618,6 @@ body.dark-mode #ultimos-chamados::-webkit-scrollbar-thumb {
     border-color: #dee2e6 !important;
 }
 
-/* Estilo para o modo escuro */
 body.dark-mode .chamado-item {
     background-color: #2c3034;
     border-color: #495057 !important;
@@ -1882,7 +1628,6 @@ body.dark-mode .chamado-item:hover {
     border-color: #6c757d !important;
 }
 
-/* Estilos para o texto e elementos dentro dos items */
 .chamado-cliente {
     font-size: 0.9rem;
     color: #343a40;
@@ -1909,28 +1654,20 @@ body.dark-mode .chamado-protocolo {
     color: #adb5bd;
 }
 
-/* Cor data/hora no Últimos Chamados no modo escuro */
 body.dark-mode .chamado-data {
     color: #adb5bd !important;
 }
 
-/* ========================================================
-    ESTILOS PARA ORDEM DE SERVIÇO
-   ======================================================== */
-
-/* Estilos para o modal da ordem de serviço */
 #serviceOrderModal .modal-xl {
     max-width: 1140px;
 }
 
-/* Estilos para o conteúdo imprimível da ordem de serviço */
 #service-order-printable {
     padding: 20px;
     font-family: Arial, sans-serif;
     color: #333;
 }
 
-/* Cabeçalho da ordem de serviço */
 .service-order-header {
     margin-bottom: 20px;
 }
@@ -1971,7 +1708,6 @@ body.dark-mode .chamado-data {
     margin: 15px 0;
 }
 
-/* Seções da ordem de serviço */
 .client-info-section,
 .service-request-section,
 .service-history-section {
@@ -1988,7 +1724,6 @@ body.dark-mode .chamado-data {
     margin-bottom: 15px;
 }
 
-/* Descrição do problema */
 .problem-description {
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -1998,7 +1733,6 @@ body.dark-mode .chamado-data {
     margin-bottom: 15px;
 }
 
-/* Linha de assinatura */
 .signatures-section {
     margin-top: 50px;
 }
@@ -2009,7 +1743,6 @@ body.dark-mode .chamado-data {
     margin: 50px auto 10px;
 }
 
-/* Timeline para histórico de andamentos */
 .timeline {
     list-style: none;
     padding: 0;
@@ -2070,7 +1803,6 @@ body.dark-mode .chamado-data {
     font-weight: bold;
 }
 
-/* Estilos para impressão */
 @media print {
     body {
         font-family: Arial, sans-serif;
@@ -2163,7 +1895,6 @@ body.dark-mode .chamado-data {
     }
 }
 
-/* Responsividade para telas menores */
 @media (max-width: 768px) {
     #serviceOrderModal .modal-xl {
         max-width: 100%;
@@ -2180,7 +1911,6 @@ body.dark-mode .chamado-data {
     }
 }
 
-/* Estilos para a Ordem de Serviço */
 #service-order-printable {
     font-family: Arial, sans-serif;
     color: #333;
@@ -2249,7 +1979,6 @@ body.dark-mode .chamado-data {
     margin: 40px auto 5px;
 }
 
-/* Estilos para impressão */
 @media print {
     body * {
         visibility: hidden;
@@ -2273,23 +2002,17 @@ body.dark-mode .chamado-data {
     }
 }
 
-/* Estilo base para card-header */
 #conteudo .card-header {
     background-color: #f8f9fa;
     border-bottom: 1px solid #e9ecef;
     padding: 1rem 1.5rem;
 }
 
-/* Ajuste para modo escuro */
 body.dark-mode #conteudo .card-header {
     background-color: #212529;
     border-bottom: 1px solid #495057;
     color: #fff;
 }
-
-/* ========================================================
-    Estilos modernizados para a página de edição de cliente
-   ======================================================== */
 
 #cliente-form-container .card {
     border: none;
@@ -2314,7 +2037,6 @@ body.dark-mode #conteudo .card-header {
     color: #2c3e50;
 }
 
-/* Tabs personalizadas */
 #cliente-form-container #clienteTabs .nav-link {
     padding: 0.75rem 1rem;
     border: none;
@@ -2336,7 +2058,6 @@ body.dark-mode #conteudo .card-header {
     background-color: #f8f9fa;
 }
 
-/* Formulários mais compactos */
 #cliente-form-container .form-label {
     font-weight: 500;
     font-size: 0.9rem;
@@ -2363,7 +2084,6 @@ body.dark-mode #conteudo .card-header {
     margin-bottom: 0.75rem;
 }
 
-/* Layout de 2 colunas para campos menores */
 #cliente-form-container .form-row {
     display: flex;
     flex-wrap: wrap;
@@ -2378,12 +2098,10 @@ body.dark-mode #conteudo .card-header {
     padding-left: 8px;
 }
 
-/* Espaçamento vertical mais compacto */
 #cliente-form-container .mb-3 {
     margin-bottom: 0.75rem !important;
 }
 
-/* Botões mais modernos */
 #cliente-form-container .btn {
     padding: 0.5rem 1.25rem;
     font-weight: 500;
@@ -2405,7 +2123,6 @@ body.dark-mode #conteudo .card-header {
     margin-right: 6px;
 }
 
-/* Melhoria para área de notas */
 #cliente-form-container .notes-container {
     padding: 1rem 0;
 }
@@ -2424,7 +2141,6 @@ body.dark-mode #conteudo .card-header {
     text-align: right;
 }
 
-/* Estilos para a lista de chamados */
 #cliente-form-container .chamados-cliente-container {
     padding: 1rem 0;
 }
@@ -2433,14 +2149,12 @@ body.dark-mode #conteudo .card-header {
     border-radius: 6px;
 }
 
-/* Feedback visuais */
 #cliente-form-container .form-text {
     font-size: 0.8rem;
     color: #6c757d;
     margin-top: 0.25rem;
 }
 
-/* ID estilizado */
 #cliente-form-container .client-id {
     background-color: #f8f9fa;
     padding: 0.5rem 0.75rem;
@@ -2448,4 +2162,140 @@ body.dark-mode #conteudo .card-header {
     display: inline-block;
     font-weight: 600;
     color: #495057;
+}
+
+.search-card-wrapper .list-group-item {
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    transform: none !important;
+}
+
+.search-card-wrapper .list-group-item:hover {
+    background-color: #f8f9fa;
+    box-shadow: inset 0 0 0 1px #dee2e6;
+    transform: none !important;
+}
+
+body.dark-mode .search-card-wrapper .list-group-item:hover {
+    background-color: #495057;
+    box-shadow: inset 0 0 0 1px #6c757d;
+}
+
+.recent-tickets-wrapper .card-body {
+    padding: 0.75rem !important;
+}
+
+.recent-tickets-wrapper .card-title {
+    padding: 0 0.25rem;
+    margin-bottom: 0.5rem !important;
+}
+
+#ultimos-chamados {
+    max-height: 400px !important;
+    padding: 0.25rem !important;
+    margin: 0 !important;
+}
+
+.chamado-item {
+    padding: 8px !important;
+    margin-bottom: 4px !important;
+}
+
+.chamado-cliente {
+    margin-bottom: 2px;
+}
+
+.chamado-assunto {
+    margin-bottom: 2px;
+}
+
+.chamado-item:last-child {
+    margin-bottom: 0 !important;
+}
+
+
+@media (max-width: 768px) {
+    
+    .recent-tickets-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -15px;
+        padding: 0 15px;
+    }
+
+    .recent-tickets-container table {
+        min-width: 500px;
+    }
+
+    
+    .modern-table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+    }
+
+    
+    .table-responsive {
+        margin: 0 -15px;
+        padding: 0 15px;
+        border: none;
+    }
+
+    
+    .fc-header-toolbar {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .fc-toolbar-chunk {
+        flex: 0 0 auto;
+        margin: 5px;
+    }
+
+    
+    .fc-timeline-slot-frame {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .fc-timeline-slot-aux {
+        font-size: 0.8em;
+    }
+
+    
+    .modern-toolbar {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .modern-toolbar button {
+        flex: 1 1 auto;
+        min-width: 120px;
+    }
+
+    
+    .modern-pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    
+    .home-card {
+        margin-bottom: 15px;
+    }
+
+    .top-section,
+    .bottom-section {
+        flex-direction: column;
+    }
+
+    .search-card-wrapper,
+    .system-summary-wrapper,
+    .statistics-wrapper,
+    .recent-tickets-wrapper {
+        width: 100%;
+        margin: 0 0 15px 0;
+    }
 }
