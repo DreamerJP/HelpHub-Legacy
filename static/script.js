@@ -456,6 +456,12 @@ function selecionarClienteChamado(event, element) {
  * Configura o formulário de chamado para enviar dados para a API
  */
 function configurarFormularioChamado() {
+}
+
+function buscarClientesAjax(termo) {
+    const termoSanitizado = sanitizeInput(termo);
+    fetch(`/clientes/buscar?termo=${encodeURIComponent(termoSanitizado)}`)
+
     document.getElementById('chamado-form').onsubmit = async (event) => {
         event.preventDefault(); // Previne o comportamento padrão do formulário
         const assunto = document.getElementById('assunto').value; // Obtém o assunto
@@ -1428,6 +1434,11 @@ function confirmarExclusaoCliente(id) {
  * @param {string} status - Status atual do chamado
  */
 function abrirFormularioEdicaoChamado(id, descricao, status) {
+    const dadosSanitizados = {
+        id: sanitizeInput(id, 'number'),
+        descricao: sanitizeInput(descricao),
+        status: sanitizeInput(status)
+    };
     let novoDescricao = prompt('Editar descrição:', descricao);
     if (novoDescricao !== null) {
         editarChamado(id, novoDescricao, status);
@@ -1469,6 +1480,17 @@ async function editarChamado(id, descricao, status) {
  * @param {object} endereco - Dados de endereço
  */
 async function editarCliente(id, nome, email, telefone, endereco) {
+    const dadosSanitizados = {
+        id: sanitizeInput(id, 'number'),
+        nome: sanitizeInput(nome),
+        email: sanitizeInput(email),
+        telefone: sanitizeInput(telefone),
+        endereco: {
+            cep: sanitizeInput(endereco.cep),
+            rua: sanitizeInput(endereco.rua),
+            numero: sanitizeInput(endereco.numero)
+        }
+    };
     try {
         const resposta = await fetch(`/clientes/${id}`, {
             method: 'PUT',
@@ -1671,6 +1693,9 @@ async function buscarClientes() {
  * @param {object} cliente - O objeto do cliente cujos detalhes serão exibidos.
  */
 function carregarDetalhesCliente(cliente) {
+    document.getElementById('endereco-cep').textContent = sanitizeInput(cliente.endereco.cep || 'N/A');
+    document.getElementById('endereco-rua').textContent = sanitizeInput(cliente.endereco.rua || 'N/A');
+    document.getElementById('endereco-numero').textContent = sanitizeInput(cliente.endereco.numero || 'N/A');
     document.getElementById('detalhes-cliente').innerHTML = `
         <p><strong>Nome:</strong> ${cliente[1]}</p>
         <p><strong>Nome Fantasia:</strong> ${cliente[2] || ''}</p>
@@ -1848,24 +1873,6 @@ function inicializarGrafico(dados) {
 }
 
 /**
- * Retorna o texto formatado para o período selecionado
- * @param {string} periodo - Período selecionado
- * @returns {string} Texto formatado do período
- */
-function getPeriodoText(periodo) {
-    switch (periodo) {
-        case 'mensal':
-            return 'Estatísticas do Mês Atual';
-        case 'semanal':
-            return 'Estatísticas da Semana Atual';
-        case 'diario':
-            return 'Estatísticas do Dia Atual';
-        default:
-            return 'Estatísticas de Todo o Período';
-    }
-}
-
-/**
  * Exibe a tela de carregamento
  */
 function showLoading() {
@@ -1963,6 +1970,7 @@ function carregarHome() {
     carregarEstatisticas('total');
     configurarDropdownPeriodo();
     configurarBuscaClientes();
+    configurarCampoBuscaCliente(); // Adiciona esta linha
 }
 
 /**
@@ -1992,6 +2000,17 @@ function stopAutoRefresh() {
 
 // Inicialização quando o DOM estiver carregado
 document.addEventListener('DOMContentLoaded', () => {
+    // Exemplo de evento para o botão "clear-search"
+    const clearBtn = document.getElementById('clear-search');
+    const pesquisaInput = document.getElementById('pesquisa-cliente-home');
+    const resultadosDiv = document.getElementById('resultado-busca');
+
+    if (clearBtn && pesquisaInput && resultadosDiv) {
+        clearBtn.addEventListener('click', function() {
+            pesquisaInput.value = '';
+            resultadosDiv.innerHTML = '';
+        });
+    }
     // Aplica o tema salvo se existir
     if (localStorage.getItem('theme') === 'dark') {
         document.body.classList.add('dark-mode');
@@ -2002,7 +2021,8 @@ document.addEventListener('DOMContentLoaded', () => {
     exibirInfoUsuario();
     checkAdminStatus();
     startSessionMonitor();
-    setupKonamiCode(); // Adiciona o detector do código Konami
+    setupKonamiCode();
+    configurarCampoBuscaCliente();
 
     // Configurar o link para o Database Viewer
     const dbViewerLink = document.getElementById('menu-db-viewer');
@@ -2019,6 +2039,41 @@ document.addEventListener('visibilitychange', () => {
         carregarEstatisticas();
     }
 });
+
+/**
+ * Configura os eventos do campo de busca de clientes na home
+ */
+function configurarCampoBuscaCliente() {
+    const searchInput = document.getElementById('busca-cliente');
+    const clearButton = document.getElementById('clear-search');
+    const resultadoBusca = document.getElementById('resultado-busca');
+    
+    if (!searchInput || !clearButton || !resultadoBusca) return;
+
+    // Remove event listeners anteriores para evitar duplicação
+    const newClearButton = clearButton.cloneNode(true);
+    clearButton.parentNode.replaceChild(newClearButton, clearButton);
+    
+    // Configura novo event listener para o input
+    searchInput.addEventListener('input', function() {
+        newClearButton.style.display = this.value ? 'block' : 'none';
+        
+        if(!this.value) {
+            resultadoBusca.innerHTML = '';
+        }
+    });
+    
+    // Configura novo event listener para o botão limpar
+    newClearButton.addEventListener('click', function() {
+        searchInput.value = '';
+        searchInput.focus();
+        resultadoBusca.innerHTML = '';
+        this.style.display = 'none';
+    });
+    
+    // Define estado inicial do botão
+    newClearButton.style.display = searchInput.value ? 'block' : 'none';
+}
 
 /**
  * Carrega a página para criar um novo cliente
@@ -2858,6 +2913,10 @@ window.excluirAndamento = async (andamentoId) => {
  * @param {string} texto - Texto do andamento
  */
 async function salvarAndamento(chamadoId, texto) {
+    const dados = {
+        chamadoId: sanitizeInput(chamadoId, 'number'),
+        texto: sanitizeInput(texto)
+    };
     const status = document.getElementById('status').value;
     if (status === 'Finalizado') {
         exibirMensagem('Não é possível adicionar andamentos em chamados finalizados', 'erro');
@@ -2999,23 +3058,12 @@ function getPeriodoText(periodo) {
 }
 
 /**
- * Configura o dropdown de período para o gráfico de estatísticas
- */
-function configurarDropdownPeriodo() {
-    const dropdown = document.getElementById('periodo-estatisticas');
-    if (dropdown) {
-        dropdown.addEventListener('change', function () {
-            carregarEstatisticas(this.value);
-        });
-    }
-}
-
-/**
  * Busca clientes na API e exibe os resultados
  * @param {string} termo - Termo a ser buscado
  */
 function buscarClientesAjax(termo) {
-    fetch(`/clientes/buscar?termo=${encodeURIComponent(termo)}`)
+    const termoSanitizado = sanitizeInput(termo);
+    fetch(`/clientes/buscar?termo=${encodeURIComponent(termoSanitizado)}`)
         .then(response => response.json())
         .then(clientes => {
             const resultadoDiv = document.getElementById('resultado-busca');
@@ -3093,29 +3141,14 @@ async function checkAdminStatus() {
     try {
         const response = await fetch('/auth/check-role');
         const data = await response.json();
-
-        // Armazena o papel do usuário em sessionStorage para uso posterior
+        
         sessionStorage.setItem('userRole', data.role);
 
         if (data.role === 'admin') {
-            // Mostrar elementos para administradores
             document.querySelectorAll('.admin-only').forEach(el => {
-                el.style.display = 'block';  // ou 'list-item' para itens de lista
+                el.style.display = 'block';
             });
-
-            // Verificar se o link para o Database Viewer existe e configurá-lo
-            const dbViewerLink = document.getElementById('menu-db-viewer');
-            if (dbViewerLink) {
-                dbViewerLink.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    // Abrir o Database Viewer em uma nova janela
-                    window.open('/db-viewer.html', '_blank');
-                });
-            }
-
-            console.log('Configurações de administrador aplicadas');
         } else {
-            // Esconder elementos admin
             document.querySelectorAll('.admin-only').forEach(el => {
                 el.style.display = 'none';
             });
@@ -3293,12 +3326,12 @@ function abrirModalNovoUsuario() {
 
 /**
  * Salva um usuário novo ou editado
- */
+ */ 
 async function salvarUsuario() {
-    const id = document.getElementById('usuario-id').value;
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const role = document.getElementById('role').value;
+    const id = sanitizeInput(document.getElementById('usuario-id').value);
+    const username = sanitizeInput(document.getElementById('username').value);
+    const password = sanitizeInput(document.getElementById('password').value);
+    const role = sanitizeInput(document.getElementById('role').value);
 
     try {
         const url = id ? `/usuarios/${id}` : '/usuarios';
@@ -3306,8 +3339,14 @@ async function salvarUsuario() {
 
         const response = await fetch(url, {
             method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password, role })
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username,
+                password,
+                role
+            })
         });
 
         if (response.ok) {
@@ -4239,6 +4278,11 @@ function configurarBuscaChamadosAgendamento() {
  * Salva um novo agendamento
  */
 async function salvarAgendamento() {
+    const dados = {
+        titulo: sanitizeInput(document.getElementById('titulo-agendamento').value),
+        descricao: sanitizeInput(document.getElementById('descricao-agendamento').value),
+        data: sanitizeInput(document.getElementById('data-agendamento').value)
+    };
     try {
         const chamadoId = document.getElementById('busca-chamado').dataset.chamadoId;
         const dataAgendamento = document.getElementById('data_agendamento').value;
@@ -4433,7 +4477,7 @@ async function excluirAgendamento(agendamentoId) {
     }
 }
 
-// Add function to handle scheduling deletion
+// Adicionar função para lidar com a exclusão de agendamentos
 async function excluirAgendamentoAtual() {
     if (!currentAgendamentoId) {
         exibirMensagem('Erro: Agendamento não identificado', 'erro');
@@ -4469,6 +4513,7 @@ async function excluirAgendamentoAtual() {
     }
 }
 
+// Função para salvar a finalização de uma ordem de serviço
 document.getElementById('salvarFinalizacao').onclick = async function () {
     const relatorio = document.getElementById('relatorio_visita').value;
     if (!relatorio) {
@@ -5007,66 +5052,85 @@ async function handleLogin(e) {
     }
 }
 
-// Adiciona o event listener para o formulário de login quando a página for carregada
-document.addEventListener('DOMContentLoaded', function () {
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.removeEventListener('submit', handleLogin); // Limpa listeners duplicados
-        loginForm.addEventListener('submit', handleLogin);
-    }
-
-    // Verificar se há informações de backup no localStorage para exibir
-    const backupInfo = localStorage.getItem('backup_info');
-    if (backupInfo) {
-        // Exibe a notificação e remove a informação do localStorage
-        exibirNotificacaoBackup(JSON.parse(backupInfo));
-        localStorage.removeItem('backup_info');
-    }
-
-    // Resto do código para inicialização
-    if (document.body.classList.contains('index-page')) {
-        // Aplica o tema salvo se existir
-        if (localStorage.getItem('theme') === 'dark') {
-            document.body.classList.add('dark-mode');
-        }
-
-        carregarHome();
-        startAutoRefresh();
-        exibirInfoUsuario();
-        checkAdminStatus();
-        startSessionMonitor();
-    }
-});
-
 /**
- * Exibe notificação sobre o backup do sistema
- * @param {Object} backupInfo - Informações do backup
+ * Função central de sanitização de dados
+ * @param {any} input - Entrada a ser sanitizada
+ * @param {string} [type='string'] - Tipo de dado esperado ('string', 'html', 'sql', 'url', 'number')
+ * @returns {any} Dado sanitizado
  */
-function exibirNotificacaoBackup(backupInfo) {
-    if (!backupInfo) return;
+function sanitizeInput(input, type = 'string') {
+    // Se a entrada for null ou undefined, retorna string vazia
+    if (input === null || input === undefined) return '';
 
-    const mensagemDiv = document.getElementById('mensagem');
-    if (!mensagemDiv) return;
+    // Sanitização baseada no tipo
+    switch (type) {
+        case 'string':
+            // Sanitização básica para strings
+            if (typeof input !== 'string') input = String(input);
+            return input
+                .replace(/[<>]/g, '') // Remove tags HTML
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#x27;')
+                .replace(/\//g, '&#x2F;')
+                .trim();
 
-    const tipo = backupInfo.realizado ? 'success' : 'info';
-    const icone = backupInfo.realizado ? 'check-circle' : 'info-circle';
+        case 'html':
+            // Permite algumas tags HTML específicas
+            if (typeof input !== 'string') input = String(input);
+            return input
+                .replace(/<(?!\/?(b|i|em|strong|br|p|ul|li|ol)(?=>|\s.*>))\/?(?:.|\n)*?>/gm, '')
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#x27;')
+                .trim();
 
-    // Se foi realizado backup, exibe uma mensagem mais destacada
-    if (backupInfo.realizado) {
-        mensagemDiv.innerHTML = `
-            <i class="bi bi-${icone}"></i> 
-            <strong>Backup do sistema:</strong> ${backupInfo.mensagem}
-        `;
-        mensagemDiv.className = `alert alert-${tipo}`;
-        mensagemDiv.style.display = 'block';
+        case 'sql':
+            // Remove caracteres perigosos para SQL
+            if (typeof input !== 'string') input = String(input);
+            return input
+                .replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, '')
+                .replace(/\-\-/g, '')
+                .replace(/\/\*/g, '')
+                .replace(/\*\//g, '')
+                .trim();
 
-        // Mantém a mensagem por 6 segundos
-        setTimeout(() => {
-            if (mensagemDiv) mensagemDiv.style.display = 'none';
-        }, 6000);
-    } else {
-        // Se o backup não foi feito, registra no console
-        console.info('Sistema de backup:', backupInfo.mensagem);
+        case 'url':
+            // Sanitiza URLs e parâmetros
+            if (typeof input !== 'string') input = String(input);
+            return encodeURIComponent(input.trim());
+
+        case 'number':
+            // Converte e limpa números
+            const num = parseFloat(input);
+            return isNaN(num) ? 0 : num;
+
+        case 'array':
+            // Sanitiza arrays recursivamente
+            if (!Array.isArray(input)) return [];
+            return input.map(item => sanitizeInput(item));
+
+        case 'object':
+            // Sanitiza objetos recursivamente
+            if (typeof input !== 'object' || input === null) return {};
+            const sanitizedObj = {};
+            for (let key in input) {
+                if (input.hasOwnProperty(key)) {
+                    sanitizedObj[key] = sanitizeInput(input[key]);
+                }
+            }
+            return sanitizedObj;
+
+        default:
+            // Sanitização padrão para tipos desconhecidos
+            if (typeof input !== 'string') input = String(input);
+            return input
+                .replace(/[<>]/g, '')
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#x27;')
+                .replace(/\//g, '&#x2F;')
+                .trim();
     }
 }
 
@@ -5109,123 +5173,6 @@ function configurarPesquisaChamados(tipo) {
                 buscarChamadosPorTermo(termo, tipo);
             }
         }, 300); // 300ms de delay
-    });
-}
-
-/**
- * Busca chamados no servidor com base no termo de pesquisa
- * @param {string} termo - Termo de pesquisa
- * @param {string} tipo - Tipo de chamados ('aberto' ou 'finalizado')
- */
-async function buscarChamadosPorTermo(termo, tipo) {
-    try {
-        const status = tipo === 'aberto' ? 'Aberto' : 'Finalizado';
-        const tableId = tipo === 'aberto' ? 'chamados-list' : 'chamados-finalizados';
-
-        // Mostrar indicador de carregamento
-        document.getElementById(tableId).innerHTML = `
-            <tr>
-                <td colspan="6" class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Buscando...</span>
-                    </div>
-                </td>
-            </tr>
-        `;
-
-        // Fazer requisição à API para buscar chamados em todas as páginas
-        const response = await fetch(`/chamados/buscar?termo=${encodeURIComponent(termo)}&status=${status}`);
-
-        if (!response.ok) {
-            throw new Error('Erro na busca de chamados');
-        }
-
-        const data = await response.json();
-
-        // Esconder controles de paginação durante a busca
-        document.getElementById(`btn-anterior-chamados-${tipo}`).style.display = 'none';
-        document.getElementById(`btn-proximo-chamados-${tipo}`).style.display = 'none';
-        document.getElementById(`pagina-atual-chamados-${tipo}`).style.display = 'none';
-
-        // Renderizar os resultados da busca
-        renderizarResultadosBusca(data.chamados, tipo);
-
-    } catch (error) {
-        console.error('Erro ao buscar chamados:', error);
-        exibirMensagem('Erro ao buscar chamados: ' + error.message, 'erro');
-    }
-}
-
-/**
- * Renderiza os resultados da busca de chamados na tabela
- * @param {Array} chamados - Lista de chamados encontrados
- * @param {string} tipo - Tipo de chamados ('aberto' ou 'finalizado')
- */
-function renderizarResultadosBusca(chamados, tipo) {
-    const tableId = tipo === 'aberto' ? 'chamados-list' : 'chamados-finalizados';
-    const tbody = document.getElementById(tableId);
-
-    // Se não encontrou resultados
-    if (chamados.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6" class="text-center">
-                    Nenhum chamado encontrado. Tente outro termo de pesquisa.
-                </td>
-            </tr>
-        `;
-        return;
-    }
-
-    // Gerar HTML com os resultados encontrados
-    if (tipo === 'aberto') {
-        tbody.innerHTML = chamados.map(chamado => `
-            <tr data-id="${chamado[0]}" style="cursor:pointer;">
-                <td>${chamado[6] || 'N/A'}</td>
-                <td>${chamado[0]}</td>
-                <td>${chamado[10] || 'Cliente removido'}</td>
-                <td>${formatarData(chamado[4])}</td>
-                <td>${chamado[7] || ''}</td>
-                <td><span class="badge status-badge status-${chamado[3].toLowerCase()}">${chamado[3]}</span></td>
-            </tr>
-        `).join('');
-    } else {
-        tbody.innerHTML = chamados.map(chamado => `
-            <tr data-id="${chamado[0]}" style="cursor:pointer;">
-                <td>${chamado[6] || 'N/A'}</td>
-                <td>${chamado[10] || 'Cliente removido'}</td>
-                <td>${formatarData(chamado[4])}</td>
-                <td>${chamado[7] || ''}</td>
-                <td>${formatarData(chamado[5])}</td>
-                <td><span class="badge status-badge status-${chamado[3].toLowerCase()}">${chamado[3]}</span></td>
-            </tr>
-        `).join('');
-    }
-
-    // Adicionar event listeners para selecionar linhas
-    const tabelaId = tipo === 'aberto' ? 'chamados-list' : 'chamados-finalizados';
-    document.querySelectorAll(`#${tabelaId} tr`).forEach(row => {
-        row.addEventListener('click', function () {
-            // Remover seleção anterior
-            document.querySelectorAll(`#${tabelaId} tr`).forEach(r => r.classList.remove('table-warning'));
-
-            // Adicionar seleção à linha clicada
-            this.classList.add('table-warning');
-
-            // Armazenar ID do chamado selecionado
-            selectedChamadoId = this.getAttribute('data-id');
-
-            // Habilitar botões de ação
-            const btnPrefix = tipo === 'aberto' ? '' : '';
-            document.getElementById('btn-abrir').disabled = false;
-            if (tipo === 'aberto') {
-                document.getElementById('btn-finalizar').disabled = false;
-                document.getElementById('btn-excluir').disabled = false;
-            } else {
-                document.getElementById('btn-reabrir').disabled = false;
-                document.getElementById('btn-excluir').disabled = false;
-            }
-        });
     });
 }
 
@@ -5440,100 +5387,6 @@ async function realizarBackupManual() {
     }
 }
 
-// Adicionar à função carregarBackupsPage
-function carregarBackupsPage() {
-    updateActiveMenu('backups');
-    document.getElementById('conteudo').innerHTML = `
-        <div class="row">
-            <div class="col-md-12">
-                <h2 class="mb-4">Gerenciamento de Backups</h2>
-                
-                <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="bi bi-gear-fill"></i> Configurações</h5>
-                    </div>
-                    <div class="card-body">
-                        <form id="config-backup-form">
-                            <div class="mb-3">
-                                <label for="backup-dir" class="form-label">Diretório para salvar backups:</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="backup-dir" placeholder="/caminho/para/backups">
-                                    <button class="btn btn-primary" type="submit">Salvar</button>
-                                </div>
-                                <div class="form-text">
-                                    <i class="bi bi-info-circle"></i> O caminho deve ser um diretório válido com permissões de escrita.
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                
-                <div class="card mb-4">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informações sobre Backups</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-primary">
-                            <h6><i class="bi bi-clock-history"></i> Como funciona o backup automático:</h6>
-                            <ul>
-                                <li>O sistema realiza automaticamente um backup diário do banco de dados durante o primeiro login do dia.</li>
-                                <li>São mantidos os backups dos últimos 14 dias no servidor, sendo os mais antigos substituídos pelos novos.</li>
-                                <li>Cada backup é um arquivo completo do banco de dados, contendo todos os dados do sistema no momento em que foi gerado.</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0"><i class="bi bi-archive-fill"></i> Backups Disponíveis</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="backup-info">
-                                <i class="bi bi-folder"></i> Diretório atual: <span id="backup-dir-atual">Carregando...</span>
-                            </div>
-                            <button class="btn btn-success" onclick="realizarBackupManual()">
-                                <i class="bi bi-cloud-arrow-up"></i> Realizar Backup Agora
-                            </button>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="modern-table">
-                                <thead>
-                                    <tr>
-                                        <th>Nome do Arquivo</th>
-                                        <th>Data de Criação</th>
-                                        <th>Tamanho</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="lista-backups">
-                                    <tr>
-                                        <td colspan="3" class="text-center">Carregando backups...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    // Carregar as informações de backup
-    carregarInfoBackups();
-
-    // Configurar o formulário de configuração de backup
-    document.getElementById('config-backup-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const diretorio = document.getElementById('backup-dir').value.trim();
-        if (!diretorio) {
-            exibirMensagem('Por favor, informe um diretório válido', 'erro');
-            return;
-        }
-        await salvarConfiguracaoBackup(diretorio);
-    });
-}
-
 /**
  * Implementação do detector do código Konami para acessar o easter egg
  * Sequência: ↑ ↑ ↓ ↓ ← → ← → B A
@@ -5583,62 +5436,6 @@ document.addEventListener('DOMContentLoaded', () => {
     startSessionMonitor();
     setupKonamiCode(); // Adiciona o detector do código Konami
 });
-
-/**
- * Gerencia o login do usuário
- * @param {Event} e - Evento do formulário
- */
-async function handleLogin(e) {
-    e.preventDefault();
-
-    const loginButton = document.getElementById('login-button');
-    const errorDiv = document.getElementById('login-error');
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
-
-    // Validação básica
-    if (!username || !password) {
-        errorDiv.textContent = 'Usuário e senha são obrigatórios';
-        errorDiv.style.display = 'block';
-        return;
-    }
-
-    try {
-        loginButton.disabled = true;
-        loginButton.textContent = 'Entrando...';
-        errorDiv.style.display = 'none';
-
-        const response = await fetch('/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
-            body: JSON.stringify({ username, password })
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            // Armazena informações de backup se houver
-            if (data.backup_info) {
-                localStorage.setItem('backup_info', JSON.stringify(data.backup_info));
-            }
-            // Redireciona para a página principal
-            window.location.href = '/';
-        } else {
-            errorDiv.textContent = data.error || 'Credenciais inválidas';
-            errorDiv.style.display = 'block';
-            // Limpa apenas a senha em caso de erro
-            document.getElementById('password').value = '';
-        }
-    } catch (error) {
-        console.error('Erro de login:', error);
-        errorDiv.textContent = 'Erro ao conectar com o servidor';
-        errorDiv.style.display = 'block';
-    } finally {
-        loginButton.disabled = false;
-        loginButton.textContent = 'Entrar';
-    }
-}
 
 // Adiciona o event listener para o formulário de login quando a página for carregada
 document.addEventListener('DOMContentLoaded', function () {
@@ -5701,48 +5498,6 @@ function exibirNotificacaoBackup(backupInfo) {
         // Se o backup não foi feito, registra no console
         console.info('Sistema de backup:', backupInfo.mensagem);
     }
-}
-
-/**
- * Configura o campo de pesquisa para filtrar chamados em tempo real
- * @param {string} tipo - Tipo de chamados ('aberto' ou 'finalizado')
- */
-function configurarPesquisaChamados(tipo) {
-    const inputId = `pesquisa-chamados-${tipo}`;
-    const input = document.getElementById(inputId);
-
-    if (!input) return;
-
-    let timeoutId;
-
-    input.addEventListener('input', function () {
-        // Limpa o timeout anterior para evitar múltiplas pesquisas
-        clearTimeout(timeoutId);
-
-        // Define um novo timeout para filtrar apenas quando o usuário parar de digitar
-        timeoutId = setTimeout(() => {
-            const termo = input.value.toLowerCase().trim();
-
-            if (termo.length === 0) {
-                // Se o campo estiver vazio, recarrega a listagem normal
-                const status = tipo === 'aberto' ? 'Aberto' : 'Finalizado';
-                if (status === 'Aberto') {
-                    paginaAtualChamadosAbertos = 1;
-                } else {
-                    paginaAtualChamadosFinalizados = 1;
-                }
-                carregarChamados(status);
-
-                // Mostrar controles de paginação normais
-                document.getElementById(`btn-anterior-chamados-${tipo}`).style.display = '';
-                document.getElementById(`btn-proximo-chamados-${tipo}`).style.display = '';
-                document.getElementById(`pagina-atual-chamados-${tipo}`).style.display = '';
-            } else {
-                // Se tiver termo de busca, faz busca no servidor
-                buscarChamadosPorTermo(termo, tipo);
-            }
-        }, 300); // 300ms de delay
-    });
 }
 
 /**
@@ -5861,6 +5616,34 @@ function renderizarResultadosBusca(chamados, tipo) {
         });
     });
 }
+
+// Função para limpar texto do campo de busca de cliente na tela home
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('busca-cliente');
+    const clearButton = document.getElementById('clear-search');
+    const resultadoBusca = document.getElementById('resultado-busca');
+    
+    // Mostrar/ocultar o botão de limpar conforme o conteúdo
+    searchInput.addEventListener('input', function() {
+        clearButton.style.display = this.value ? 'block' : 'none';
+        
+        // Se o campo estiver vazio, limpa os resultados
+        if(!this.value) {
+            resultadoBusca.innerHTML = '';
+        }
+    });
+    
+    // Limpar o campo e resultados quando clicar no X
+    clearButton.addEventListener('click', function() {
+        searchInput.value = '';
+        searchInput.focus();
+        resultadoBusca.innerHTML = '';
+        clearButton.style.display = 'none';
+    });
+    
+    // Inicialmente ocultar o botão se o campo estiver vazio
+    clearButton.style.display = searchInput.value ? 'block' : 'none';
+});
 
 /**
  * Abre o Google Maps com a rota para o endereço do cliente
