@@ -1,3 +1,68 @@
+```mermaid
+graph TD
+    subgraph Frontend
+        UI["Interface do Usuário"]
+        Login["Login"]
+        Home["Home Dashboard"]
+        ClientMgmt["Gestão de Clientes"]
+        TicketMgmt["Gestão de Chamados"]
+        Calendar["Agenda"]
+        UserMgmt["Gestão de Usuários"]
+        Backup["Gestão de Backup"]
+        DBViewer["Database Viewer"]
+    end
+
+    subgraph Backend
+        Auth["Autenticação"]
+        Session["Gerenciamento de Sessão"]
+        DB[(SQLite Database)]
+        APIRoutes["Rotas da API"]
+        Logger["Sistema de Logs"]
+        BackupSystem["Sistema de Backup"]
+    end
+
+    subgraph Security
+        SessionCheck["Verificação de Sessão"]
+        InputSanitize["Sanitização de Dados"]
+        AccessControl["Controle de Acesso"]
+    end
+
+    %% Frontend Flow
+    Login --> Auth
+    Auth --> Session
+    Session --> Home
+    Home --> ClientMgmt
+    Home --> TicketMgmt
+    Home --> Calendar
+    Home --> UserMgmt
+    Home --> Backup
+    Home --> DBViewer
+
+    %% Backend Integration
+    ClientMgmt --> APIRoutes
+    TicketMgmt --> APIRoutes
+    Calendar --> APIRoutes
+    UserMgmt --> APIRoutes
+    Backup --> APIRoutes
+    DBViewer --> APIRoutes
+
+    APIRoutes --> DB
+    APIRoutes --> Logger
+
+    %% Security Layer
+    UI --> SessionCheck
+    SessionCheck --> AccessControl
+    APIRoutes --> InputSanitize
+    AccessControl --> APIRoutes
+
+    %% Backup Flow
+    Backup --> BackupSystem
+    BackupSystem --> DB
+
+    %% Database Access
+    DB --> Logger
+```
+
 ```
 HelpHub/
 │
