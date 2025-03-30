@@ -212,12 +212,18 @@
                     <button class="btn btn-sm btn-primary" id="refresh-table" onclick="refreshCurrentTable()">
                         <i class="bi bi-arrow-clockwise"></i> Atualizar
                     </button>
-                    <button class="btn btn-sm btn-success" id="import-csv" onclick="showImportModal()">
-                        <i class="bi bi-file-earmark-arrow-up"></i> Importar CSV
+                    <button class="btn btn-sm btn-success" id="import-data" onclick="showImportModal()">
+                        <i class="bi bi-file-earmark-arrow-up"></i> Importar Dados
                     </button>
-                    <button class="btn btn-sm btn-secondary" id="export-csv" onclick="exportTableToCSV()">
-                        <i class="bi bi-file-earmark-spreadsheet"></i> Exportar CSV
-                    </button>
+                    <div class="dropdown d-inline-block">
+                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-file-earmark-arrow-down"></i> Exportar
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                            <li><a class="dropdown-item" href="#" onclick="exportTable('csv')"><i class="bi bi-filetype-csv"></i> CSV</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="exportTable('xlsx')"><i class="bi bi-file-earmark-excel"></i> Excel (XLSX)</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div class="card-body">
@@ -294,41 +300,39 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up"></i> Importar dados CSV</h5>
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up"></i> Importar dados</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle"></i> <strong>Atenção:</strong> A importação pode
-                        substituir dados existentes. Faça backup antes de continuar.
+                        <i class="bi bi-exclamation-triangle"></i> <strong>Atenção:</strong> A importação pode substituir dados existentes. Faça backup antes de continuar.
                     </div>
 
                     <form id="importForm">
                         <div class="mb-3">
-                            <label for="csvFile" class="form-label">Arquivo CSV</label>
-                            <input type="file" class="form-control" id="csvFile" accept=".csv" required>
+                            <label for="csvFile" class="form-label">Arquivo para importação</label>
+                            <input type="file" class="form-control" id="csvFile" accept=".csv,.xlsx" required>
+                            <div class="form-text">
+                                Formatos aceitos: CSV (.csv) ou Excel (.xlsx)
+                            </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Opções de importação</label>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="importMode" id="importModeAppend"
-                                    value="append" checked>
+                                <input class="form-check-input" type="radio" name="importMode" id="importModeAppend" value="append" checked>
                                 <label class="form-check-label" for="importModeAppend">
                                     <strong>Adicionar novos registros</strong>
                                 </label>
                                 <div class="text-muted small mt-1 mb-2">
-                                    Mantém os registros existentes e adiciona os novos dados do arquivo CSV à tabela
-                                    atual.
+                                    Mantém os registros existentes e adiciona os novos dados do arquivo à tabela atual.
                                     Escolha esta opção quando quiser inserir dados complementares.
                                 </div>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="importMode" id="importModeReplace"
-                                    value="replace">
+                                <input class="form-check-input" type="radio" name="importMode" id="importModeReplace" value="replace">
                                 <label class="form-check-label" for="importModeReplace">
-                                    <strong>Substituir tabela inteira</strong> <span
-                                        class="text-danger">(cuidado!)</span>
+                                    <strong>Substituir tabela inteira</strong> <span class="text-danger">(cuidado!)</span>
                                 </label>
                                 <div class="text-muted small mt-1 mb-2">
                                     <i class="bi bi-exclamation-triangle-fill text-danger"></i>
@@ -338,11 +342,11 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Configurações do CSV</label>
+                        <div class="mb-3 csv-settings">
+                            <label class="form-label">Configurações do Arquivo</label>
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="delimiter" class="form-label">Delimitador</label>
+                                    <label for="delimiter" class="form-label">Delimitador (apenas para CSV)</label>
                                     <input type="text" class="form-control" id="delimiter" value="," maxlength="1">
                                     <div class="form-text">
                                         Caractere que separa as colunas no arquivo CSV.
@@ -350,7 +354,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="hasHeader" class="form-label">Primeira linha</label>
+                                    <label for="hasHeader" class="form-label">Primeira linha (apenas para CSV)</label>
                                     <select class="form-select" id="hasHeader">
                                         <option value="true">Cabeçalho com nomes de colunas</option>
                                         <option value="false">Dados (sem cabeçalho)</option>
@@ -366,16 +370,14 @@
                         <div class="mb-3">
                             <label for="previewData" class="form-label">Pré-visualização</label>
                             <div class="small text-muted mb-2">
-                                <i class="bi bi-info-circle"></i> Mostrando apenas as primeiras 5 linhas do arquivo para
-                                visualização rápida.
-                                A pré-visualização ajuda a verificar se as configurações acima estão corretas antes da
-                                importação.
+                                <i class="bi bi-info-circle"></i> Mostrando apenas as primeiras 5 linhas do arquivo para visualização rápida.
+                                A pré-visualização ajuda a verificar se as configurações acima estão corretas antes da importação.
                             </div>
                             <div class="table-responsive" style="max-height: 200px;">
                                 <table class="table table-sm table-bordered" id="previewTable">
                                     <thead>
                                         <tr>
-                                            <th>Selecione um arquivo CSV para visualizar</th>
+                                            <th>Selecione um arquivo para visualizar</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -402,6 +404,7 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         // Variáveis globais
         let currentTable = '';
@@ -648,44 +651,15 @@
             loadDatabaseStats();
         }
 
-        // Exportar tabela atual para CSV
-        function exportTableToCSV() {
-            if (!tableData.length) {
-                alert('Não há dados para exportar.');
+        // Exportar tabela atual para CSV ou Excel
+        function exportTable(format) {
+            if (!currentTable) {
+                alert('Por favor, selecione uma tabela primeiro.');
                 return;
             }
 
-            // Criar conteúdo CSV
-            let csvContent = "data:text/csv;charset=utf-8,";
-
-            // Adicionar cabeçalhos
-            csvContent += tableColumns.join(',') + '\r\n';
-
-            // Adicionar dados
-            tableData.forEach(record => {
-                let row = tableColumns.map(column => {
-                    let value = record[column];
-                    // Escapar aspas e envolver em aspas se necessário
-                    if (value === null || value === undefined) return '';
-                    value = String(value).replace(/"/g, '""');
-                    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-                        value = `"${value}"`;
-                    }
-                    return value;
-                });
-                csvContent += row.join(',') + '\r\n';
-            });
-
-            // Criar link de download
-            let encodedUri = encodeURI(csvContent);
-            let link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `${currentTable}_export.csv`);
-            document.body.appendChild(link);
-
-            // Simular clique e remover link
-            link.click();
-            document.body.removeChild(link);
+            // Iniciar download
+            window.location.href = `/export/${format}/${currentTable}`;
         }
 
         // Mostrar modal de importação CSV
@@ -699,7 +673,7 @@
             // Resetar o formulário e a pré-visualização
             document.getElementById('importForm').reset();
             document.getElementById('importStatus').innerHTML = '';
-            document.getElementById('previewTable').innerHTML = '<thead><tr><th>Selecione um arquivo CSV para visualizar</th></tr></thead><tbody><tr><td>Nenhum dado para exibir</td></tr></tbody>';
+            document.getElementById('previewTable').innerHTML = '<thead><tr><th>Selecione um arquivo para visualizar</th></tr></thead><tbody><tr><td>Nenhum dado para exibir</td></tr></tbody>';
             document.getElementById('processImport').disabled = true;
 
             // Atualiza o título do modal com a tabela atual
@@ -728,13 +702,26 @@
                     processSelectedFile();
                 }
             });
+
+            // Configurar evento para alternar configurações de CSV
+            fileInput.addEventListener('change', toggleCsvSettings);
         }
 
-        // Processar arquivo CSV selecionado para pré-visualização
-        function processSelectedFile() {
+        // Alternar visibilidade das configurações de CSV
+        function toggleCsvSettings() {
             const fileInput = document.getElementById('csvFile');
-            const delimiterInput = document.getElementById('delimiter');
-            const hasHeaderSelect = document.getElementById('hasHeader');
+            const csvSettings = document.querySelector('.csv-settings');
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const isCsv = file.name.endsWith('.csv');
+                csvSettings.style.display = isCsv ? 'block' : 'none';
+            }
+        }
+
+        // Processar arquivo selecionado para pré-visualização
+        function processSelectedFile() {
+            toggleCsvSettings();
+            const fileInput = document.getElementById('csvFile');
             const previewTable = document.getElementById('previewTable');
             const processImportBtn = document.getElementById('processImport');
 
@@ -749,6 +736,23 @@
                 return;
             }
 
+            const isCsv = file.name.endsWith('.csv');
+            const isXlsx = file.name.endsWith('.xlsx');
+
+            if (isCsv) {
+                processCsvFile(file, previewTable, processImportBtn);
+            } else if (isXlsx) {
+                processXlsxFile(file, previewTable, processImportBtn);
+            } else {
+                alert('Formato de arquivo não suportado. Por favor, selecione um arquivo CSV ou XLSX.');
+                fileInput.value = '';
+            }
+        }
+
+        // Processar arquivo CSV
+        function processCsvFile(file, previewTable, processImportBtn) {
+            const delimiterInput = document.getElementById('delimiter');
+            const hasHeaderSelect = document.getElementById('hasHeader');
             const delimiter = delimiterInput.value || ',';
             const hasHeader = hasHeaderSelect.value === 'true';
 
@@ -761,32 +765,8 @@
                     importData = result.data;
                     importColumns = result.columns;
 
-                    // Gerar HTML para pré-visualização (apenas primeiras 5 linhas)
-                    let previewHTML = '<thead><tr>';
-                    importColumns.forEach(column => {
-                        previewHTML += `<th>${escapeHtml(column)}</th>`;
-                    });
-                    previewHTML += '</tr></thead><tbody>';
-
-                    const previewRows = importData.slice(0, 5);
-                    previewRows.forEach(row => {
-                        previewHTML += '<tr>';
-                        importColumns.forEach(column => {
-                            previewHTML += `<td>${escapeHtml(String(row[column] || ''))}</td>`;
-                        });
-                        previewHTML += '</tr>';
-                    });
-
-                    if (importData.length > 5) {
-                        previewHTML += `<tr><td colspan="${importColumns.length}" class="text-center">... e mais ${importData.length - 5} registro(s)</td></tr>`;
-                    }
-
-                    previewHTML += '</tbody>';
-                    previewTable.innerHTML = previewHTML;
-
-                    // Habilitar botão de importação
+                    renderPreviewTable(previewTable, importColumns, importData);
                     processImportBtn.disabled = false;
-
                 } catch (error) {
                     console.error('Erro ao processar CSV:', error);
                     previewTable.innerHTML = `<thead><tr><th>Erro ao processar o arquivo</th></tr></thead><tbody><tr><td>${escapeHtml(error.message)}</td></tr></tbody>`;
@@ -800,6 +780,76 @@
             };
 
             reader.readAsText(file);
+        }
+
+        // Processar arquivo XLSX
+        function processXlsxFile(file, previewTable, processImportBtn) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    // Obtém a primeira planilha
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+
+                    // Converte a planilha para JSON
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                    if (jsonData.length === 0) {
+                        throw new Error('O arquivo XLSX está vazio.');
+                    }
+
+                    importColumns = jsonData[0]; // Primeira linha como cabeçalhos
+                    importData = jsonData.slice(1).map(row => {
+                        const rowData = {};
+                        importColumns.forEach((col, index) => {
+                            rowData[col] = row[index] || '';
+                        });
+                        return rowData;
+                    });
+
+                    renderPreviewTable(previewTable, importColumns, importData);
+                    processImportBtn.disabled = false;
+                } catch (error) {
+                    console.error('Erro ao processar XLSX:', error);
+                    previewTable.innerHTML = `<thead><tr><th>Erro ao processar o arquivo</th></tr></thead><tbody><tr><td>${escapeHtml(error.message)}</td></tr></tbody>`;
+                    processImportBtn.disabled = true;
+                }
+            };
+
+            reader.onerror = function () {
+                previewTable.innerHTML = '<thead><tr><th>Erro ao ler o arquivo</th></tr></thead>';
+                processImportBtn.disabled = true;
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Renderizar tabela de pré-visualização
+        function renderPreviewTable(previewTable, columns, data) {
+            let previewHTML = '<thead><tr>';
+            columns.forEach(column => {
+                previewHTML += `<th>${escapeHtml(column)}</th>`;
+            });
+            previewHTML += '</tr></thead><tbody>';
+
+            const previewRows = data.slice(0, 5);
+            previewRows.forEach(row => {
+                previewHTML += '<tr>';
+                columns.forEach(column => {
+                    previewHTML += `<td>${escapeHtml(String(row[column] || ''))}</td>`;
+                });
+                previewHTML += '</tr>';
+            });
+
+            if (data.length > 5) {
+                previewHTML += `<tr><td colspan="${columns.length}" class="text-center">... e mais ${data.length - 5} registro(s)</td></tr>`;
+            }
+
+            previewHTML += '</tbody>';
+            previewTable.innerHTML = previewHTML;
         }
 
         // Processar conteúdo CSV
