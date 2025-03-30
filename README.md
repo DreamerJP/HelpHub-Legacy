@@ -24,7 +24,6 @@ HelpHub/
 │           ├── docs/
 │           ├── instrucoes_exportacao.md
 │           ├── seguranca_sistema.md
-│           ├── recursos_avancados.md
 │           ├── gerenciamento_usuarios.md
 │           └── instrucoes_importacao.md
 │
