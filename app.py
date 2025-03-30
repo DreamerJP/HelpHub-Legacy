@@ -1,6 +1,6 @@
 import os
 import math
-from flask import Flask, request, jsonify, send_from_directory, session, redirect, url_for, g, render_template, abort
+from flask import Flask, request, jsonify, send_from_directory, session, redirect, url_for, g, render_template, abort, send_file
 from flask_cors import CORS
 import sqlite3
 from datetime import datetime, timedelta
@@ -16,6 +16,8 @@ import threading
 import re
 import html
 from html import escape
+from openpyxl import Workbook
+from io import BytesIO
 
 # ========================================================
 # INICIALIZAÇÃO E CONFIGURAÇÃO BÁSICA
@@ -2994,6 +2996,7 @@ def table_data(table_name):
 def import_table_data(table_name):
     """
     Importa dados para uma tabela específica do banco de dados
+    Suporta formatos CSV e XLSX
     """
     if session.get('role') != 'admin':
         return jsonify({'success': False, 'error': 'Acesso negado'}), 403
@@ -3049,8 +3052,23 @@ def import_table_data(table_name):
             # Processar lote de registros
             for registro in dados['data']:
                 try:
-                    # Extrair valores nas colunas válidas
-                    values = [registro.get(col, '') for col in colunas_validas]
+                    # Extrair valores nas colunas válidas, convertendo tipos de dados
+                    values = []
+                    for col in colunas_validas:
+                        val = registro.get(col, '')
+                        # Converter None para string vazia
+                        if val is None:
+                            val = ''
+                        # Converter valores numéricos para string
+                        elif isinstance(val, (int, float)):
+                            val = str(val)
+                        # Converter booleanos para 0/1
+                        elif isinstance(val, bool):
+                            val = '1' if val else '0'
+                        # Converter datetime para string ISO
+                        elif hasattr(val, 'isoformat'):
+                            val = val.isoformat()
+                        values.append(val)
                     
                     # Inserir registro
                     cursor.execute(sql, values)
@@ -3074,6 +3092,110 @@ def import_table_data(table_name):
     except Exception as e:
         app_logger.error(f"Erro geral na importação para {table_name}: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/export/<format>/<table_name>')
+@login_required
+def export_table(format, table_name):
+    """
+    Exporta dados de uma tabela em formato CSV ou XLSX
+    """
+    if session.get('role') != 'admin':
+        return jsonify({'error': 'Acesso negado'}), 403
+
+    try:
+        # Sanitizar nome da tabela
+        if not re.match(r'^[a-zA-Z0-9_]+$', table_name):
+            return jsonify({'error': 'Nome de tabela inválido'}), 400
+
+        with get_db_connection() as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            # Verificar se a tabela existe
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
+            if not cursor.fetchone():
+                return jsonify({'error': 'Tabela não encontrada'}), 404
+
+            # Obter dados
+            cursor.execute(f"SELECT * FROM {table_name}")
+            records = cursor.fetchall()
+            
+            if not records:
+                return jsonify({'error': 'Nenhum dado encontrado'}), 404
+
+            # Obter nomes das colunas
+            columns = [description[0] for description in cursor.description]
+
+            if format.lower() == 'xlsx':
+                # Criar arquivo Excel
+                wb = Workbook()
+                ws = wb.active
+                ws.title = table_name
+
+                # Adicionar cabeçalhos
+                ws.append(columns)
+
+                # Adicionar dados
+                for record in records:
+                    ws.append([record[col] for col in columns])
+
+                # Salvar em buffer de memória
+                excel_file = BytesIO()
+                wb.save(excel_file)
+                excel_file.seek(0)
+
+                return send_file(
+                    excel_file,
+                    mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    as_attachment=True,
+                    download_name=f'{table_name}_export.xlsx'
+                )
+
+            elif format.lower() == 'csv':
+                # Criar buffer de memória para o CSV
+                csv_file = BytesIO()
+                
+                # Escrever com encoding UTF-8 e BOM para suporte a caracteres especiais no Excel
+                csv_file.write('\ufeff'.encode('utf-8'))
+                
+                # Converter dados para CSV
+                csv_content = []
+                
+                # Adicionar cabeçalhos
+                csv_content.append(','.join(f'"{col}"' for col in columns))
+                
+                # Adicionar dados
+                for record in records:
+                    # Tratar valores especiais e escapar aspas
+                    row_values = []
+                    for col in columns:
+                        value = record[col]
+                        if value is None:
+                            value = ''
+                        else:
+                            value = str(value).replace('"', '""')  # Escapar aspas
+                        row_values.append(f'"{value}"')
+                    csv_content.append(','.join(row_values))
+                
+                # Juntar linhas com quebra de linha Windows
+                csv_data = '\r\n'.join(csv_content)
+                
+                # Escrever no buffer
+                csv_file.write(csv_data.encode('utf-8'))
+                csv_file.seek(0)
+                
+                return send_file(
+                    csv_file,
+                    mimetype='text/csv',
+                    as_attachment=True,
+                    download_name=f'{table_name}_export.csv'
+                )
+            else:
+                return jsonify({'error': 'Formato não suportado'}), 400
+
+    except Exception as e:
+        app_logger.error(f"Erro ao exportar tabela {table_name}: {e}")
+        return jsonify({'error': str(e)}), 500
 
 # ========================================================
 # INICIALIZAÇÃO DO APLICATIVO
