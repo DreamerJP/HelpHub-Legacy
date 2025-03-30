@@ -32,8 +32,5 @@ echo "==========================================="
 echo "Server logs: logs/gunicorn_access.log e logs/gunicorn_error.log"
 echo ""
 
-# Garante que o diretório de logs existe antes de iniciar o Gunicorn
-mkdir -p logs
-
 # Inicia o Gunicorn
 gunicorn -c gunicorn_config.py app:app
