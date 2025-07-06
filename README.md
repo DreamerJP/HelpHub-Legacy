@@ -1,13 +1,5 @@
 # HelpHub
 
-## Principais mudanças desta versão
-
-- **Frontend totalmente refeito e modularizado:**
-  - Agora, HTML, CSS e JavaScript estão organizados em pastas separadas (`HTML/`, `CSS/`, `JS/`).
-  - Cada funcionalidade tem seus próprios arquivos, facilitando manutenção e evolução.
-  - Não há mais arquivos grandes e misturados (ex: CSS ou JS dentro do HTML).
-  - O código está mais limpo, organizado e fácil de entender.
-
 ---
 
 ## Estrutura de Pastas
