@@ -1,0 +1,940 @@
+/* ===== ESTILOS ESPECÍFICOS PARA A PÁGINA HOME ===== */
+
+/* Layout principal da página home */
+.home-page-container {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 20px;
+    height: calc(100vh - 100px);
+    padding: 20px 0;
+}
+
+/* Seção superior com busca e resumo */
+.top-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Seção inferior com estatísticas e últimos chamados */
+.bottom-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Wrapper para o card de busca */
+.search-card-wrapper {
+    grid-column: 1;
+}
+
+/* Wrapper para o resumo do sistema */
+.system-summary-wrapper {
+    grid-column: 2;
+}
+
+/* Wrapper para estatísticas */
+.statistics-wrapper {
+    grid-column: 1;
+}
+
+/* Wrapper para últimos chamados */
+.recent-tickets-wrapper {
+    grid-column: 2;
+}
+
+/* Cards da home */
+.home-card,
+.search-card {
+    height: 100%;
+    border-radius: 22px;
+    box-shadow: 0 4px 24px rgba(44, 62, 80, 0.10);
+    background: linear-gradient(135deg, #f8fafc 70%, #e3f0ff 100%);
+    transition: box-shadow 0.3s, transform 0.2s, filter 0.2s;
+    border: none;
+    filter: brightness(0.98);
+}
+
+.home-card:hover,
+.search-card:hover {
+    transform: translateY(-7px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(44, 62, 80, 0.18);
+    filter: brightness(1.01) drop-shadow(0 0 8px #a3d8ff80);
+}
+
+.home-card .card-body,
+.search-card .card-body {
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.home-card h5,
+.search-card h5,
+.search-card h2 {
+    color: #1976d2;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    font-size: 1.35rem;
+    letter-spacing: 0.01em;
+    text-shadow: 0 2px 8px #e3f0ff;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+}
+
+.system-summary-wrapper .home-card h5 {
+    margin-bottom: 1rem;
+}
+
+.stats-summary {
+    margin-top: 1.2rem;
+    padding: 0.7rem 0.7rem;
+    background: linear-gradient(90deg, #e3f0ff 60%, #f8fafc 100%);
+    border-radius: 12px;
+    border-left: 5px solid #1976d2;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
+}
+
+.stats-summary p {
+    margin: 0.5rem 0;
+    color: #1976d2;
+    font-weight: 600;
+    font-size: 1.08rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stats-summary span {
+    background: #1976d2;
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.1em 0.7em;
+    font-size: 1em;
+    margin-left: 0.5em;
+    font-weight: 700;
+    box-shadow: 0 1px 4px #1976d233;
+}
+
+.period-selector select {
+    border-radius: 10px;
+    border: 1.5px solid #b3d1f7;
+    padding: 0.6rem;
+    font-size: 1rem;
+    background: #f8fafc;
+    color: #1976d2;
+    font-weight: 500;
+}
+
+.chart-container {
+    position: relative;
+    min-height: 180px;
+    max-height: 250px;
+    height: 100%;
+    margin: 1rem 0;
+    flex: 1;
+    background: #f8fafc;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px #e3f0ff;
+    padding: 1rem 0.5rem;
+}
+
+/* === Novo Card de Últimos Chamados === */
+#ultimos-chamados-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#ultimos-chamados-card .card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 0;
+}
+
+#ultimos-chamados-lista {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1rem;
+    height: 100%;
+    padding-bottom: 0;
+}
+
+.ultimo-chamado-item {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    border-left: 3px solid #1976d2;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
+    padding: 0.9rem 1.2rem;
+    min-height: 0;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.ultimo-chamado-item:hover {
+    background: #eaf4ff;
+}
+
+.ultimo-chamado-info {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.ultimo-chamado-cliente {
+    font-weight: 700;
+    color: #1976d2;
+    font-size: 1rem;
+    margin-bottom: 0.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ultimo-chamado-assunto {
+    color: #444;
+    font-size: 0.92rem;
+    margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ultimo-chamado-data {
+    color: #1976d2;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.ultimo-chamado-btn {
+    margin-left: 1.2rem;
+    background: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    padding: 0.4rem 1.1rem;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.ultimo-chamado-btn:hover {
+    background: #1565c0;
+}
+
+@media (max-width: 768px) {
+    #ultimos-chamados-lista {
+        gap: 0.5rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .ultimo-chamado-item {
+        padding: 0.7rem 0.7rem;
+    }
+
+    .ultimo-chamado-btn {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.7rem;
+    }
+}
+
+/* ===== FIM: Estilos herdados do LEGADO para Home/Dashboard ===== */
+
+/* Layout principal da página home */
+.home-page-container {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 20px;
+    height: calc(100vh - 100px);
+    padding: 20px 0;
+}
+
+/* Seção superior com busca e resumo */
+.top-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Seção inferior com estatísticas e últimos chamados */
+.bottom-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Wrapper para o card de busca */
+.search-card-wrapper {
+    grid-column: 1;
+}
+
+/* Wrapper para o resumo do sistema */
+.system-summary-wrapper {
+    grid-column: 2;
+}
+
+/* Wrapper para estatísticas */
+.statistics-wrapper {
+    grid-column: 1;
+}
+
+/* Wrapper para últimos chamados */
+.recent-tickets-wrapper {
+    grid-column: 2;
+}
+
+/* Cards da home */
+.home-card,
+.search-card {
+    height: 100%;
+    border-radius: 22px;
+    box-shadow: 0 4px 24px rgba(44, 62, 80, 0.10);
+    background: linear-gradient(135deg, #f8fafc 70%, #e3f0ff 100%);
+    transition: box-shadow 0.3s, transform 0.2s, filter 0.2s;
+    border: none;
+    filter: brightness(0.98);
+}
+
+.home-card:hover,
+.search-card:hover {
+    transform: translateY(-7px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(44, 62, 80, 0.18);
+    filter: brightness(1.01) drop-shadow(0 0 8px #a3d8ff80);
+}
+
+.home-card .card-body,
+.search-card .card-body {
+    padding: 1.1rem 1.2rem 1rem 1.2rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Títulos dos cards */
+.home-card h5,
+.search-card h5,
+.search-card h2 {
+    color: #1976d2;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    font-size: 1.35rem;
+    letter-spacing: 0.01em;
+    text-shadow: 0 2px 8px #e3f0ff;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+}
+
+.system-summary-wrapper .home-card h5 {
+    margin-bottom: 1rem;
+}
+
+/* ===== CARD DE ESTATÍSTICAS MELHORADO ===== */
+.statistics-card .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.period-selector {
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+}
+
+.period-selector select {
+    max-width: 200px;
+    border-radius: 10px;
+    border: 1.5px solid #b3d1f7;
+    padding: 0.6rem;
+    font-size: 1rem;
+    background: #f8fafc;
+    color: #1976d2;
+    font-weight: 500;
+}
+
+/* Container do gráfico */
+.chart-container {
+    flex: 1;
+    min-height: 250px;
+    max-height: 280px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px #e3f0ff;
+    padding: 1rem 0.5rem;
+}
+
+.chart-container canvas {
+    max-height: 100% !important;
+    width: 100% !important;
+}
+
+/* Resumo das estatísticas */
+.stats-summary {
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 0.8rem;
+    border-radius: 12px;
+    margin-top: auto;
+    border-left: 5px solid #1976d2;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
+}
+
+.stats-summary p {
+    margin: 0.3rem 0;
+    font-size: 0.95rem;
+    color: #2c3e50;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stats-summary span {
+    color: #1976d2;
+    font-weight: 700;
+    background: #1976d2;
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.1em 0.7em;
+    font-size: 1em;
+    margin-left: 0.5em;
+    font-weight: 700;
+    box-shadow: 0 1px 4px #1976d233;
+}
+
+/* ===== CARD DE ÚLTIMOS CHAMADOS MELHORADO ===== */
+.recent-tickets-card .card-body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+.recent-tickets-container {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+    gap: 0.7rem;
+    padding: 1.2rem;
+    overflow: hidden;
+}
+
+.chamado-item {
+    flex: 1 1 0;
+    min-height: 0;
+    margin: 0;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 6px;
+    padding: 0.8rem 1rem;
+    border-left: 3px solid #1976d2;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.chamado-item:last-child {
+    margin-bottom: 0;
+}
+
+.chamado-cliente {
+    font-weight: 700;
+    color: #2c3e50;
+    font-size: 1rem;
+    margin-bottom: 0.1rem;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chamado-assunto {
+    color: #666;
+    font-size: 0.85rem;
+    margin-bottom: 0.2rem;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chamado-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.chamado-data {
+    color: #1976d2;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.visualizar-btn {
+    background: #1976d2;
+    color: white;
+    border: none;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.6rem;
+    transition: background 0.3s;
+    line-height: 1;
+    height: 22px;
+}
+
+.visualizar-btn:hover {
+    background: #1565c0;
+}
+
+/* Lista de estatísticas gerais */
+#estatisticas-gerais.list-group .list-group-item {
+    padding: 0.5rem 0;
+    border: none;
+    background: transparent;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#estatisticas-gerais.list-group .list-group-item:last-child {
+    border-bottom: none;
+}
+
+/* Container de últimos chamados */
+.recent-tickets-container,
+#ultimos-chamados {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    max-height: none;
+    overflow-y: auto;
+}
+
+/* Scrollbar personalizada */
+#ultimos-chamados::-webkit-scrollbar {
+    width: 6px;
+}
+
+#ultimos-chamados::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+#ultimos-chamados::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+body.dark-mode #ultimos-chamados::-webkit-scrollbar-track {
+    background: #2c3e50;
+}
+
+body.dark-mode #ultimos-chamados::-webkit-scrollbar-thumb {
+    background: #34495e;
+}
+
+.chamado-cliente {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.2rem;
+}
+
+.chamado-assunto {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.2rem;
+}
+
+.chamado-protocolo {
+    color: #1976d2;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.chamado-data {
+    color: #666;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Responsividade */
+@media (max-width: 992px) {
+    .home-page-container {
+        height: auto;
+        min-height: calc(100vh - 100px);
+    }
+
+    .chart-container {
+        min-height: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .top-section,
+    .bottom-section {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .search-card-wrapper,
+    .system-summary-wrapper,
+    .statistics-wrapper,
+    .recent-tickets-wrapper {
+        grid-column: 1;
+    }
+
+    .home-page-container {
+        height: auto;
+        min-height: calc(100vh - 100px);
+    }
+
+    .search-card-wrapper {
+        order: 1;
+    }
+
+    .system-summary-wrapper {
+        order: 2;
+    }
+
+    .statistics-wrapper {
+        order: 3;
+    }
+
+    .recent-tickets-wrapper {
+        order: 4;
+    }
+
+    .home-card,
+    .search-card {
+        height: auto;
+        min-height: 300px;
+    }
+
+    .home-card h5,
+    .search-card h5 {
+        font-size: 1.2rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .stats-summary {
+        padding: 0.6rem;
+    }
+
+    .recent-tickets-container {
+        max-height: 300px;
+    }
+
+    .chamado-item {
+        height: 60px;
+        padding: 0.4rem;
+    }
+
+    .chamado-cliente {
+        font-size: 0.75rem;
+    }
+
+    .chamado-assunto {
+        font-size: 0.65rem;
+    }
+
+    .visualizar-btn {
+        font-size: 0.55rem;
+        padding: 0.15rem 0.4rem;
+        height: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .search-card h2 {
+        font-size: 1.1rem;
+    }
+
+    .home-card h5 {
+        font-size: 1.1rem;
+    }
+
+    .stats-summary {
+        padding: 0.5rem;
+    }
+
+    .stats-summary p {
+        font-size: 0.85rem;
+    }
+}
+
+/* Modo escuro */
+body.dark-mode .home-card,
+body.dark-mode .search-card {
+    background: linear-gradient(135deg, #2c3e50 70%, #34495e 100%);
+    color: #ecf0f1;
+}
+
+body.dark-mode #estatisticas-gerais.list-group .list-group-item,
+body.dark-mode .stats-summary {
+    color: #ecf0f1;
+}
+
+body.dark-mode .stats-summary {
+    background: rgba(52, 73, 94, 0.7);
+}
+
+body.dark-mode .chamado-item {
+    background: rgba(52, 73, 94, 0.8);
+    color: #ecf0f1;
+}
+
+body.dark-mode .chamado-item:hover {
+    background: rgba(52, 73, 94, 0.95);
+}
+
+body.dark-mode .chamado-cliente {
+    color: #ecf0f1;
+}
+
+body.dark-mode .chamado-assunto {
+    color: #bdc3c7;
+}
+
+body.dark-mode .chamado-protocolo,
+body.dark-mode .chamado-data {
+    color: #3498db;
+}
+
+/* Animações */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.home-page-container {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.top-section {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.bottom-section {
+    animation: fadeInUp 1s ease-out;
+}
+
+.home-card,
+.search-card {
+    animation: fadeInUp 1.2s ease-out;
+}
+
+/* Melhorias específicas para os cards */
+.home-card .card-body {
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.home-card h5 {
+    color: #1976d2;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    font-size: 1.35rem;
+    letter-spacing: 0.01em;
+    text-shadow: 0 2px 8px #e3f0ff;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+}
+
+.system-summary-wrapper .home-card h5 {
+    margin-bottom: 1rem;
+}
+
+.stats-summary {
+    margin-top: 1.2rem;
+    padding: 0.7rem 0.7rem;
+    background: linear-gradient(90deg, #e3f0ff 60%, #f8fafc 100%);
+    border-radius: 12px;
+    border-left: 5px solid #1976d2;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
+}
+
+.stats-summary p {
+    margin: 0.5rem 0;
+    color: #1976d2;
+    font-weight: 600;
+    font-size: 1.08rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stats-summary span {
+    background: #1976d2;
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.1em 0.7em;
+    font-size: 1em;
+    margin-left: 0.5em;
+    font-weight: 700;
+    box-shadow: 0 1px 4px #1976d233;
+}
+
+.period-selector select {
+    border-radius: 10px;
+    border: 1.5px solid #b3d1f7;
+    padding: 0.6rem;
+    font-size: 1rem;
+    background: #f8fafc;
+    color: #1976d2;
+    font-weight: 500;
+}
+
+.chart-container {
+    position: relative;
+    min-height: 180px;
+    max-height: 250px;
+    height: 100%;
+    margin: 1rem 0;
+    flex: 1;
+    background: #f8fafc;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px #e3f0ff;
+    padding: 1rem 0.5rem;
+}
+
+@media (max-width: 768px) {
+
+    .home-card,
+    .search-card {
+        height: auto;
+        min-height: 350px;
+    }
+
+    .home-card h5,
+    .search-card h5 {
+        font-size: 1.2rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .stats-summary {
+        padding: 0.6rem;
+        margin-top: 1rem;
+    }
+
+    .recent-tickets-container {
+        max-height: 300px;
+    }
+}
+
+.recent-tickets-wrapper .home-card {
+    height: 100%;
+}
+
+.recent-tickets-wrapper .card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1.2rem;
+}
+
+.recent-tickets-container,
+#ultimos-chamados {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    max-height: 370px;
+}
+
+.statistics-wrapper .home-card .card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.statistics-wrapper .home-card h5 {
+    flex-shrink: 0;
+    margin-bottom: 1rem;
+}
+
+.stats-summary {
+    flex-shrink: 0;
+    margin-top: auto;
+}
+
+.search-card .card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.system-summary-wrapper .home-card .card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.search-card h5 {
+    flex-shrink: 0;
+}
+
+.system-summary-wrapper .home-card h5 {
+    flex-shrink: 0;
+}
+
+#estatisticas-gerais.list-group .list-group-item {
+    padding: 0.5rem 0;
+    border: none;
+    background: transparent;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.statistics-wrapper .home-card .card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.statistics-wrapper .chart-container {
+    flex: 1;
+    min-height: 200px;
+}
+
+.statistics-wrapper .stats-summary {
+    flex-shrink: 0;
+    margin-top: auto;
+}
+
+.recent-tickets-wrapper .chamado-item:hover {
+    transform: translateX(3px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}

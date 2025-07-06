@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HelpHub - Chamados</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../css/04-chamados.css">
+    <link rel="stylesheet" href="../css/11-navbar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+
+<body>
+    <div class="container mt-4" id="conteudo">
+        <div class="tabs-container">
+            <div class="tabs mb-4 justify-content-center">
+                <a href="#" class="tab" id="tab-novo-chamado"
+                    onclick="window.location.href='04-chamados-cadastro.html'">Novo Chamado</a>
+                <button class="tab active" id="tab-abertos" type="button">Chamados Abertos</button>
+                <button class="tab" id="tab-finalizados" type="button">Chamados Finalizados</button>
+            </div>
+        </div>
+        <div id="conteudo-abertos">
+            <h2 class="mb-4">Chamados Abertos</h2>
+            <div class="modern-search mb-3">
+                <input type="text" id="pesquisa-chamados-aberto" class="form-control"
+                    placeholder="Pesquisar por cliente, protocolo ou assunto...">
+            </div>
+            <div class="modern-toolbar gap-2">
+                <button id="btn-abrir" class="btn btn-primary" onclick="abrirDetalhesChamado(selectedChamadoId)"
+                    disabled>
+                    <i class="bi bi-folder2-open"></i> Visualizar
+                </button>
+                <button id="btn-ordem-servico" class="btn btn-info" onclick="abrirOrdemServico(selectedChamadoId)"
+                    disabled>
+                    <i class="bi bi-file-text"></i> Ordem de Serviço
+                </button>
+                <button id="btn-finalizar" class="btn btn-primary" onclick="finalizarChamado(selectedChamadoId)"
+                    disabled>
+                    <i class="bi bi-check-lg"></i> Finalizar
+                </button>
+                <button id="btn-excluir" class="btn btn-danger" onclick="excluirChamado(selectedChamadoId)" disabled>
+                    <i class="bi bi-trash"></i> Excluir
+                </button>
+            </div>
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Protocolo</th>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th onclick="sortChamados('data')">Data</th>
+                        <th>Assunto</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="chamados-list"></tbody>
+            </table>
+            <div class="modern-pagination" id="paginacao-chamados-abertos">
+                <button id="btn-anterior-chamados-aberto" class="btn btn-primary"
+                    onclick="paginaAnteriorChamados('Aberto')">
+                    <i class="bi bi-chevron-left"></i> Anterior
+                </button>
+                <span class="page-info" id="pagina-atual-chamados-aberto">Página 1 de 1</span>
+                <button id="btn-proximo-chamados-aberto" class="btn btn-primary"
+                    onclick="proximaPaginaChamados('Aberto')">
+                    Próxima <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        <div id="conteudo-finalizados" style="display:none;">
+            <h2 class="mb-4">Chamados Finalizados</h2>
+            <div class="modern-search mb-3">
+                <input type="text" id="pesquisa-chamados-finalizado" class="form-control"
+                    placeholder="Pesquisar por cliente, protocolo ou assunto...">
+            </div>
+            <div class="modern-toolbar gap-2">
+                <button id="btn-abrir-finalizado" class="btn btn-primary"
+                    onclick="abrirDetalhesChamado(selectedChamadoId)" disabled>
+                    <i class="bi bi-folder2-open"></i> Visualizar
+                </button>
+                <button id="btn-ordem-servico-finalizado" class="btn btn-info"
+                    onclick="abrirOrdemServico(selectedChamadoId)" disabled>
+                    <i class="bi bi-file-text"></i> Ordem de Serviço
+                </button>
+                <button id="btn-reabrir" class="btn btn-primary" onclick="reabrirChamado(selectedChamadoId)" disabled>
+                    <i class="bi bi-arrow-clockwise"></i> Reabrir
+                </button>
+                <button id="btn-excluir-finalizado" class="btn btn-danger" onclick="excluirChamado(selectedChamadoId)"
+                    disabled>
+                    <i class="bi bi-trash"></i> Excluir
+                </button>
+            </div>
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th>Protocolo</th>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th onclick="sortChamados('data')">Data</th>
+                        <th>Assunto</th>
+                        <th>Data Fechamento</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="chamados-finalizados"></tbody>
+            </table>
+            <div class="modern-pagination" id="paginacao-chamados-finalizados">
+                <button id="btn-anterior-chamados-finalizado" class="btn btn-primary"
+                    onclick="paginaAnteriorChamados('Finalizado')">
+                    <i class="bi bi-chevron-left"></i> Anterior
+                </button>
+                <span class="page-info" id="pagina-atual-chamados-finalizado">Página 1 de 1</span>
+                <button id="btn-proximo-chamados-finalizado" class="btn btn-primary"
+                    onclick="proximaPaginaChamados('Finalizado')">
+                    Próxima <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal da Ordem de Serviço -->
+    <div class="modal fade" id="ordemServicoModal" tabindex="-1" aria-labelledby="ordemServicoModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ordemServicoModalLabel">
+                        <i class="bi bi-file-text"></i> Ordem de Serviço
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="ordemServicoContent">
+                    <!-- Conteúdo dinâmico será carregado aqui -->
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p class="mt-2">Carregando ordem de serviço...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="imprimirOrdemServico()">
+                        <i class="bi bi-printer"></i> Imprimir
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="exportarPDF()">
+                        <i class="bi bi-file-pdf"></i> Exportar PDF
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="exportarImagem()">
+                        <i class="bi bi-image"></i> Exportar JPG
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/04-chamados.js"></script>
+    <!-- Bootstrap JS Bundle (necessário para dropdowns) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Script customizado da navbar, deve vir depois do Bootstrap JS -->
+    <script src="/js/13-autenticador.js"></script>
+    <script src="/js/11-navbar.js"></script>
+    <script>
+        // Alternância de abas
+        document.getElementById('tab-abertos').onclick = function () {
+            this.classList.add('active');
+            document.getElementById('tab-finalizados').classList.remove('active');
+            document.getElementById('conteudo-abertos').style.display = '';
+            document.getElementById('conteudo-finalizados').style.display = 'none';
+        };
+        document.getElementById('tab-finalizados').onclick = function () {
+            this.classList.add('active');
+            document.getElementById('tab-abertos').classList.remove('active');
+            document.getElementById('conteudo-abertos').style.display = 'none';
+            document.getElementById('conteudo-finalizados').style.display = '';
+        };
+    </script>
+</body>
+
+</html>

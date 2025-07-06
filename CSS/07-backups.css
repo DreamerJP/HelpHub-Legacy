@@ -1,0 +1,115 @@
+/* 07-backups.css - Estilos para Gerenciamento de Backups */
+
+body {
+    background: #f8f9fa;
+}
+
+.container {
+    max-width: 900px;
+}
+
+h2 {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
+}
+
+.card-header {
+    font-weight: 500;
+    font-size: 1.1rem;
+}
+
+.btn-success {
+    background: linear-gradient(90deg, #27ae60 60%, #2ecc71 100%);
+    border: none;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.btn-info {
+    background: linear-gradient(90deg, #2980b9 60%, #6dd5fa 100%);
+    border: none;
+    color: #fff;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.modern-table {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
+    overflow: hidden;
+}
+
+.modern-table th {
+    background: #2c3e50;
+    color: #fff;
+    font-weight: 500;
+    border: none;
+}
+
+.modern-table td {
+    border-top: 1px solid #eaeaea;
+    vertical-align: middle;
+}
+
+.backup-summary {
+    font-size: 1rem;
+    color: #34495e;
+}
+
+#backup-mensagem {
+    min-height: 40px;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 0 5px;
+    }
+
+    h2 {
+        font-size: 1.3rem;
+    }
+
+    .card-header {
+        font-size: 1rem;
+    }
+}
+
+/* Botão azul (Salvar Diretório) */
+.btn-salvar-backup,
+.btn-backup-agora {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff !important;
+    border: none;
+    border-radius: 12px;
+    padding: 7px 18px;
+    font-size: 0.98rem;
+    min-width: 90px;
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.10);
+    transition: all 0.3s;
+}
+
+.btn-salvar-backup:hover,
+.btn-salvar-backup:focus,
+.btn-backup-agora:hover,
+.btn-backup-agora:focus {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    color: #fff !important;
+}
+
+.btn-salvar-backup:disabled,
+.btn-backup-agora:disabled {
+    color: #fff !important;
+    opacity: 0.6;
+}

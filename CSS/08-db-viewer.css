@@ -1,0 +1,178 @@
+/* 08-db-viewer.css - Estilos para Database Viewer */
+
+body {
+    background: #f8f9fa;
+}
+
+.container {
+    max-width: 1000px;
+}
+
+h2 {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.database-stats {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(44, 62, 80, 0.07);
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
+}
+
+.card-header {
+    font-weight: 500;
+    font-size: 1.1rem;
+}
+
+.btn-info {
+    background: linear-gradient(90deg, #2980b9 60%, #6dd5fa 100%);
+    border: none;
+    color: #fff;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.btn-success {
+    background: linear-gradient(90deg, #27ae60 60%, #2ecc71 100%);
+    border: none;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.table-responsive {
+    max-height: 500px;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.table-actions {
+    margin-bottom: 15px;
+}
+
+.table-filter {
+    margin-bottom: 15px;
+}
+
+#db-viewer-mensagem {
+    min-height: 40px;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 0 5px;
+    }
+
+    h2 {
+        font-size: 1.3rem;
+    }
+
+    .card-header {
+        font-size: 1rem;
+    }
+}
+
+.btn-db-roxo {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff !important;
+    border: none;
+    border-radius: 12px;
+    padding: 7px 18px;
+    font-size: 0.98rem;
+    min-width: 90px;
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.10);
+    transition: all 0.3s;
+}
+
+.btn-db-roxo:hover,
+.btn-db-roxo:focus {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    color: #fff !important;
+}
+
+.btn-db-roxo:disabled {
+    color: #fff !important;
+    opacity: 0.6;
+}
+
+/* Compactar e permitir rolagem horizontal na tabela de pré-visualização */
+#previewTable {
+    font-size: 11px !important;
+    white-space: nowrap !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    display: block !important;
+    border-collapse: collapse !important;
+    margin-bottom: 0 !important;
+}
+
+#previewTable th,
+#previewTable td {
+    font-size: 11px !important;
+    padding: 2px 8px !important;
+    line-height: 1.2 !important;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+    max-width: 120px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+#previewTable th {
+    background: #f0f0f0 !important;
+    font-weight: 600 !important;
+    padding: 4px 10px !important;
+}
+
+/* Ajuste da tabela principal de visualização */
+.table.table-bordered.table-striped {
+    font-size: 0.95em;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.table.table-bordered.table-striped th,
+.table.table-bordered.table-striped td {
+    padding: 0.25rem 0.5rem;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.table.table-bordered.table-striped th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+.table.table-bordered.table-striped tr:nth-child(even) {
+    background: #f4f4f4;
+}
+
+/* Ajuste da tabela de pré-visualização de importação */
+#previewTable th,
+#previewTable td {
+    font-size: 14px;
+    padding: 8px 12px;
+    line-height: 1.4;
+    vertical-align: middle;
+    white-space: normal;
+    min-width: 80px;
+    max-width: 220px;
+    overflow-wrap: break-word;
+}
+
+#previewTable th {
+    background: #f0f0f0;
+    font-weight: 600;
+}

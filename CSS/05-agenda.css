@@ -1,0 +1,226 @@
+/* Estilos para a Agenda de Visitas Técnicas */
+
+#calendario {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.fc-toolbar-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.fc-button,
+.btn,
+button.btn,
+a.btn {
+    border-radius: 10px !important;
+    padding: 8px 18px !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    min-width: 90px;
+    box-shadow: 0 2px 5px rgba(102, 126, 234, 0.10) !important;
+    border: none !important;
+    transition: all 0.3s !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    line-height: 1.2;
+}
+
+.fc-button,
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+.fc-button:hover,
+.btn-primary:hover,
+.btn-primary:focus {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%) !important;
+    color: #fff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15) !important;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ff5858 0%, #f857a6 100%) !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+.btn-danger:hover,
+.btn-danger:focus {
+    background: linear-gradient(135deg, #e53935 0%, #d81b60 100%) !important;
+    color: #fff !important;
+}
+
+.btn-secondary {
+    background: #cccccc !important;
+    color: #222 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 8px 18px !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    min-width: 90px;
+    box-shadow: 0 2px 5px rgba(102, 126, 234, 0.10) !important;
+    transition: all 0.3s !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    line-height: 1.2;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+    background: #b0b0b0 !important;
+    color: #111 !important;
+}
+
+.fc-daygrid-day {
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.fc-daygrid-day:hover {
+    background: #f0f8ff;
+}
+
+.fc-event {
+    border-radius: 8px;
+    border: none;
+    padding: 4px 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+}
+
+.fc-event-title {
+    white-space: normal;
+}
+
+.agenda-tooltip {
+    background: #fff;
+    color: #333;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    padding: 12px 18px;
+    font-size: 1rem;
+    max-width: 320px;
+}
+
+/* Modais */
+.modal-content {
+    border-radius: 14px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.13);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: #fff !important;
+    border-radius: 14px 14px 0 0;
+}
+
+.modal-title {
+    font-weight: 600;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #333;
+}
+
+.form-control {
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.08);
+    outline: none;
+}
+
+.list-group-item-action {
+    border-radius: 8px;
+    margin-bottom: 4px;
+    transition: background 0.2s;
+}
+
+.list-group-item-action:hover {
+    background: #e3f2fd;
+}
+
+.chamados-dropdown {
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    #calendario {
+        padding: 5px;
+    }
+
+    .modal-content {
+        padding: 0 2px;
+    }
+}
+
+/* Forçar estilo do botão Cancelar no modal */
+.modal-footer .btn.btn-secondary {
+    background: #b3b3b3 !important;
+    color: #222 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 8px 18px !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    min-width: 90px;
+    box-shadow: 0 2px 5px rgba(102, 126, 234, 0.10) !important;
+    transition: all 0.3s !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    line-height: 1.2;
+}
+
+.modal-footer .btn.btn-secondary:hover,
+.modal-footer .btn.btn-secondary:focus {
+    background: #8c8c8c !important;
+    color: #fff !important;
+}
+
+/* Botões menores e retos para a agenda */
+.fc-button,
+.btn-agenda {
+    padding: 4px 14px !important;
+    font-size: 0.95rem !important;
+    border-radius: 0 !important;
+    min-width: 32px;
+    min-height: 32px;
+    height: 32px;
+    box-shadow: none !important;
+}
+
+/* Botões de avançar/voltar (setas) ainda menores */
+.fc-prev-button,
+.fc-next-button {
+    padding: 4px 10px !important;
+    font-size: 1.1rem !important;
+    border-radius: 0 !important;
+    min-width: 32px;
+    min-height: 32px;
+    height: 32px;
+    box-shadow: none !important;
+}

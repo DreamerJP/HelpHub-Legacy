@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <!-- Configurações básicas do documento -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - HelpHub</title>
+    <!-- Framework CSS Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Ícones do Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Estilos personalizados do login -->
+    <link rel="stylesheet" href="/css/01-login.css">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+</head>
+
+<body>
+    <!-- Container principal da tela de login com estilo de background -->
+    <div class="login-container">
+        <!-- Caixa central do formulário de login com efeito de vidro -->
+        <div class="login-box">
+            <!-- Logo e cabeçalho da aplicação -->
+            <img src="/imagens/logo.png" alt="Logo" class="login-logo">
+            <p class="text-center text-muted mb-4">Sistema de Gerenciamento de Chamados</p>
+
+            <!-- Alerta informativo sobre primeiro acesso (inicialmente oculto) -->
+            <div id="first-access-alert" class="alert alert-info mb-4" role="alert" style="display: none;">
+                <i class="bi bi-info-circle"></i>
+                Para primeiro acesso, use:<br>
+                <strong>Usuário:</strong> admin<br>
+                <strong>Senha:</strong> admin<br>
+                <small class="d-block mt-1">Você será solicitado a criar uma nova senha.</small>
+            </div>
+
+            <!-- Formulário de autenticação -->
+            <form id="login-form">
+                <!-- Campo de entrada para nome de usuário -->
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="username" name="username" placeholder="Usuário"
+                        required>
+                </div>
+                <!-- Campo de entrada para senha -->
+                <div class="mb-3">
+                    <input type="password" class="form-control" id="password" name="password" placeholder="Senha"
+                        required>
+                </div>
+                <!-- Botão para submeter o formulário -->
+                <button type="submit" class="btn btn-primary w-100" id="login-button">Entrar</button>
+            </form>
+
+            <!-- Formulário de senha inicial (inicialmente oculto) -->
+            <form id="initial-password-form" style="display: none;">
+                <h4 class="mb-4">Definir Senha Inicial</h4>
+                <div class="mb-3">
+                    <input type="password" class="form-control" id="new-password" placeholder="Nova senha" required>
+                    <div class="form-text text-white">Mínimo de 8 caracteres</div>
+                </div>
+                <div class="mb-3">
+                    <input type="password" class="form-control" id="confirm-password" placeholder="Confirmar senha"
+                        required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Definir Senha</button>
+            </form>
+
+            <!-- Área para exibir mensagens de erro de autenticação -->
+            <div id="login-error" class="alert alert-danger mt-3" style="display: none;">
+                Credenciais inválidas
+            </div>
+
+            <!-- Área para exibir mensagens sobre backup -->
+            <div id="backup-message" class="alert alert-info mt-3" style="display: none;">
+                <i class="bi bi-info-circle"></i> <span id="backup-text"></span>
+            </div>
+
+            <!-- Informações de contato no rodapé do formulário -->
+            <div class="text-center mt-4">
+                <small class="text-muted">
+                    Contato: <a href="mailto:DreamerJPMG@gmail.com">DreamerJPMG@gmail.com</a>
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script para manipulação do formulário de login -->
+    <script src="/js/01-login.js"></script>
+    <!-- Bootstrap JS Bundle (necessário para dropdowns) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Script customizado da navbar -->
+    <script src="/js/13-autenticador.js"></script>
+    <script src="/js/11-navbar.js"></script>
+</body>
+
+</html>

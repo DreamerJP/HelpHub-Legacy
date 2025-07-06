@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central de Ajuda</title>
+    <link rel="stylesheet" href="../css/09-help.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="../css/11-navbar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+
+<body>
+    <div id="navbar"></div>
+    <div class="help-main-layout">
+        <aside class="sidebar">
+            <div class="search-box">
+                <input type="text" id="search-input" class="form-control" placeholder="Buscar tópicos...">
+            </div>
+            <ul class="topic-list" id="topic-list">
+                <!-- Tópicos serão carregados via JS -->
+            </ul>
+        </aside>
+        <main class="content-scrollable">
+            <div id="help-content" class="markdown-content">
+                <p>Selecione um tópico na barra lateral para visualizar o conteúdo de ajuda.</p>
+            </div>
+            <div id="help-mensagem"></div>
+        </main>
+    </div>
+    <script src="../js/09-help.js"></script>
+    <!-- Bootstrap JS Bundle (necessário para dropdowns) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/13-autenticador.js"></script>
+    <script src="/js/11-navbar.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HelpHub - Agenda</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../css/05-agenda.css">
+    <link rel="stylesheet" href="../css/11-navbar.css">
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+
+<body>
+    <div class="container mt-2" id="conteudo">
+        <h2 class="mb-4"><i class="bi bi-calendar3"></i> Agenda de Visitas Técnicas</h2>
+        <div id="calendario"></div>
+    </div>
+
+    <!-- Modal: Criação de novo agendamento -->
+    <div class="modal fade" id="agendamentoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-calendar-plus"></i> Agendar Visita Técnica</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="agendamentoForm">
+                        <div class="mb-3">
+                            <label for="busca-chamado" class="form-label"><i class="bi bi-search"></i> Buscar
+                                Chamado:</label>
+                            <input type="text" id="busca-chamado" class="form-control"
+                                placeholder="Digite protocolo, assunto ou nome do cliente...">
+                            <div id="lista-chamados" class="list-group mt-2 chamados-dropdown"></div>
+                            <div id="chamado-selecionado" class="mt-2 p-2 border rounded d-none"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="data_agendamento" class="form-label"><i class="bi bi-calendar-event"></i> Data
+                                Inicial:</label>
+                            <input type="datetime-local" class="form-control" id="data_agendamento" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="data_final_agendamento" class="form-label"><i class="bi bi-calendar-check"></i>
+                                Data Final:</label>
+                            <input type="datetime-local" class="form-control" id="data_final_agendamento" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="observacoes_agendamento" class="form-label"><i class="bi bi-pencil-square"></i>
+                                Observações:</label>
+                            <textarea class="form-control" id="observacoes_agendamento" rows="3"
+                                placeholder="Observações adicionais para este agendamento..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" id="salvarAgendamento">
+                        <i class="bi bi-save"></i> Salvar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Detalhes do agendamento -->
+    <div class="modal fade" id="agendamentoDetalhesModal" tabindex="-1" aria-labelledby="agendamentoDetalhesModalLabel">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="agendamentoDetalhesModalLabel">
+                        <i class="bi bi-info-circle"></i> Detalhes do Agendamento
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="detalhes-agendamento-content">
+                        <!-- Conteúdo dinâmico via JS -->
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        <button type="button" class="btn btn-primary" id="btn-finalizar-ordem-servico">
+                            <i class="bi bi-check-circle"></i> Finalizar Ordem de Serviço
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="verChamadoModal">
+                        <i class="bi bi-eye"></i> Ver Chamado
+                    </button>
+                    <button type="button" class="btn btn-primary" id="editarAgendamentoModal">
+                        <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    <button type="button" class="btn btn-danger" id="excluirAgendamentoModal">
+                        <i class="bi bi-trash"></i> Excluir Agendamento
+                    </button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Fechar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="../js/05-agenda.js"></script>
+    <!-- Bootstrap JS Bundle (necessário para dropdowns) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/13-autenticador.js"></script>
+    <script src="/js/11-navbar.js"></script>
+</body>
+
+</html>

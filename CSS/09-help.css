@@ -1,0 +1,151 @@
+/* 09-help.css - Estilos para Central de Ajuda */
+
+body,
+html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+.help-main-layout {
+    display: flex;
+    height: 100vh;
+    padding-top: 56px;
+    /* altura da navbar global */
+    box-sizing: border-box;
+}
+
+.sidebar {
+    width: 300px;
+    min-width: 220px;
+    max-width: 350px;
+    height: 100%;
+    position: sticky;
+    top: 56px;
+    align-self: flex-start;
+    overflow-y: auto;
+    background: #fff;
+    border-right: 1px solid #dee2e6;
+    border-radius: 0 0 0 8px;
+    z-index: 999;
+    padding: 1rem;
+}
+
+.content-scrollable {
+    flex: 1;
+    height: 100%;
+    overflow-y: auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 0 8px 8px 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.search-box {
+    margin-bottom: 1rem;
+}
+
+.topic-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.topic-list li {
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.topic-list a {
+    color: #333;
+    text-decoration: none;
+    display: block;
+    padding: 0.5rem;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.topic-list a:hover {
+    background-color: #f8f9fa;
+}
+
+.topic-list a.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.topic-list a mark {
+    background-color: #fff3cd;
+    color: #000;
+    font-weight: bold;
+    border-radius: 2px;
+    padding: 0.1em 0.2em;
+}
+
+.markdown-content h1 {
+    font-size: 2.2rem;
+    margin-bottom: 1.2rem;
+}
+
+.markdown-content h2 {
+    font-size: 1.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.markdown-content h3 {
+    font-size: 1.2rem;
+    margin-top: 1.2rem;
+}
+
+.markdown-content code {
+    background-color: #f8f9fa;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+}
+
+.markdown-content pre {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+.markdown-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+#help-mensagem {
+    min-height: 40px;
+}
+
+@media (max-width: 900px) {
+    .help-main-layout {
+        flex-direction: column;
+        height: 100vh;
+        padding-top: 56px;
+    }
+
+    .sidebar {
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        border-radius: 0 0 0 0;
+        border-right: none;
+        border-bottom: 1px solid #dee2e6;
+        position: static;
+        top: unset;
+        height: auto;
+        margin-bottom: 0;
+    }
+
+    .content-scrollable {
+        border-radius: 0 0 8px 8px;
+        padding: 1rem;
+    }
+}

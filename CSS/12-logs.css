@@ -1,0 +1,66 @@
+/* 12-logs.css - Estilos para Logs do Sistema */
+
+body {
+    background: #f8f9fa;
+}
+
+.container {
+    max-width: 900px;
+}
+
+h2 {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 0 5px;
+    }
+
+    h2 {
+        font-size: 1.3rem;
+    }
+}
+
+.btn-logs-roxo {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff !important;
+    border: none;
+    border-radius: 12px;
+    padding: 7px 18px;
+    font-size: 0.98rem;
+    min-width: 90px;
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.10);
+    transition: all 0.3s;
+}
+
+.btn-logs-roxo:hover,
+.btn-logs-roxo:focus {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    color: #fff !important;
+}
+
+.btn-logs-roxo:disabled {
+    color: #fff !important;
+    opacity: 0.6;
+}
+
+.logs-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 20px;
+}

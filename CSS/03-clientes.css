@@ -1,0 +1,408 @@
+/* Estilos específicos para a funcionalidade de Clientes */
+
+/* Estilos para a tabela de clientes */
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.modern-table th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.modern-table th:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+.modern-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s ease;
+}
+
+.modern-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.modern-table tbody tr.selected {
+    background-color: #e3f2fd;
+    border-left: 4px solid #2196f3;
+}
+
+/* Estilos para a barra de pesquisa */
+.modern-search {
+    margin-bottom: 20px;
+}
+
+.modern-search input {
+    border-radius: 25px;
+    border: 2px solid #e0e0e0;
+    padding: 12px 20px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.modern-search input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+/* Estilos para a toolbar */
+.modern-toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.modern-toolbar .btn {
+    border-radius: 25px;
+    padding: 10px 28px;
+    font-weight: 600;
+    font-size: 1rem;
+    min-width: 110px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.10);
+    border: none;
+    transition: all 0.3s;
+}
+
+.modern-toolbar .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+}
+
+.modern-toolbar .btn-primary:hover,
+.modern-toolbar .btn-primary:focus {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    color: #fff;
+}
+
+.modern-toolbar .btn-info {
+    background: linear-gradient(135deg, #00c6fb 0%, #005bea 100%);
+    color: #fff;
+    border: none;
+}
+
+.modern-toolbar .btn-info:hover,
+.modern-toolbar .btn-info:focus {
+    background: linear-gradient(135deg, #009eea 0%, #004bb5 100%);
+    color: #fff;
+}
+
+.modern-toolbar .btn-danger {
+    background: linear-gradient(135deg, #ff5858 0%, #f857a6 100%);
+    color: #fff;
+    border: none;
+}
+
+.modern-toolbar .btn-danger:hover,
+.modern-toolbar .btn-danger:focus {
+    background: linear-gradient(135deg, #e53935 0%, #d81b60 100%);
+    color: #fff;
+}
+
+/* Estilos para paginação */
+.modern-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.modern-pagination button {
+    border-radius: 25px;
+    padding: 8px 24px;
+    border: none;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(102, 126, 234, 0.10);
+}
+
+.modern-pagination button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%) !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+}
+
+.modern-pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f5f5f5 !important;
+    color: #aaa !important;
+}
+
+.page-info {
+    font-weight: 500;
+    color: #666;
+    padding: 8px 16px;
+    background: #f8f9fa;
+    border-radius: 20px;
+    border: 1px solid #e0e0e0;
+}
+
+/* Estilos para formulários de cliente */
+.cliente-form-container {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    margin-top: 20px;
+}
+
+.cliente-form-container .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px 10px 0 0;
+    padding: 20px;
+}
+
+.cliente-form-container .client-id {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+/* Estilos para tabs de cliente */
+.nav-tabs {
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 20px;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    border-radius: 0;
+    padding: 12px 20px;
+    color: #666;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    border: none;
+    color: #667eea;
+    background: #f8f9fa;
+}
+
+.nav-tabs .nav-link.active {
+    border: none;
+    border-bottom: 3px solid #667eea;
+    color: #667eea;
+    background: white;
+    font-weight: 600;
+}
+
+/* Estilos para campos de formulário */
+.form-control,
+.form-select {
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+/* Estilos para botões de ação */
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Estilos para mensagens de feedback */
+.alert {
+    border-radius: 10px;
+    border: none;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.alert-success {
+    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+    color: white;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+    color: white;
+}
+
+/* Estilos para modais */
+.modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
+}
+
+.modal-title {
+    font-weight: 600;
+}
+
+/* Estilos para listas de resultados */
+.list-group-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.list-group-item:hover {
+    background: #f8f9fa;
+    border-color: #667eea;
+    transform: translateX(5px);
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+    .modern-toolbar {
+        flex-direction: column;
+    }
+
+    .modern-toolbar .btn {
+        width: 100%;
+    }
+
+    .modern-pagination {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .cliente-form-container {
+        padding: 20px;
+        margin: 10px;
+    }
+}
+
+/* Animações */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modern-table tbody tr {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Estilos para loading */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    color: #666;
+}
+
+.spinner-border {
+    margin-right: 10px;
+}
+
+/* Padronizar largura das colunas principais */
+/* Ajuste os valores conforme necessário para o layout desejado */
+.modern-table th:nth-child(1),
+.modern-table td:nth-child(1) {
+    width: 32%;
+    min-width: 200px;
+}
+
+.modern-table th:nth-child(2),
+.modern-table td:nth-child(2) {
+    width: 22%;
+    min-width: 120px;
+}
+
+.modern-table th:nth-child(3),
+.modern-table td:nth-child(3) {
+    width: 26%;
+    min-width: 140px;
+}
+
+.modern-table th:nth-child(4),
+.modern-table td:nth-child(4) {
+    width: 20%;
+    min-width: 120px;
+}
+
+.btn,
+button.btn,
+a.btn {
+    border-radius: 10px !important;
+    padding: 8px 18px !important;
+    font-weight: 600;
+    font-size: 1rem;
+    min-width: 90px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.10);
+    border: none;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    line-height: 1.2;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ff5858 0%, #f857a6 100%) !important;
+    color: #fff !important;
+    border: none !important;
+}
+
+.btn-danger:hover,
+.btn-danger:focus {
+    background: linear-gradient(135deg, #e53935 0%, #d81b60 100%) !important;
+    color: #fff !important;
+}

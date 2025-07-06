@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HelpHub - Editar Cliente</title>
+    <!-- Carrega o CSS do Bootstrap 5 do CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <!-- Estilos personalizados dos clientes -->
+    <link rel="stylesheet" href="../css/03-clientes.css">
+    <link rel="stylesheet" href="../css/11-navbar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+
+<body>
+    <!-- Container principal da página de edição de cliente -->
+    <div class="container mt-2" id="conteudo">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <h2>Editar Cliente</h2>
+                <ul class="nav nav-tabs" id="clienteTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="dados-tab" data-bs-toggle="tab" data-bs-target="#dados"
+                            type="button" role="tab" aria-controls="dados" aria-selected="true">Dados do
+                            Cliente</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="endereco-tab" data-bs-toggle="tab" data-bs-target="#endereco"
+                            type="button" role="tab" aria-controls="endereco" aria-selected="false">Endereço</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="clienteTabsContent">
+                    <div class="tab-pane fade show active" id="dados" role="tabpanel" aria-labelledby="dados-tab">
+                        <form id="editar-cliente-form">
+                            <!-- Campos existentes do cliente -->
+                            <div class="mb-3">
+                                <label for="nome" class="form-label">Razão Social/Nome:</label>
+                                <input type="text" id="nome" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="nome_fantasia" class="form-label">Nome Fantasia:</label>
+                                <input type="text" id="nome_fantasia" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">E-mail:</label>
+                                <input type="text" id="email" class="form-control">
+                                <div class="form-text">Múltiplos e-mails separados por vírgula ou "/".</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="telefone" class="form-label">Telefone:</label>
+                                <input type="text" id="telefone" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="ativo" class="form-label">Ativo:</label>
+                                <select id="ativo" class="form-select">
+                                    <option value="Sim">Sim</option>
+                                    <option value="Não">Não</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tipo_cliente" class="form-label">Tipo Cliente:</label>
+                                <select id="tipo_cliente" class="form-select">
+                                    <option value="Comercial">Comercial</option>
+                                    <option value="Pessoa Física">Pessoa Física</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="cnpj_cpf" class="form-label">CNPJ/CPF:</label>
+                                <input type="text" id="cnpj_cpf" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="ie_rg" class="form-label">IE/RG:</label>
+                                <input type="text" id="ie_rg" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="contribuinte_icms" class="form-label">Contribuinte ICMS:</label>
+                                <select id="contribuinte_icms" class="form-select">
+                                    <option value="Sim">Sim</option>
+                                    <option value="Não">Não</option>
+                                    <option value="Isento">Isento</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="rg_orgao_emissor" class="form-label">RG Órgão Emissor:</label>
+                                <input type="text" id="rg_orgao_emissor" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="nacionalidade" class="form-label">Nacionalidade:</label>
+                                <input type="text" id="nacionalidade" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="naturalidade" class="form-label">Naturalidade:</label>
+                                <input type="text" id="naturalidade" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="estado_nascimento" class="form-label">Estado de Nascimento:</label>
+                                <input type="text" id="estado_nascimento" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="data_nascimento" class="form-label">Data de Nascimento:</label>
+                                <input type="date" id="data_nascimento" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="sexo" class="form-label">Sexo:</label>
+                                <select id="sexo" class="form-select">
+                                    <option value="Feminino">Feminino</option>
+                                    <option value="Masculino">Masculino</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="profissao" class="form-label">Profissão:</label>
+                                <input type="text" id="profissao" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="estado_civil" class="form-label">Estado Civil:</label>
+                                <input type="text" id="estado_civil" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="inscricao_municipal" class="form-label">Inscrição Municipal:</label>
+                                <input type="text" id="inscricao_municipal" class="form-control">
+                            </div>
+                            <div class="d-flex justify-content-end mt-4 gap-2">
+                                <button type="submit" class="btn btn-primary me-2"><i class="bi bi-save"></i>
+                                    Salvar</button>
+                                <a href="03-clientes-listagem.html" class="btn btn-primary"><i
+                                        class="bi bi-arrow-left"></i> Voltar</a>
+                                <button id="btn-excluir" type="button" class="btn btn-danger ms-2"><i
+                                        class="bi bi-trash"></i> Excluir</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="tab-pane fade" id="endereco" role="tabpanel" aria-labelledby="endereco-tab">
+                        <form id="editar-endereco-form">
+                            <div class="mb-3">
+                                <label for="cep" class="form-label">CEP:</label>
+                                <input type="text" id="cep" class="form-control" placeholder="Digite o CEP">
+                            </div>
+                            <div class="mb-3">
+                                <label for="rua" class="form-label">Rua:</label>
+                                <input type="text" id="rua" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="numero" class="form-label">Número:</label>
+                                <input type="text" id="numero" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="complemento" class="form-label">Complemento:</label>
+                                <input type="text" id="complemento" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="bairro" class="form-label">Bairro:</label>
+                                <input type="text" id="bairro" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="cidade" class="form-label">Cidade:</label>
+                                <input type="text" id="cidade" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="estado" class="form-label">Estado:</label>
+                                <input type="text" id="estado" class="form-control">
+                            </div>
+                            <div class="mb-3">
+                                <label for="pais" class="form-label">País:</label>
+                                <input type="text" id="pais" class="form-control">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Script para funcionalidades dos clientes -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/03-clientes.js"></script>
+    <script src="/js/13-autenticador.js"></script>
+    <script src="/js/11-navbar.js"></script>
+</body>
+
+</html>

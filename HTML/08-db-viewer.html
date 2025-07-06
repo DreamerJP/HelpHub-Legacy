@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Viewer</title>
+    <link rel="stylesheet" href="../css/08-db-viewer.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/11-navbar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+
+<body>
+    <div class="container mt-4">
+        <h2 class="mb-4"><i class="bi bi-database-gear"></i> Visualizador do Banco de Dados</h2>
+        <!-- Estatísticas do banco -->
+        <div class="database-stats mb-4">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5><i class="bi bi-hdd"></i> Tamanho do Banco</h5>
+                    <p id="db-size">Carregando...</p>
+                </div>
+                <div class="col-md-4">
+                    <h5><i class="bi bi-table"></i> Tabelas</h5>
+                    <p id="db-tables">Carregando...</p>
+                </div>
+                <div class="col-md-4">
+                    <h5><i class="bi bi-arrow-repeat refresh-button" onclick="refreshDatabaseStats()"></i> Última
+                        Atualização</h5>
+                    <p id="last-refresh">Carregando...</p>
+                </div>
+            </div>
+        </div>
+        <!-- Seletor de tabelas -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4><i class="bi bi-table"></i> Selecione uma tabela</h4>
+                <div>
+                    <button class="btn btn-sm btn-db-roxo" id="refresh-table" onclick="refreshCurrentTable()">
+                        <i class="bi bi-arrow-clockwise"></i> Atualizar
+                    </button>
+                    <button class="btn btn-sm btn-db-roxo" id="import-data" onclick="showImportModal()">
+                        <i class="bi bi-file-earmark-arrow-up"></i> Importar Dados
+                    </button>
+                    <div class="dropdown d-inline-block">
+                        <button class="btn btn-sm btn-db-roxo dropdown-toggle" type="button" id="exportDropdown"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-file-earmark-arrow-down"></i> Exportar
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="exportDropdown">
+                            <li><a class="dropdown-item" href="#" onclick="exportTable('csv')"><i
+                                        class="bi bi-filetype-csv"></i> CSV</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="exportTable('xlsx')"><i
+                                        class="bi bi-file-earmark-excel"></i> Excel (XLSX)</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <select id="table-select" class="form-select mb-3"></select>
+                <div class="table-filter mb-3">
+                    <input type="text" id="filter-input" class="form-control" placeholder="Filtrar registros...">
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <p><strong>Total de registros:</strong> <span id="record-count">0</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Tamanho estimado:</strong> <span id="table-size">0 KB</span></p>
+                    </div>
+                    <div class="col-md-4" id="table-specific-stats">
+                        <!-- Estatísticas específicas para cada tabela -->
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead id="table-head"></thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div id="db-viewer-mensagem"></div>
+    </div>
+    <script src="../js/08-db-viewer.js"></script>
+    <!-- Bootstrap JS Bundle (necessário para dropdowns) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Script customizado da navbar, deve vir depois do Bootstrap JS -->
+    <script src="/js/13-autenticador.js"></script>
+    <script src="/js/11-navbar.js"></script>
+
+    <!-- Modal para visualizar conteúdo completo de texto longo -->
+    <div class="modal fade" id="textModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Conteúdo Completo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <pre id="full-text-content" style="white-space: pre-wrap;"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-db-roxo" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para importação de CSV/XLSX -->
+    <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up"></i> Importar dados</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> <strong>Atenção:</strong> A importação pode
+                        substituir dados existentes. Faça backup antes de continuar.
+                    </div>
+                    <form id="importForm">
+                        <div class="mb-3">
+                            <label for="csvFile" class="form-label">Arquivo para importação</label>
+                            <input type="file" class="form-control" id="csvFile" accept=".csv,.xlsx" required>
+                            <div class="form-text">
+                                Formatos aceitos: CSV (.csv) ou Excel (.xlsx)
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Opções de importação</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="importMode" id="importModeAppend"
+                                    value="append" checked>
+                                <label class="form-check-label" for="importModeAppend">
+                                    <strong>Adicionar novos registros</strong>
+                                </label>
+                                <div class="text-muted small mt-1 mb-2">
+                                    Mantém os registros existentes e adiciona os novos dados do arquivo à tabela atual.
+                                    Escolha esta opção quando quiser inserir dados complementares.
+                                </div>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="importMode" id="importModeReplace"
+                                    value="replace">
+                                <label class="form-check-label" for="importModeReplace">
+                                    <strong>Substituir tabela inteira</strong> <span
+                                        class="text-danger">(cuidado!)</span>
+                                </label>
+                                <div class="text-muted small mt-1 mb-2">
+                                    <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                                    Remove todos os dados atuais da tabela antes de importar os novos registros.
+                                    Use apenas quando deseja substituir completamente os dados existentes.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3 csv-settings">
+                            <label class="form-label">Configurações do Arquivo</label>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="delimiter" class="form-label">Delimitador (apenas para CSV)</label>
+                                    <input type="text" class="form-control" id="delimiter" value="," maxlength="1">
+                                    <div class="form-text">
+                                        Caractere que separa as colunas no arquivo CSV.
+                                        Geralmente é vírgula (,) ou ponto-e-vírgula (;).
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="hasHeader" class="form-label">Primeira linha (apenas para CSV)</label>
+                                    <select class="form-select" id="hasHeader">
+                                        <option value="true">Cabeçalho com nomes de colunas</option>
+                                        <option value="false">Dados (sem cabeçalho)</option>
+                                    </select>
+                                    <div class="form-text">
+                                        Escolha se a primeira linha contém os nomes das colunas (cabeçalho)
+                                        ou se já contém dados a serem importados.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="previewData" class="form-label">Pré-visualização</label>
+                            <div class="small text-muted mb-2">
+                                <i class="bi bi-info-circle"></i> Mostrando apenas as primeiras 5 linhas do arquivo para
+                                visualização rápida.
+                                A pré-visualização ajuda a verificar se as configurações acima estão corretas antes da
+                                importação.
+                            </div>
+                            <div class="table-responsive" style="max-height: 200px;">
+                                <table class="table table-sm table-bordered table-striped" id="previewTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Selecione um arquivo para visualizar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Nenhum dado para exibir</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="importStatus"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-db-roxo" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-db-roxo" id="processImport" disabled>
+                        <i class="bi bi-upload"></i> Importar dados
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

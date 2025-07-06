@@ -1,0 +1,345 @@
+/* ===============================================
+  NAVBAR HELPHUB - CSS
+   =============================================== */
+
+/* Variáveis CSS */
+:root {
+  --navbar-height: 56px;
+  --navbar-bg: #0d6efd;
+  --navbar-text: #ffffff;
+  --navbar-text-hover: #e3f2fd;
+  --navbar-shadow: 0 6px 18px 0 rgba(0, 0, 0, 0.12);
+  --dropdown-bg: #212529;
+  --dropdown-border: #343a40;
+  --dropdown-item-hover: #343a40;
+  --dropdown-accent: #00d4ff;
+  --dropdown-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --transition-fast: all 0.2s ease;
+  --transition-smooth: all 0.3s ease;
+  --border-radius: 0.5rem;
+  --border-radius-sm: 0.25rem;
+}
+
+/* ===============================================
+  NAVBAR PRINCIPAL
+   =============================================== */
+
+.navbar {
+  min-height: var(--navbar-height);
+  box-shadow: var(--navbar-shadow);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: var(--transition-smooth);
+}
+
+/* Brand */
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--navbar-text) !important;
+  text-decoration: none;
+  transition: var(--transition-fast);
+}
+
+.navbar-brand:hover {
+  color: var(--navbar-text-hover) !important;
+}
+
+.navbar-brand svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* ===============================================
+  NAVEGAÇÃO
+   =============================================== */
+
+.navbar-nav .nav-link {
+  color: var(--navbar-text) !important;
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-sm);
+  margin: 0 0.25rem;
+  transition: var(--transition-fast);
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-nav .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--navbar-text-hover) !important;
+}
+
+.navbar-nav .nav-link.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: var(--navbar-text) !important;
+  font-weight: 600;
+}
+
+/* Ícones e estrutura dos links */
+.navbar-nav .nav-link i {
+  font-size: 0.9rem;
+  width: 16px;
+  text-align: center;
+  margin-right: 0.5rem;
+}
+
+.navbar-nav .nav-link span {
+  vertical-align: middle;
+}
+
+/* Logo da navbar */
+.navbar-logo {
+  max-height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* ===============================================
+  DROPDOWN MENUS
+   =============================================== */
+
+/* Dropdown Container */
+.dropdown-menu {
+  --bs-dropdown-bg: var(--dropdown-bg);
+  background-color: var(--dropdown-bg) !important;
+  border: 1px solid var(--dropdown-border) !important;
+  border-radius: var(--border-radius) !important;
+  box-shadow: var(--dropdown-shadow) !important;
+  padding: 0.5rem 0;
+  margin-top: 0.5rem;
+  min-width: 200px;
+}
+
+/* Dropdown Items */
+.dropdown-item {
+  color: #f8f9fa !important;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius-sm);
+  margin: 0;
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: var(--dropdown-item-hover) !important;
+  color: var(--dropdown-accent) !important;
+}
+
+.dropdown-item.text-danger:hover {
+  background-color: rgba(220, 53, 69, 0.1) !important;
+  color: #dc3545 !important;
+}
+
+.dropdown-item i {
+  width: 20px;
+  text-align: center;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.dropdown-item span {
+  flex: 1;
+}
+
+/* Dropdown item text */
+.dropdown-item-text {
+  color: #f8f9fa !important;
+  padding: 0.5rem 1rem;
+  margin: 0;
+  border-radius: var(--border-radius-sm);
+}
+
+.dropdown-item-text small {
+  color: #adb5bd !important;
+}
+
+/* Dropdown Headers */
+.dropdown-header {
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  color: #adb5bd !important;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-header i {
+  margin-right: 0.5rem;
+  color: var(--dropdown-accent);
+}
+
+/* Dropdown Divider */
+.dropdown-divider {
+  margin: 0.5rem 0;
+  border-top: 1px solid #444 !important;
+}
+
+/* Dropdown Toggle Animation */
+.dropdown-toggle::after {
+  transition: var(--transition-fast);
+}
+
+.dropdown-toggle[aria-expanded="true"]::after {
+  transform: rotate(180deg);
+}
+
+/* ===============================================
+  NAVBAR TOGGLER (MOBILE)
+   =============================================== */
+
+.navbar-toggler {
+  border: none;
+  padding: 0.5rem;
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition-fast);
+}
+
+.navbar-toggler:focus {
+  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.2);
+}
+
+.navbar-toggler:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ===============================================
+  SCROLLBAR CUSTOMIZATION
+   =============================================== */
+
+.dropdown-menu {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(13, 110, 253, 0.3) transparent;
+}
+
+.dropdown-menu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background-color: rgba(13, 110, 253, 0.3);
+  border-radius: 2px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(13, 110, 253, 0.5);
+}
+
+/* ===============================================
+  ANIMATIONS
+   =============================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===============================================
+  RESPONSIVIDADE
+   =============================================== */
+
+@media (max-width: 991.98px) {
+  .navbar-nav {
+    padding-top: 1rem;
+  }
+
+  .navbar-nav .nav-link {
+    margin: 0.25rem 0;
+  }
+
+  .dropdown-menu {
+    position: static !important;
+    transform: none !important;
+    border: none;
+    box-shadow: none;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    margin: 0.5rem 0;
+  }
+
+  .dropdown-item {
+    color: var(--navbar-text) !important;
+    margin: 0;
+  }
+
+  .dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: var(--navbar-text-hover) !important;
+    transform: none;
+  }
+}
+
+/* ===============================================
+  ACESSIBILIDADE
+   =============================================== */
+
+/* Focus indicators */
+.navbar-nav .nav-link:focus,
+.dropdown-item:focus,
+.navbar-toggler:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: 2px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .navbar {
+    border-bottom: 2px solid #ffffff;
+  }
+
+  .navbar-nav .nav-link {
+    border: 1px solid transparent;
+  }
+
+  .navbar-nav .nav-link:hover,
+  .navbar-nav .nav-link:focus {
+    border-color: #ffffff;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===============================================
+  PRINT STYLES
+   =============================================== */
+
+@media print {
+  .navbar {
+    display: none !important;
+  }
+}
+
+/* Ajuste: Dropdown do botão Funções Administrativas acompanha largura do botão */
+#adminDropdown+.dropdown-menu {
+  min-width: 100%;
+  width: max-content;
+}
+
+/* Ajuste: Dropdown do botão admin acompanha largura do botão */
+#userDropdown+.dropdown-menu {
+  min-width: 100%;
+  width: max-content;
+}

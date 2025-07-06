@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HelpHub - Notas do Cliente</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../css/03-clientes.css">
+    <link rel="stylesheet" href="../css/11-navbar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        .cke_notification_warning {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h2>Notas do Cliente</h2>
+                <div id="alert-notas" class="alert" style="display:none;"></div>
+                <form id="form-notas-cliente">
+                    <div class="mb-3">
+                        <label for="notas" class="form-label">Notas:</label>
+                        <textarea id="notas" class="form-control" rows="10"
+                            placeholder="Digite as notas do cliente..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary me-2"><i class="bi bi-save"></i> Salvar Notas</button>
+                    <a href="03-clientes-listagem.html" class="btn btn-primary"><i class="bi bi-arrow-left"></i>
+                        Voltar</a>
+                </form>
+                <div class="loading" id="loading" style="display:none;">
+                    <div class="spinner-border text-primary" role="status" style="width: 2.5rem; height: 2.5rem;">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+    <script src="../js/03-clientes.js"></script>
+    <script src="/js/13-autenticador.js"></script>
+    <script src="/js/11-navbar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            const textarea = document.getElementById('notas');
+            const alertNotas = document.getElementById('alert-notas');
+            const loading = document.getElementById('loading');
+            function showLoading() { if (loading) loading.style.display = 'flex'; }
+            function hideLoading() { if (loading) loading.style.display = 'none'; }
+            function exibirMensagem(mensagem, tipo = 'success') {
+                alertNotas.className = `alert alert-${tipo === 'erro' ? 'danger' : tipo}`;
+                alertNotas.textContent = mensagem;
+                alertNotas.style.display = 'block';
+                setTimeout(() => { alertNotas.style.display = 'none'; }, 3500);
+            }
+            // Inicializar CKEditor removendo o plugin devtools para ocultar o aviso de versão
+            if (window.CKEDITOR) {
+                CKEDITOR.replace('notas', { removePlugins: 'devtools' });
+            }
+            async function carregarNotas() {
+                if (!id) return;
+                showLoading();
+                try {
+                    const res = await fetch(`/clientes/${id}/notas`);
+                    const data = await res.json();
+                    if (window.CKEDITOR && CKEDITOR.instances.notas) {
+                        CKEDITOR.instances.notas.setData(data.notas || '');
+                    } else {
+                        textarea.value = data.notas || '';
+                    }
+                } catch (e) {
+                    exibirMensagem('Erro ao carregar notas', 'erro');
+                } finally {
+                    hideLoading();
+                }
+            }
+            async function salvarNotas(e) {
+                e.preventDefault();
+                if (!id) return;
+                showLoading();
+                try {
+                    let notasValue = '';
+                    if (window.CKEDITOR && CKEDITOR.instances.notas) {
+                        notasValue = CKEDITOR.instances.notas.getData();
+                    } else {
+                        notasValue = textarea.value;
+                    }
+                    const res = await fetch(`/clientes/${id}/notas`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ notas: notasValue })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        exibirMensagem('Notas salvas com sucesso!', 'success');
+                    } else {
+                        exibirMensagem(data.error || 'Erro ao salvar notas', 'erro');
+                    }
+                } catch (e) {
+                    exibirMensagem('Erro ao salvar notas', 'erro');
+                } finally {
+                    hideLoading();
+                }
+            }
+            document.getElementById('form-notas-cliente').addEventListener('submit', salvarNotas);
+            carregarNotas();
+        });
+    </script>
+</body>
+
+</html>
