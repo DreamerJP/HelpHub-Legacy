@@ -1,3 +1,12 @@
+Principais mudanças desta versão:
+
+- Refatoração completa do Frontend:
+  - Todo o frontend do sistema foi refeito do zero, visando melhor separação de responsabilidades.
+  - HTML, CSS e JavaScript agora estão organizados em arquivos separados.
+  - Fim de arquivos grandes e misturados (ex: CSS e scripts dentro do HTML).
+  - Código mais limpo, organizado e fácil de manter.
+  - Facilita futuras manutenções e adição de novas funcionalidades.
+
 Estas modificações trazem as seguintes melhorias:
 
 _____________________________________________________________________________
