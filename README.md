@@ -1,3 +1,34 @@
+# HelpHub
+
+## Principais mudanças desta versão
+
+- **Frontend totalmente refeito e modularizado:**
+  - Agora, HTML, CSS e JavaScript estão organizados em pastas separadas (`HTML/`, `CSS/`, `JS/`).
+  - Cada funcionalidade tem seus próprios arquivos, facilitando manutenção e evolução.
+  - Não há mais arquivos grandes e misturados (ex: CSS ou JS dentro do HTML).
+  - O código está mais limpo, organizado e fácil de entender.
+
+---
+
+## Estrutura de Pastas
+
+```
+HelpHub/
+│
+├── HTML/         # Arquivos de interface (uma página HTML para cada tela)
+├── CSS/          # Estilos separados por tela/função
+├── JS/           # Scripts JavaScript separados por tela/função
+├── IMAGENS/      # Imagens e ícones
+├── DOCS/         # Documentação e instruções do sistema
+├── DATABASE/     # Banco de dados SQLite
+├── SERVER/       # Backend Flask (app.py, configs, scripts de inicialização)
+├── LOGS/         # Arquivos de log do sistema
+├── REQUERIMENTOS/# Arquivos de dependências (requirements.txt)
+└── Release note.txt  # Notas de versão
+```
+
+## Diagrama Geral
+
 ```mermaid
 graph TD
     subgraph Frontend
@@ -63,77 +94,42 @@ graph TD
     DB --> Logger
 ```
 
-```
-HelpHub/
-│
-├── backend/
-│   ├── requirements.txt    # Imports necessários para Python
-│   ├── app.py              # Código do backend em Flask
-│   ├── secret_key          # Chave secreta para assinar e validar sessões e cookies
-│   ├── database.db         # Arquivo do banco de dados SQLite
-│   ├── start_server.sh     # Comando para iniciar o server com o Gunicorn
-│   ├── gunicorn_config.py  # Configuração do servidor Gunicorn
-│   ├── dockerfile          # Arquivo para configuração do docker
-│   └── static/
-│       ├── client-notes.js # Funções do gerenciador de notas de clientes, e ordem de serviço.
-│       ├── db-viewer.html  # Página de visualização/import/export do banco de dados
-│       ├── favicon.ico     # Icone
-│       ├── index.html      # Página principal
-│       ├── login.html      # Página principal de login
-│       ├── login-bg.webp   # Fundo da tela de login
-│       ├── logo.png        # Favicon
-│       ├── script.js       # JavaScript para interação com backend
-│       ├── snake.html      # Página do Easter Egg
-│       ├── styles.css      # Estilos da página
-│       └── help.html       # Página de ajuda
-│           ├── docs/
-│           ├── instrucoes_exportacao.md
-│           ├── seguranca_sistema.md
-│           ├── gerenciamento_usuarios.md
-│           └── instrucoes_importacao.md
-│
-└── README.md               # Instruções do projeto
-```
+---
 
-Modos de iniciar o servidor:
+## Como executar o sistema
 
-__________________________
-Linux via Gunicorn:
+### Linux via Gunicorn
 
-Navegar até o diretorio da aplicação ...\Site HelpHub Chamados\Versão\Front+Backend
-
-#Para garantir que tem permissão de execução
+```sh
+cd HelpHub/SERVER
 chmod +x start_server.sh
-
-#Inicia o server
 ./start_server.sh
+```
 
-__________________________
-Windows via Flask:
+### Windows via Flask
 
-Para windows via python apenas executar o app.py
-(Necessário ter instalado os imports do requerimentos.txt)
+```sh
+cd HelpHub/SERVER
+python app.py
+```
 
-__________________________
-Para Docker offline: 
+(Necessário instalar as dependências do `requirements.txt`)
 
-#Navegue até o diretorio da aplicação
-cd "(...)Site HelpHub Chamados\v1.5 Testes\Front+Backend"
+### Docker
 
-#Contrua a imagem
-docker build -t helphub:v1.5 .
+```sh
+cd HelpHub/SERVER
+docker build -t helphub:latest .
+docker run -d -p 5000:5000 --name helphub_container helphub:latest
+```
 
-#Inicia a imagem
-docker run -d -p 5000:5000 --name helphub_container helphub:v1.5
+---
 
-__________________________
-Para DockerHub online:
+## Observações
 
-Baixar a imagem direto do docker push
+- Todas as telas do sistema agora estão em arquivos HTML separados na pasta `HTML/`.
+- Cada tela tem seu próprio CSS e JS, facilitando manutenção e customização.
+- O backend Flask serve as APIs e arquivos estáticos.
+- Consulte a pasta `DOCS/` para instruções detalhadas de uso e configuração.
 
-docker push dreamerjp/helphub:v1.5
-
-Após iniciar o container, escolher a porta:
-docker run -d -p 5000:5000 dreamerjp/helphub:v1.5
-
-__________________________
+---
