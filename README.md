@@ -32,21 +32,21 @@ HelpHub/
 ```mermaid
 graph TD
     subgraph Frontend
-        HTML[HTML (Telas)]
-        CSS[CSS (Estilos)]
-        JS[JS (Scripts)]
-        IMGS[Imagens]
+        HTML["HTML (Telas)"]
+        CSS["CSS (Estilos)"]
+        JS["JS (Scripts)"]
+        IMGS["Imagens"]
     end
 
     subgraph Backend
-        Flask[Flask API]
-        DB[(SQLite Database)]
-        Logs[Logs]
-        Backup[Backup]
+        Flask["Flask API"]
+        DB["SQLite Database"]
+        Logs["Logs"]
+        Backup["Backup"]
     end
 
     subgraph Docs
-        DOCS[Documentação]
+        DOCS["Documentação"]
     end
 
     HTML -- "Referência" --> CSS
