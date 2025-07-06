@@ -32,66 +32,35 @@ HelpHub/
 ```mermaid
 graph TD
     subgraph Frontend
-        UI["Interface do Usuário"]
-        Login["Login"]
-        Home["Home Dashboard"]
-        ClientMgmt["Gestão de Clientes"]
-        TicketMgmt["Gestão de Chamados"]
-        Calendar["Agenda"]
-        UserMgmt["Gestão de Usuários"]
-        Backup["Gestão de Backup"]
-        DBViewer["Database Viewer"]
+        HTML[HTML (Telas)]
+        CSS[CSS (Estilos)]
+        JS[JS (Scripts)]
+        IMGS[Imagens]
     end
 
     subgraph Backend
-        Auth["Autenticação"]
-        Session["Gerenciamento de Sessão"]
+        Flask[Flask API]
         DB[(SQLite Database)]
-        APIRoutes["Rotas da API"]
-        Logger["Sistema de Logs"]
-        BackupSystem["Sistema de Backup"]
+        Logs[Logs]
+        Backup[Backup]
     end
 
-    subgraph Security
-        SessionCheck["Verificação de Sessão"]
-        InputSanitize["Sanitização de Dados"]
-        AccessControl["Controle de Acesso"]
+    subgraph Docs
+        DOCS[Documentação]
     end
 
-    %% Frontend Flow
-    Login --> Auth
-    Auth --> Session
-    Session --> Home
-    Home --> ClientMgmt
-    Home --> TicketMgmt
-    Home --> Calendar
-    Home --> UserMgmt
-    Home --> Backup
-    Home --> DBViewer
+    HTML -- "Referência" --> CSS
+    HTML -- "Referência" --> JS
+    HTML -- "Referência" --> IMGS
+    JS -- "Chama API" --> Flask
+    CSS -- "Estiliza" --> HTML
 
-    %% Backend Integration
-    ClientMgmt --> APIRoutes
-    TicketMgmt --> APIRoutes
-    Calendar --> APIRoutes
-    UserMgmt --> APIRoutes
-    Backup --> APIRoutes
-    DBViewer --> APIRoutes
+    Flask -- "Serve API e arquivos" --> HTML
+    Flask -- "Acessa" --> DB
+    Flask -- "Gera" --> Logs
+    Flask -- "Executa" --> Backup
 
-    APIRoutes --> DB
-    APIRoutes --> Logger
-
-    %% Security Layer
-    UI --> SessionCheck
-    SessionCheck --> AccessControl
-    APIRoutes --> InputSanitize
-    AccessControl --> APIRoutes
-
-    %% Backup Flow
-    Backup --> BackupSystem
-    BackupSystem --> DB
-
-    %% Database Access
-    DB --> Logger
+    DOCS -- "Ajuda" --> HTML
 ```
 
 ---
