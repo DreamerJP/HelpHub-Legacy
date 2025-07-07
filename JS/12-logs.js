@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('tipo-log').addEventListener('change', carregarLog);
     document.getElementById('filtro-data').addEventListener('change', carregarLog);
     document.getElementById('btn-download-log').addEventListener('click', baixarLog);
+    document.getElementById('btn-ordenar-logs').addEventListener('click', alternarOrdenacao);
     setupPaginacao();
     carregarLog();
 });
@@ -19,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 let paginaAtual = 1;
 const linhasPorPagina = 100;
 let linhasFiltradasGlobal = [];
+let ordenacaoReversa = false; // false = antigo primeiro, true = novo primeiro
 
 // Atualiza paginação e tabela
 function atualizarTabelaPaginada() {
@@ -61,6 +63,26 @@ function setupPaginacao() {
     });
 }
 
+// Alterna a ordenação dos logs
+function alternarOrdenacao() {
+    ordenacaoReversa = !ordenacaoReversa;
+    const btnOrdenar = document.getElementById('btn-ordenar-logs');
+    const icone = btnOrdenar.querySelector('i');
+    
+    if (ordenacaoReversa) {
+        icone.className = 'bi bi-arrow-down';
+        btnOrdenar.title = 'Mais antigos primeiro';
+        linhasFiltradasGlobal.reverse();
+    } else {
+        icone.className = 'bi bi-arrow-up';
+        btnOrdenar.title = 'Mais recentes primeiro';
+        linhasFiltradasGlobal.reverse();
+    }
+    
+    paginaAtual = 1;
+    atualizarTabelaPaginada();
+}
+
 // Busca e exibe o log selecionado
 async function carregarLog() {
     const tipo = document.getElementById('tipo-log').value;
@@ -76,7 +98,17 @@ async function carregarLog() {
         if (filtroData) {
             linhasFiltradas = linhas.filter(l => l.includes(filtroData));
         }
-        linhasFiltradasGlobal = linhasFiltradas;
+        
+        // Inicializa com logs mais recentes primeiro (reverso)
+        linhasFiltradasGlobal = linhasFiltradas.reverse();
+        ordenacaoReversa = true;
+        
+        // Atualiza o ícone do botão
+        const btnOrdenar = document.getElementById('btn-ordenar-logs');
+        const icone = btnOrdenar.querySelector('i');
+        icone.className = 'bi bi-arrow-down';
+        btnOrdenar.title = 'Mais antigos primeiro';
+        
         paginaAtual = 1;
         atualizarTabelaPaginada();
     } catch (e) {

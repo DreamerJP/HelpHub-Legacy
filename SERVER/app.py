@@ -1,23 +1,24 @@
 import os
 import math
-from flask import Flask, request, jsonify, send_from_directory, session, redirect, url_for, g, render_template, abort, send_file
-from flask_cors import CORS
-import sqlite3
-from datetime import datetime, timedelta
-import logging
-from logging.handlers import RotatingFileHandler
-from contextlib import contextmanager
-import time
-from time import sleep
-from werkzeug.security import check_password_hash, generate_password_hash
-from functools import wraps
-import secrets
-import threading
 import re
-import html
+import secrets
+import shutil
+import glob
+import tempfile
+import hashlib
+from datetime import datetime, timedelta
+from time import sleep
+from contextlib import contextmanager
+from functools import wraps
+from io import BytesIO
 from html import escape
 from openpyxl import Workbook
-from io import BytesIO
+from flask import Flask, request, jsonify, send_from_directory, session, redirect, abort, send_file
+from flask_cors import CORS
+import sqlite3
+import logging
+from logging.handlers import RotatingFileHandler
+from werkzeug.security import check_password_hash, generate_password_hash
 
 # ========================================================
 # INICIALIZAÇÃO E CONFIGURAÇÃO BÁSICA
@@ -27,8 +28,8 @@ from io import BytesIO
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 HELPHUB_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
 LOGS_DIR = os.path.join(HELPHUB_DIR, 'LOGS')
-DATABASE = os.path.join(HELPHUB_DIR, 'DATABASE', 'database.db')
 BACKUP_DIR = os.path.join(HELPHUB_DIR, 'BACKUP')
+DATABASE = os.path.join(HELPHUB_DIR, 'DATABASE', 'database.db')
 
 # Configuração de fallback para logs críticos
 # Esta função estabelece um logger básico que será usado em caso de falha na configuração principal
@@ -45,7 +46,7 @@ def setup_critical_logger():
 def sanitize_html(text):
     if text is None:
         return ""
-    return html.escape(str(text))
+    return escape(str(text))
 
 # Inicializa logger crítico para erros de setup que possam ocorrer antes da inicialização completa
 critical_logger = setup_critical_logger()
@@ -71,6 +72,25 @@ except Exception as e:
 # Inicializa o aplicativo Flask com suporte a CORS (Cross-Origin Resource Sharing)
 app = Flask(__name__)
 CORS(app, allow_private_network=False)  # Desativa explicitamente o cabeçalho Access-Control-Allow-Private-Network
+
+# Configuração para reduzir spam de logs do Werkzeug
+# Desabilita logs de requisições de renovação de sessão
+werkzeug_logger = logging.getLogger('werkzeug')
+werkzeug_logger.setLevel(logging.WARNING)  # Só loga warnings e erros, não info
+
+# Filtro personalizado para ignorar logs de renovação de sessão
+class RenewSessionFilter(logging.Filter):
+    def filter(self, record):
+        # Ignora logs de requisições POST para /auth/renew-session
+        if hasattr(record, 'msg') and 'POST /auth/renew-session' in str(record.msg):
+            return False
+        return True
+
+# Aplica o filtro ao logger do Werkzeug
+werkzeug_logger.addFilter(RenewSessionFilter())
+
+# Configuração adicional para reduzir logs desnecessários
+app.logger.setLevel(logging.WARNING)  # Reduz logs do Flask também
 
 # ========================================================
 # CONFIGURAÇÃO DE LOGGING
@@ -201,7 +221,7 @@ if not test_loggers():
     raise SystemExit(1)
 
 # ========================================================
-# SEGURANÇA E CONFIGURAÇÃO DA SESSÃO
+# SEGURANÇÃO E CONFIGURAÇÃO DA SESSÃO
 # ========================================================
 
 # Caminho para o arquivo que armazena a chave secreta da aplicação
@@ -285,12 +305,7 @@ def calculate_database_hash():
                 column_info = [f"{col[1]}:{col[2]}" for col in columns]
                 hash_data.append(f"{table}:{','.join(column_info)}")
             
-            # Adiciona timestamp de modificação do arquivo do banco
-            db_mtime = os.path.getmtime(DATABASE)
-            hash_data.append(f"mtime:{db_mtime}")
-            
-            # Calcula hash
-            import hashlib
+            # Calcula hash baseado apenas na estrutura (não no timestamp)
             hash_string = "|".join(hash_data)
             return hashlib.md5(hash_string.encode()).hexdigest()
     except Exception as e:
@@ -424,10 +439,17 @@ def auth_login():
                 hoje = datetime.now().strftime('%Y-%m-%d')
                 
                 # Verifica se já foi feito backup hoje
+                # Garante que o diretório de backup existe
+                if not os.path.exists(BACKUP_DIR):
+                    os.makedirs(BACKUP_DIR)
+                    app_logger.info(f"Diretório de backups criado em {BACKUP_DIR}")
+                
                 arquivos_hoje = glob.glob(os.path.join(BACKUP_DIR, f'backup_{hoje}_*.db'))
+                app_logger.info(f"Verificação de backup: encontrados {len(arquivos_hoje)} backup(s) para hoje ({hoje})")
                 
                 if not arquivos_hoje:
                     # Nenhum backup feito hoje, então realiza o backup
+                    app_logger.info("Nenhum backup encontrado para hoje, realizando backup diário...")
                     sucesso, mensagem = realizar_backup_diario()
                     backup_info = {
                         'realizado': sucesso,
@@ -436,7 +458,7 @@ def auth_login():
                     app_logger.info(f"Verificação de backup após login: {mensagem}")
                 else:
                     backup_info = {
-                        'realizado': False,
+                        'realizado': True,
                         'mensagem': f"Backup já realizado hoje ({len(arquivos_hoje)} arquivo(s))"
                     }
                     app_logger.info(f"Verificação de backup após login: já realizado hoje")
@@ -609,7 +631,7 @@ def criar_tabelas():
             data_final_agendamento TEXT NOT NULL,
             observacoes TEXT,
             status TEXT DEFAULT 'Aberto',
-            FOREIGN KEY (chamado_id) REFERENCES chamados(id)
+            FOREIGN KEY (chamado_id) REFERENCES chamados(id) ON DELETE CASCADE
         )''')
         
         # Tabela usuarios - autenticação e controle de acesso ao sistema
@@ -714,53 +736,11 @@ atualizar_chamados_sem_protocolo()
 # SISTEMA DE BACKUP DE BANCO DE DADOS
 # ========================================================
 
-import shutil
-import glob
-import os
-from datetime import datetime, timedelta
-
-def normalize_path(path):
-    """
-    Normaliza o caminho para ser compatível com o sistema operacional atual.
-    Converte caminhos relativos para absolutos com base no diretório base.
-    """
-    # Se o caminho for relativo, converte para absoluto com base no HELPHUB_DIR
-    if not os.path.isabs(path):
-        path = os.path.join(HELPHUB_DIR, path)
-    # Normaliza o caminho para o formato correto do sistema operacional
-    return os.path.normpath(path)
-
 def obter_diretorio_backup():
     """
-    Obtém o diretório de backup das configurações do sistema e normaliza o caminho.
+    Retorna o diretório fixo de backup.
     """
-    try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute('SELECT valor FROM configuracoes WHERE chave = "backup_dir"')
-            resultado = cursor.fetchone()
-            backup_dir = resultado[0] if resultado else BACKUP_DIR
-            # Normaliza o caminho para o sistema atual
-            backup_dir = normalize_path(backup_dir)
-            # Verifica se o diretório existe, se não, tenta criá-lo
-            if not os.path.exists(backup_dir):
-                try:
-                    os.makedirs(backup_dir)
-                    app_logger.info(f"Diretório de backups criado em {backup_dir}")
-                except Exception as e:
-                    app_logger.error(f"Erro ao criar diretório de backups: {e}")
-                    # Se falhar ao criar, usa o diretório padrão
-                    backup_dir = normalize_path(BACKUP_DIR)
-                    if not os.path.exists(backup_dir):
-                        os.makedirs(backup_dir)
-            return backup_dir
-    except Exception as e:
-        app_logger.error(f"Erro ao obter diretório de backup: {e}")
-        # Em caso de erro, retorna o diretório padrão
-        return normalize_path(BACKUP_DIR)
-
-# Modifique a definição do diretório de backup para usar a função
-BACKUP_DIR = obter_diretorio_backup()
+    return BACKUP_DIR
 
 def realizar_backup_diario():
     """
@@ -769,16 +749,16 @@ def realizar_backup_diario():
     """
     try:
         # Obtém o diretório de backup atual
-        BACKUP_DIR = obter_diretorio_backup()
+        backup_dir = obter_diretorio_backup()
         
         # Verifica se o diretório de backups existe, se não, cria
-        if not os.path.exists(BACKUP_DIR):
-            os.makedirs(BACKUP_DIR)
-            app_logger.info(f"Diretório de backups criado em {BACKUP_DIR}")
+        if not os.path.exists(backup_dir):
+            os.makedirs(backup_dir)
+            app_logger.info(f"Diretório de backups criado em {backup_dir}")
         
         # Cria o nome do arquivo de backup com timestamp
         timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-        backup_file = os.path.join(BACKUP_DIR, f'backup_{timestamp}.db')
+        backup_file = os.path.join(backup_dir, f'backup_{timestamp}.db')
         
         # Realiza o backup (cópia do arquivo)
         shutil.copy2(DATABASE, backup_file)
@@ -787,19 +767,23 @@ def realizar_backup_diario():
         
         # Lista e ordena todos os backups existentes por data de criação (mais antigo primeiro)
         todos_backups = sorted(
-            glob.glob(os.path.join(BACKUP_DIR, 'backup_*.db')),
+            glob.glob(os.path.join(backup_dir, 'backup_*.db')),
             key=lambda x: os.path.getctime(x)
         )
         
         # Se houver mais de 14 backups, remove os mais antigos
-        if len(todos_backups) > 14:
-            backups_para_remover = todos_backups[:-14]  # Pega todos exceto os 14 mais recentes
+        app_logger.info(f"Total de backups encontrados: {len(todos_backups)}")
+        if len(todos_backups) >= 14:
+            backups_para_remover = todos_backups[:-13]  # Mantém apenas os 13 mais recentes + o novo = 14 total
+            app_logger.info(f"Removendo {len(backups_para_remover)} backup(s) antigo(s) para manter limite de 14")
             for arquivo in backups_para_remover:
                 try:
                     os.remove(arquivo)
                     app_logger.info(f"Backup antigo removido: {arquivo}")
                 except Exception as e:
                     app_logger.error(f"Erro ao remover backup antigo {arquivo}: {e}")
+        else:
+            app_logger.info(f"Mantendo todos os {len(todos_backups)} backup(s) existente(s)")
                 
         return True, f"Backup realizado com sucesso em {timestamp}"
     except Exception as e:
@@ -857,7 +841,8 @@ PAGE_MAPPING = {
     'db-viewer': '08-db-viewer.html',
     'help': '09-help.html',
     'snake': '10-snake.html',
-    'logs': '12-logs.html'
+    'logs': '12-logs.html',
+    'ordem-servico': '13-ordem-servico.html'
 }
 
 # Rota amigável para páginas HTML com prefixo /p/
@@ -1746,7 +1731,8 @@ def obter_chamado(id):
                     {
                         'id': a['id'],
                         'data_hora': a['data_hora'],
-                        'texto': sanitize_html(a['texto'])
+                        'texto': sanitize_html(a['texto']),
+                        'username': a['username']
                     }
                     for a in andamentos_list
                 ],
@@ -2007,9 +1993,12 @@ def renew_session():
     if 'user_id' in session:
         # Renova a sessão
         session.modified = True
-        app_logger.info(f"Sessão renovada para o usuário: {session.get('username', 'desconhecido')}")
+        # Não loga renovações bem-sucedidas para reduzir spam
         return jsonify({'success': True})
-    app_logger.warning("Tentativa de renovar sessão sem user_id na sessão.")
+    
+    # Só loga tentativas inválidas de renovação
+    client_ip = get_real_ip()
+    app_logger.warning(f"Tentativa de renovar sessão sem user_id na sessão - IP: {client_ip}")
     return jsonify({'success': False}), 401
 
 @app.route('/auth/check-session')
@@ -3038,7 +3027,6 @@ def gerar_pdf_ordem_servico(chamado_id):
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
         from reportlab.lib.units import inch
         from reportlab.lib import colors
-        from io import BytesIO
         
         # Obter dados da ordem de serviço
         with get_db_connection() as conn:
@@ -3193,279 +3181,7 @@ def gerar_pdf_ordem_servico(chamado_id):
         app_logger.error(f"Erro ao gerar PDF da ordem de serviço: {str(e)}", exc_info=True)
         return jsonify({'erro': f'Erro ao gerar PDF: {str(e)}'}), 500
 
-@app.route('/chamados/<int:chamado_id>/ordem-servico/imagem', methods=['GET'])
-@login_required
-def gerar_imagem_ordem_servico(chamado_id):
-    """
-    Gera imagem da ordem de serviço (JPG/PNG) usando selenium
-    Retorna arquivo de imagem para download
-    """
-    try:
-        from selenium import webdriver
-        from selenium.webdriver.chrome.options import Options
-        from selenium.webdriver.common.by import By
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-        from PIL import Image
-        import base64
-        import io
-        
-        # Obter dados da ordem de serviço
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            
-            # Buscar dados do chamado
-            cursor.execute('''
-                SELECT 
-                    c.id, c.protocolo, c.assunto, c.descricao, c.status,
-                    c.data_abertura, c.data_fechamento, c.cliente_id,
-                    cl.nome, cl.nome_fantasia, cl.email, cl.telefone,
-                    cl.tipo_cliente, cl.cnpj_cpf, cl.cep, cl.rua, cl.numero,
-                    cl.complemento, cl.bairro, cl.cidade, cl.estado, cl.pais
-                FROM chamados c
-                LEFT JOIN clientes cl ON c.cliente_id = cl.id
-                WHERE c.id = ?
-            ''', (chamado_id,))
-            
-            chamado_data = cursor.fetchone()
-            if not chamado_data:
-                return jsonify({'erro': 'Chamado não encontrado'}), 404
-            
-            # Buscar histórico de andamentos
-            cursor.execute('''
-                SELECT data_hora, texto
-                FROM chamados_andamentos
-                WHERE chamado_id = ?
-                ORDER BY data_hora ASC
-            ''', (chamado_id,))
-            
-            andamentos = cursor.fetchall()
-            
-            # Buscar agendamento relacionado
-            cursor.execute('''
-                SELECT id, data_agendamento, data_final_agendamento, observacoes, status
-                FROM agendamentos
-                WHERE chamado_id = ?
-                ORDER BY data_agendamento DESC
-                LIMIT 1
-            ''', (chamado_id,))
-            
-            agendamento = cursor.fetchone()
-        
-        # Configurar Chrome headless
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.add_argument("--window-size=1200,1600")
-        
-        driver = webdriver.Chrome(options=chrome_options)
-        
-        try:
-            # Criar HTML temporário para renderização
-            html_content = f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <title>Ordem de Serviço - {chamado_data[1]}</title>
-                <style>
-                    body {{
-                        font-family: Arial, sans-serif;
-                        margin: 40px;
-                        background: white;
-                        color: #333;
-                    }}
-                    .header {{
-                        text-align: center;
-                        border-bottom: 3px solid #007bff;
-                        padding-bottom: 20px;
-                        margin-bottom: 30px;
-                    }}
-                    .title {{
-                        font-size: 24px;
-                        font-weight: bold;
-                        color: #007bff;
-                        margin-bottom: 10px;
-                    }}
-                    .section {{
-                        margin-bottom: 25px;
-                    }}
-                    .section-title {{
-                        font-size: 18px;
-                        font-weight: bold;
-                        color: #007bff;
-                        border-bottom: 1px solid #ddd;
-                        padding-bottom: 5px;
-                        margin-bottom: 15px;
-                    }}
-                    .info-row {{
-                        margin-bottom: 8px;
-                    }}
-                    .label {{
-                        font-weight: bold;
-                        display: inline-block;
-                        width: 150px;
-                    }}
-                    .value {{
-                        display: inline-block;
-                    }}
-                    .andamento {{
-                        margin-bottom: 15px;
-                        padding: 10px;
-                        background: #f8f9fa;
-                        border-left: 4px solid #007bff;
-                    }}
-                    .andamento-date {{
-                        font-weight: bold;
-                        color: #007bff;
-                        margin-bottom: 5px;
-                    }}
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <div class="title">ORDEM DE SERVIÇO</div>
-                    <div>Protocolo: {chamado_data[1]}</div>
-                    <div>Data de Geração: {datetime.now().strftime('%d/%m/%Y %H:%M')}</div>
-                </div>
-                
-                <div class="section">
-                    <div class="section-title">DADOS DO CHAMADO</div>
-                    <div class="info-row">
-                        <span class="label">Protocolo:</span>
-                        <span class="value">{chamado_data[1]}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Assunto:</span>
-                        <span class="value">{chamado_data[2]}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Descrição:</span>
-                        <span class="value">{chamado_data[3]}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Status:</span>
-                        <span class="value">{chamado_data[4]}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Data de Abertura:</span>
-                        <span class="value">{chamado_data[5]}</span>
-                    </div>
-                    {f'<div class="info-row"><span class="label">Data de Fechamento:</span><span class="value">{chamado_data[6]}</span></div>' if chamado_data[6] else ''}
-                </div>
-                
-                <div class="section">
-                    <div class="section-title">DADOS DO CLIENTE</div>
-                    <div class="info-row">
-                        <span class="label">Nome:</span>
-                        <span class="value">{chamado_data[8]}</span>
-                    </div>
-                    {f'<div class="info-row"><span class="label">Nome Fantasia:</span><span class="value">{chamado_data[9]}</span></div>' if chamado_data[9] else ''}
-                    <div class="info-row">
-                        <span class="label">Email:</span>
-                        <span class="value">{chamado_data[10]}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Telefone:</span>
-                        <span class="value">{chamado_data[11]}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="label">Tipo:</span>
-                        <span class="value">{chamado_data[12]}</span>
-                    </div>
-                    {f'<div class="info-row"><span class="label">CNPJ/CPF:</span><span class="value">{chamado_data[13]}</span></div>' if chamado_data[13] else ''}
-                    <div class="info-row">
-                        <span class="label">Endereço:</span>
-                        <span class="value">
-                            {', '.join(filter(None, [chamado_data[15], chamado_data[16], chamado_data[17], chamado_data[18], chamado_data[19], chamado_data[20], f"CEP: {chamado_data[14]}" if chamado_data[14] else None]))}
-                        </span>
-                    </div>
-                </div>
-            """
-            
-            if agendamento:
-                html_content += f"""
-                <div class="section">
-                    <div class="section-title">AGENDAMENTO</div>
-                    <div class="info-row">
-                        <span class="label">Data Agendada:</span>
-                        <span class="value">{agendamento[1]}</span>
-                    </div>
-                    {f'<div class="info-row"><span class="label">Data Final:</span><span class="value">{agendamento[2]}</span></div>' if agendamento[2] else ''}
-                    {f'<div class="info-row"><span class="label">Observações:</span><span class="value">{agendamento[3]}</span></div>' if agendamento[3] else ''}
-                    <div class="info-row">
-                        <span class="label">Status:</span>
-                        <span class="value">{agendamento[4]}</span>
-                    </div>
-                </div>
-                """
-            
-            html_content += """
-                <div class="section">
-                    <div class="section-title">HISTÓRICO DE ANDAMENTOS</div>
-            """
-            
-            for andamento in andamentos:
-                html_content += f"""
-                    <div class="andamento">
-                        <div class="andamento-date">{andamento[0]}</div>
-                        <div>{andamento[1]}</div>
-                    </div>
-                """
-            
-            html_content += """
-                </div>
-            </body>
-            </html>
-            """
-            
-            # Salvar HTML temporário
-            import tempfile
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as f:
-                f.write(html_content)
-                temp_file = f.name
-            
-            try:
-                # Carregar página
-                driver.get(f"file://{temp_file}")
-                
-                # Aguardar carregamento
-                WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.TAG_NAME, "body"))
-                )
-                
-                # Capturar screenshot
-                screenshot = driver.get_screenshot_as_png()
-                
-                # Converter para PIL Image para melhor qualidade
-                image = Image.open(io.BytesIO(screenshot))
-                
-                # Salvar em buffer
-                buffer = io.BytesIO()
-                image.save(buffer, format='PNG')
-                buffer.seek(0)
-                
-                app_logger.info(f"Imagem da ordem de serviço gerada com sucesso para chamado {chamado_id}")
-                
-                return send_file(
-                    buffer,
-                    as_attachment=True,
-                    download_name=f'ordem-servico-{chamado_id}.png',
-                    mimetype='image/png'
-                )
-                
-            finally:
-                # Limpar arquivo temporário
-                import os
-                os.unlink(temp_file)
-                
-        finally:
-            driver.quit()
-        
-    except Exception as e:
-        app_logger.error(f"Erro ao gerar imagem da ordem de serviço: {str(e)}", exc_info=True)
-        return jsonify({'erro': f'Erro ao gerar imagem: {str(e)}'}), 500
+
 
 # Rota para buscar chamados abertos com base em um termo de pesquisa
 @app.route('/chamados/buscar-abertos', methods=['GET'])
@@ -4002,4 +3718,4 @@ def custom_js(filename):
 if __name__ == '__main__':
     # Esta parte é usada apenas quando você executa o arquivo diretamente
     # para desenvolvimento, não quando usando Gunicorn
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)

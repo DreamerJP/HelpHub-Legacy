@@ -17,8 +17,8 @@ timeout = 60
 bind = '0.0.0.0:5000'
 
 # Arquivos de log
-accesslog = 'logs/gunicorn_access.log'
-errorlog = 'logs/gunicorn_error.log'
+accesslog = 'LOGS/gunicorn_access.log'
+errorlog = 'LOGS/gunicorn_error.log'
 
 # Nível de log
 loglevel = 'info'
@@ -35,9 +35,12 @@ pidfile = 'gunicorn.pid'
 # Reiniciar automaticamente os workers quando o código da aplicação é alterado
 reload = True
 
+# Certifique-se de que o diretório de logs existe
+os.makedirs('LOGS', exist_ok=True)
+
 # Configuração de log com rotação
-accesslog = 'logs/gunicorn_access.log'
-errorlog = 'logs/gunicorn_error.log'
+accesslog = 'LOGS/gunicorn_access.log'
+errorlog = 'LOGS/gunicorn_error.log'
 loglevel = 'info'
 
 # Configuração dos handlers de log
@@ -60,7 +63,7 @@ logconfig_dict = {
         'access': {
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'generic',
-            'filename': accesslog,
+            'filename': 'LOGS/gunicorn_access.log',
             'maxBytes': 5 * 1024 * 1024,
             'backupCount': 1,
             'encoding': 'utf-8'
@@ -68,7 +71,7 @@ logconfig_dict = {
         'error': {
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'generic',
-            'filename': errorlog,
+            'filename': 'LOGS/gunicorn_error.log',
             'maxBytes': 5 * 1024 * 1024,
             'backupCount': 1,
             'encoding': 'utf-8'

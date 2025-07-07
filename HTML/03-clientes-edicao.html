@@ -13,6 +13,25 @@
     <link rel="stylesheet" href="../css/03-clientes.css">
     <link rel="stylesheet" href="../css/11-navbar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Adicionar CSS customizado para o botão degradê -->
+    <style>
+        .btn-gradient {
+            background: linear-gradient(90deg, #6a5af9 0%, #8f6ed5 100%);
+            color: #fff;
+            border: none;
+            transition: background 0.2s;
+        }
+
+        .btn-gradient:hover,
+        .btn-gradient:focus {
+            background: linear-gradient(90deg, #8f6ed5 0%, #6a5af9 100%);
+            color: #fff;
+        }
+
+        .btn-gradient:disabled {
+            opacity: 0.7;
+        }
+    </style>
 </head>
 
 <body>
@@ -125,8 +144,8 @@
                             <div class="d-flex justify-content-end mt-4 gap-2">
                                 <button type="submit" class="btn btn-primary me-2"><i class="bi bi-save"></i>
                                     Salvar</button>
-                                <a href="03-clientes-listagem.html" class="btn btn-primary"><i
-                                        class="bi bi-arrow-left"></i> Voltar</a>
+                                <a href="/p/clientes" class="btn btn-primary"><i class="bi bi-arrow-left"></i>
+                                    Voltar</a>
                                 <button id="btn-excluir" type="button" class="btn btn-danger ms-2"><i
                                         class="bi bi-trash"></i> Excluir</button>
                             </div>
@@ -136,7 +155,16 @@
                         <form id="editar-endereco-form">
                             <div class="mb-3">
                                 <label for="cep" class="form-label">CEP:</label>
-                                <input type="text" id="cep" class="form-control" placeholder="Digite o CEP">
+                                <div class="input-group">
+                                    <input type="text" id="cep" class="form-control" placeholder="Digite o CEP">
+                                    <button type="button" id="buscar-endereco-btn" class="btn btn-gradient btn-sm"
+                                        style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                                        <span id="buscar-endereco-spinner"
+                                            class="spinner-border spinner-border-sm d-none" role="status"
+                                            aria-hidden="true"></span>
+                                        <i id="buscar-endereco-icone" class="bi bi-search"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label for="rua" class="form-label">Rua:</label>

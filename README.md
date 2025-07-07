@@ -76,14 +76,6 @@ python app.py
 
 (Necessário instalar as dependências do `requirements.txt`)
 
-### Docker
-
-```sh
-cd HelpHub/SERVER
-docker build -t helphub:latest .
-docker run -d -p 5000:5000 --name helphub_container helphub:latest
-```
-
 ---
 
 ## Observações

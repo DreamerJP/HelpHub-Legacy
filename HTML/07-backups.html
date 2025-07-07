@@ -35,17 +35,8 @@
                 <h5 class="mb-0"><i class="bi bi-folder"></i> Diretório de Backups</h5>
             </div>
             <div class="card-body">
-                <form id="config-backup-form" class="row g-3">
-                    <div class="col-md-8">
-                        <label for="backup-dir" class="form-label">Diretório para salvar backups:</label>
-                        <input type="text" class="form-control" id="backup-dir" placeholder="/caminho/para/backups">
-                        <div class="form-text">Diretório atual: <span id="backup-dir-atual">Carregando...</span></div>
-                    </div>
-                    <div class="col-md-4 d-flex align-items-end justify-content-end">
-                        <button type="submit" class="btn btn-salvar-backup"><i class="bi bi-save"></i> Salvar
-                            Diretório</button>
-                    </div>
-                </form>
+                <p>Os backups são sempre salvos na pasta <code>BACKUP</code> dentro do diretório do sistema.</p>
+                <p>Caminho atual: <code id="backup-dir-atual">Carregando...</code></p>
             </div>
         </div>
         <div class="card mb-4">

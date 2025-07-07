@@ -21,3 +21,4 @@ selenium>=4.15.0
 
 # Outras possíveis dependências
 # Se você precisar de módulos adicionais, adicione-os aqui
+# Comando para instalar: pip install -r requirements.txt

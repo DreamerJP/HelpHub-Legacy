@@ -9,15 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     carregarInfoBackups();
-    carregarConfiguracoesBackup();
     document.getElementById('btn-backup-manual').addEventListener('click', realizarBackupManual);
-    document.getElementById('config-backup-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        let diretorio = document.getElementById('backup-dir').value.trim();
-        // Normaliza as barras para frente
-        diretorio = diretorio.replace(/\\\\/g, '/').replace(/\\/g, '/');
-        await salvarConfiguracaoBackup(diretorio);
-    });
 });
 
 // Carrega informações dos backups disponíveis
@@ -41,6 +33,8 @@ async function carregarInfoBackups() {
                 </tr>
             `).join('');
         }
+        // Atualiza o caminho atual exibido
+        document.getElementById('backup-dir-atual').textContent = data.diretorio;
     } catch (error) {
         exibirMensagem('Erro ao carregar backups: ' + error.message, 'erro');
     } finally {
@@ -58,38 +52,6 @@ async function realizarBackupManual() {
         carregarInfoBackups();
     } catch (error) {
         exibirMensagem('Erro ao realizar backup: ' + error.message, 'erro');
-    } finally {
-        hideLoading();
-    }
-}
-
-// Carrega configurações atuais de backup
-async function carregarConfiguracoesBackup() {
-    try {
-        const response = await fetch('/system/backup-config');
-        if (!response.ok) throw new Error('Falha ao carregar configuração');
-        const data = await response.json();
-        document.getElementById('backup-dir').value = data.diretorio_atual || '';
-        document.getElementById('backup-dir-atual').textContent = data.diretorio_atual || 'Não configurado';
-    } catch (error) {
-        exibirMensagem('Erro ao carregar configuração: ' + error.message, 'erro');
-    }
-}
-
-// Salva nova configuração de diretório de backup
-async function salvarConfiguracaoBackup(diretorio) {
-    try {
-        showLoading();
-        const response = await fetch('/system/backup-config', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ diretorio })
-        });
-        if (!response.ok) throw new Error('Falha ao salvar configuração');
-        exibirMensagem('Configuração de diretório salva com sucesso!');
-        carregarConfiguracoesBackup();
-    } catch (error) {
-        exibirMensagem('Erro ao salvar configuração: ' + error.message, 'erro');
     } finally {
         hideLoading();
     }

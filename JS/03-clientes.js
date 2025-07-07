@@ -348,29 +348,47 @@ function aplicarMascaraCEP(input) {
 // Busca automática de endereço via CEP
 function configurarBuscaCEP() {
     const cepInput = document.getElementById('cep');
-    if (!cepInput) return;
+    const btnBuscar = document.getElementById('buscar-endereco-btn');
+    const spinner = document.getElementById('buscar-endereco-spinner');
+    const icone = document.getElementById('buscar-endereco-icone');
+    if (!cepInput || !btnBuscar) return;
     aplicarMascaraCEP(cepInput);
-    cepInput.addEventListener('blur', async function () {
+
+    // Lista de campos de endereço para desabilitar/habilitar
+    const camposEndereco = [
+        'rua', 'bairro', 'cidade', 'estado', 'pais'
+    ].map(id => document.getElementById(id)).filter(Boolean);
+
+    btnBuscar.addEventListener('click', async function () {
         const cep = cepInput.value.replace(/\D/g, '');
-        if (cep.length === 8) {
-            try {
-                showLoading();
-                const resposta = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-                const dados = await resposta.json();
-                if (!dados.erro) {
-                    document.getElementById('rua').value = dados.logradouro || '';
-                    document.getElementById('bairro').value = dados.bairro || '';
-                    document.getElementById('cidade').value = dados.localidade || '';
-                    document.getElementById('estado').value = dados.uf || '';
-                    document.getElementById('pais').value = 'Brasil';
-                } else {
-                    exibirMensagem('CEP não encontrado', 'erro');
-                }
-            } catch (erro) {
-                exibirMensagem('Erro ao buscar CEP', 'erro');
-            } finally {
-                hideLoading();
+        if (cep.length !== 8) {
+            exibirMensagem('Digite um CEP válido com 8 dígitos', 'erro');
+            return;
+        }
+        // Spinner e desabilitar
+        btnBuscar.disabled = true;
+        spinner.classList.remove('d-none');
+        if (icone) icone.classList.add('d-none');
+        camposEndereco.forEach(campo => campo.disabled = true);
+        try {
+            const resposta = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+            const dados = await resposta.json();
+            if (!dados.erro) {
+                document.getElementById('rua').value = dados.logradouro || '';
+                document.getElementById('bairro').value = dados.bairro || '';
+                document.getElementById('cidade').value = dados.localidade || '';
+                document.getElementById('estado').value = dados.uf || '';
+                document.getElementById('pais').value = 'Brasil';
+            } else {
+                exibirMensagem('CEP não encontrado', 'erro');
             }
+        } catch (erro) {
+            exibirMensagem('Erro ao buscar CEP', 'erro');
+        } finally {
+            btnBuscar.disabled = false;
+            spinner.classList.add('d-none');
+            if (icone) icone.classList.remove('d-none');
+            camposEndereco.forEach(campo => campo.disabled = false);
         }
     });
 }

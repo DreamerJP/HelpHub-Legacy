@@ -16,8 +16,8 @@
     <div class="container mt-4" id="conteudo">
         <div class="tabs-container">
             <div class="tabs mb-4 justify-content-center">
-                <a href="#" class="tab" id="tab-novo-chamado"
-                    onclick="window.location.href='04-chamados-cadastro.html'">Novo Chamado</a>
+                <a href="#" class="tab" id="tab-novo-chamado" onclick="window.location.href='/p/chamados-cadastro'">Novo
+                    Chamado</a>
                 <button class="tab active" id="tab-abertos" type="button">Chamados Abertos</button>
                 <button class="tab" id="tab-finalizados" type="button">Chamados Finalizados</button>
             </div>
@@ -121,41 +121,6 @@
         </div>
     </div>
 
-    <!-- Modal da Ordem de Serviço -->
-    <div class="modal fade" id="ordemServicoModal" tabindex="-1" aria-labelledby="ordemServicoModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="ordemServicoModalLabel">
-                        <i class="bi bi-file-text"></i> Ordem de Serviço
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="ordemServicoContent">
-                    <!-- Conteúdo dinâmico será carregado aqui -->
-                    <div class="text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Carregando...</span>
-                        </div>
-                        <p class="mt-2">Carregando ordem de serviço...</p>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="imprimirOrdemServico()">
-                        <i class="bi bi-printer"></i> Imprimir
-                    </button>
-                    <button type="button" class="btn btn-primary" onclick="exportarPDF()">
-                        <i class="bi bi-file-pdf"></i> Exportar PDF
-                    </button>
-                    <button type="button" class="btn btn-success" onclick="exportarImagem()">
-                        <i class="bi bi-image"></i> Exportar JPG
-                    </button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <script src="../js/04-chamados.js"></script>
     <!-- Bootstrap JS Bundle (necessário para dropdowns) -->

@@ -1,0 +1,317 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f6fa;
+    color: #222;
+    margin: 0;
+}
+
+.os-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 3px solid #2d3e50;
+    margin-bottom: 28px;
+    padding-bottom: 18px;
+    background: #fff;
+    padding-top: 24px;
+    padding-left: 32px;
+    padding-right: 32px;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.06);
+}
+
+.os-header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.os-logo {
+    height: 70px;
+    width: auto;
+    margin-right: 18px;
+}
+
+.os-header-left h2 {
+    font-size: 1.4em;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #2d3e50;
+    white-space: nowrap;
+}
+
+.os-header-left small {
+    color: #555;
+    font-size: 1em;
+}
+
+.os-number-box {
+    border: 2px solid #2d3e50;
+    padding: 16px 32px;
+    text-align: right;
+    background: #f8f9fa;
+    border-radius: 10px;
+    min-width: 260px;
+    font-size: 1.1em;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.04);
+}
+
+.os-number {
+    color: #d32f2f;
+    font-size: 1.4em;
+    font-weight: bold;
+    margin: 8px 0 4px 0;
+}
+
+.os-section {
+    border: 1.5px solid #e0e3e8;
+    border-radius: 8px;
+    padding: 22px 28px 18px 28px;
+    margin-bottom: 22px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(44, 62, 80, 0.03);
+}
+
+.os-section h4 {
+    font-size: 1.15em;
+    margin-bottom: 14px;
+    color: #2d3e50;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.os-client-info {
+    display: flex;
+    justify-content: space-between;
+    gap: 60px;
+    flex-wrap: wrap;
+    font-size: 1.05em;
+}
+
+.os-client-info strong {
+    font-size: 1.08em;
+    font-weight: 700;
+}
+
+.os-problem-box {
+    background: #f1f3f4;
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin-top: 5px;
+    font-size: 1.08em;
+    border-left: 4px solid #1976d2;
+}
+
+.os-history>div {
+    background: #f6f8fa;
+    border-left: 4px solid #1976d2;
+    margin-bottom: 12px;
+    padding: 10px 16px;
+    border-radius: 4px;
+    font-size: 1.04em;
+    box-shadow: 0 1px 2px rgba(44, 62, 80, 0.03);
+}
+
+.os-signatures {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 80px;
+    margin-top: 48px;
+    font-size: 1.08em;
+    padding: 0 40px;
+}
+
+.os-signatures>div {
+    text-align: center;
+    min-width: 260px;
+}
+
+.os-signature-line {
+    display: block;
+    border-bottom: 2px solid #444;
+    width: 220px;
+    margin: 0 auto 6px auto;
+    height: 24px;
+}
+
+.btn.no-print {
+    margin-left: 32px;
+    margin-bottom: 18px;
+    font-size: 1.08em;
+    padding: 8px 24px;
+    border-radius: 6px;
+    background: #1976d2;
+    border: none;
+    color: #fff;
+    font-weight: 500;
+    box-shadow: 0 1px 4px rgba(44, 62, 80, 0.07);
+    transition: background 0.2s;
+}
+
+.btn.no-print:hover {
+    background: #1251a3;
+}
+
+@media (max-width: 900px) {
+    .os-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 18px;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .os-signatures {
+        flex-direction: column;
+        gap: 36px;
+        padding: 0 10px;
+    }
+
+    .os-number-box {
+        min-width: unset;
+        width: 100%;
+        text-align: left;
+        margin-top: 10px;
+    }
+
+    .os-section {
+        padding: 16px 10px 12px 10px;
+    }
+
+    .btn.no-print {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .os-header-left h2 {
+        font-size: 1.3em;
+    }
+
+    .os-header {
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .os-logo {
+        height: 40px;
+    }
+
+    .os-section {
+        font-size: 0.98em;
+    }
+
+    .os-client-info {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+@media print {
+
+    html,
+    body {
+        font-size: 11px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+    }
+
+    .os-header {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        gap: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .os-header-left {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 20px !important;
+    }
+
+    .os-logo {
+        height: 32px !important;
+    }
+
+    .os-section {
+        font-size: 1em !important;
+        padding: 6px 0 6px 0 !important;
+    }
+
+    .os-signatures {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: center !important;
+        align-items: flex-end !important;
+        gap: 80px !important;
+        padding: 0 !important;
+        margin-top: 32px !important;
+        font-size: 1em !important;
+    }
+
+    .os-signatures>div {
+        min-width: 220px !important;
+        text-align: center !important;
+    }
+
+    .os-signature-line {
+        border-bottom: 2px solid #444 !important;
+        width: 220px !important;
+        margin: 0 auto 6px auto !important;
+        height: 24px !important;
+        display: block !important;
+    }
+
+    .os-number-box {
+        min-width: 220px !important;
+        max-width: 320px !important;
+        margin-left: 16px !important;
+        text-align: right !important;
+        align-self: flex-start !important;
+    }
+
+    .os-client-info {
+        gap: 10px !important;
+        font-size: 1em !important;
+    }
+
+    .os-history>div {
+        padding: 4px 8px !important;
+        margin-bottom: 6px !important;
+        font-size: 1em !important;
+    }
+
+    .os-problem-box {
+        padding: 6px 8px !important;
+        font-size: 1em !important;
+    }
+
+    .btn.no-print {
+        display: none !important;
+    }
+
+    .os-header-left h2 {
+        font-size: 1.1em !important;
+        white-space: nowrap !important;
+    }
+}
+
+.os-client-info>div:last-child {
+    margin-right: 32px;
+}
+
+@media print {
+    .os-client-info>div:last-child {
+        margin-right: 32px !important;
+    }
+}
