@@ -13,25 +13,6 @@
     <link rel="stylesheet" href="../css/03-clientes.css">
     <link rel="stylesheet" href="../css/11-navbar.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <!-- Adicionar CSS customizado para o botão degradê -->
-    <style>
-        .btn-gradient {
-            background: linear-gradient(90deg, #6a5af9 0%, #8f6ed5 100%);
-            color: #fff;
-            border: none;
-            transition: background 0.2s;
-        }
-
-        .btn-gradient:hover,
-        .btn-gradient:focus {
-            background: linear-gradient(90deg, #8f6ed5 0%, #6a5af9 100%);
-            color: #fff;
-        }
-
-        .btn-gradient:disabled {
-            opacity: 0.7;
-        }
-    </style>
 </head>
 
 <body>
@@ -54,12 +35,18 @@
                 <div class="tab-content" id="clienteTabsContent">
                     <div class="tab-pane fade show active" id="dados" role="tabpanel" aria-labelledby="dados-tab">
                         <form id="editar-cliente-form">
-                            <!-- Campos existentes do cliente -->
                             <div class="mb-3">
-                                <label for="nome" class="form-label">Razão Social/Nome:</label>
-                                <input type="text" id="nome" class="form-control" required>
+                                <label for="tipo_cliente" class="form-label">Tipo Cliente:</label>
+                                <select id="tipo_cliente" class="form-select">
+                                    <option value="Comercial">Comercial</option>
+                                    <option value="Pessoa Física">Pessoa Física</option>
+                                </select>
                             </div>
                             <div class="mb-3">
+                                <label for="nome" class="form-label" id="label-nome">Razão Social/Nome:</label>
+                                <input type="text" id="nome" class="form-control" placeholder="">
+                            </div>
+                            <div class="mb-3 empresa-campo">
                                 <label for="nome_fantasia" class="form-label">Nome Fantasia:</label>
                                 <input type="text" id="nome_fantasia" class="form-control">
                             </div>
@@ -80,21 +67,14 @@
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label for="tipo_cliente" class="form-label">Tipo Cliente:</label>
-                                <select id="tipo_cliente" class="form-select">
-                                    <option value="Comercial">Comercial</option>
-                                    <option value="Pessoa Física">Pessoa Física</option>
-                                </select>
+                                <label for="cnpj_cpf" class="form-label" id="label-cnpj-cpf">CNPJ/CPF:</label>
+                                <input type="text" id="cnpj_cpf" class="form-control" placeholder="">
                             </div>
-                            <div class="mb-3">
-                                <label for="cnpj_cpf" class="form-label">CNPJ/CPF:</label>
-                                <input type="text" id="cnpj_cpf" class="form-control">
+                            <div class="mb-3" id="campo-ie-rg">
+                                <label for="ie_rg" class="form-label" id="label-ie-rg">IE/RG:</label>
+                                <input type="text" id="ie_rg" class="form-control" placeholder="">
                             </div>
-                            <div class="mb-3">
-                                <label for="ie_rg" class="form-label">IE/RG:</label>
-                                <input type="text" id="ie_rg" class="form-control">
-                            </div>
-                            <div class="mb-3">
+                            <div class="mb-3 empresa-campo">
                                 <label for="contribuinte_icms" class="form-label">Contribuinte ICMS:</label>
                                 <select id="contribuinte_icms" class="form-select">
                                     <option value="Sim">Sim</option>
@@ -102,46 +82,46 @@
                                     <option value="Isento">Isento</option>
                                 </select>
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 empresa-campo">
+                                <label for="inscricao_municipal" class="form-label">Inscrição Municipal:</label>
+                                <input type="text" id="inscricao_municipal" class="form-control">
+                            </div>
+                            <div class="mb-3 pessoa-campo">
+                                <label for="estado_civil" class="form-label">Estado Civil:</label>
+                                <input type="text" id="estado_civil" class="form-control">
+                            </div>
+                            <div class="mb-3 pessoa-campo">
+                                <label for="profissao" class="form-label">Profissão:</label>
+                                <input type="text" id="profissao" class="form-control">
+                            </div>
+                            <div class="mb-3 pessoa-campo">
                                 <label for="rg_orgao_emissor" class="form-label">RG Órgão Emissor:</label>
                                 <input type="text" id="rg_orgao_emissor" class="form-control">
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 pessoa-campo">
                                 <label for="nacionalidade" class="form-label">Nacionalidade:</label>
                                 <input type="text" id="nacionalidade" class="form-control">
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 pessoa-campo">
                                 <label for="naturalidade" class="form-label">Naturalidade:</label>
                                 <input type="text" id="naturalidade" class="form-control">
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 pessoa-campo">
                                 <label for="estado_nascimento" class="form-label">Estado de Nascimento:</label>
                                 <input type="text" id="estado_nascimento" class="form-control">
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 pessoa-campo">
                                 <label for="data_nascimento" class="form-label">Data de Nascimento:</label>
                                 <input type="date" id="data_nascimento" class="form-control">
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 pessoa-campo">
                                 <label for="sexo" class="form-label">Sexo:</label>
                                 <select id="sexo" class="form-select">
                                     <option value="Feminino">Feminino</option>
                                     <option value="Masculino">Masculino</option>
                                 </select>
                             </div>
-                            <div class="mb-3">
-                                <label for="profissao" class="form-label">Profissão:</label>
-                                <input type="text" id="profissao" class="form-control">
-                            </div>
-                            <div class="mb-3">
-                                <label for="estado_civil" class="form-label">Estado Civil:</label>
-                                <input type="text" id="estado_civil" class="form-control">
-                            </div>
-                            <div class="mb-3">
-                                <label for="inscricao_municipal" class="form-label">Inscrição Municipal:</label>
-                                <input type="text" id="inscricao_municipal" class="form-control">
-                            </div>
-                            <div class="d-flex justify-content-end mt-4 gap-2">
+                            <div class="d-flex justify-content-end mt-4 gap-2 mb-4">
                                 <button type="submit" class="btn btn-primary me-2"><i class="bi bi-save"></i>
                                     Salvar</button>
                                 <a href="/p/clientes" class="btn btn-primary"><i class="bi bi-arrow-left"></i>
@@ -156,7 +136,7 @@
                             <div class="mb-3">
                                 <label for="cep" class="form-label">CEP:</label>
                                 <div class="input-group">
-                                    <input type="text" id="cep" class="form-control" placeholder="Digite o CEP">
+                                    <input type="text" id="cep" class="form-control">
                                     <button type="button" id="buscar-endereco-btn" class="btn btn-gradient btn-sm"
                                         style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
                                         <span id="buscar-endereco-spinner"
@@ -193,6 +173,10 @@
                             <div class="mb-3">
                                 <label for="pais" class="form-label">País:</label>
                                 <input type="text" id="pais" class="form-control">
+                            </div>
+                            <div class="d-flex justify-content-end mt-4 gap-2 mb-4">
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Salvar
+                                    Endereço</button>
                             </div>
                         </form>
                     </div>

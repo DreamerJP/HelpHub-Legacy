@@ -258,27 +258,58 @@
   }
 
   .navbar-nav .nav-link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
     margin: 0.25rem 0;
   }
 
+  /* Dropdown específico para mobile */
   .dropdown-menu {
+    display: block !important;
     position: static !important;
     transform: none !important;
     border: none;
     box-shadow: none;
     background-color: rgba(255, 255, 255, 0.05) !important;
-    margin: 0.5rem 0;
+    margin: 0;
+    padding: 0.5rem 0;
+    border-radius: 0;
+    transition: all 0.3s ease;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
   }
 
+  .dropdown-menu.show {
+    max-height: 500px;
+    opacity: 1;
+  }
+
+  /* Dropdown items em mobile */
   .dropdown-item {
     color: var(--navbar-text) !important;
     margin: 0;
+    padding: 0.75rem 1.5rem;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
   }
 
-  .dropdown-item:hover {
+  .dropdown-item:hover,
+  .dropdown-item:focus {
     background-color: rgba(255, 255, 255, 0.1) !important;
     color: var(--navbar-text-hover) !important;
-    transform: none;
+  }
+
+  /* Indicador visual para dropdowns */
+  .dropdown-toggle::after {
+    transition: transform 0.3s ease;
+  }
+
+  .dropdown-toggle.show::after {
+    transform: rotate(180deg);
   }
 }
 

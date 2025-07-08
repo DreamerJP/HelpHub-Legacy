@@ -45,19 +45,21 @@
                     <i class="bi bi-trash"></i> Excluir
                 </button>
             </div>
-            <table class="modern-table">
-                <thead>
-                    <tr>
-                        <th>Protocolo</th>
-                        <th>ID</th>
-                        <th>Cliente</th>
-                        <th onclick="sortChamados('data')">Data</th>
-                        <th>Assunto</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="chamados-list"></tbody>
-            </table>
+            <div class="table-responsive-mobile">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Protocolo</th>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th onclick="sortChamados('data')">Data</th>
+                            <th>Assunto</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chamados-list"></tbody>
+                </table>
+            </div>
             <div class="modern-pagination" id="paginacao-chamados-abertos">
                 <button id="btn-anterior-chamados-aberto" class="btn btn-primary"
                     onclick="paginaAnteriorChamados('Aberto')">
@@ -93,20 +95,22 @@
                     <i class="bi bi-trash"></i> Excluir
                 </button>
             </div>
-            <table class="modern-table">
-                <thead>
-                    <tr>
-                        <th>Protocolo</th>
-                        <th>ID</th>
-                        <th>Cliente</th>
-                        <th onclick="sortChamados('data')">Data</th>
-                        <th>Assunto</th>
-                        <th>Data Fechamento</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="chamados-finalizados"></tbody>
-            </table>
+            <div class="table-responsive-mobile">
+                <table class="modern-table">
+                    <thead>
+                        <tr>
+                            <th>Protocolo</th>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th onclick="sortChamados('data')">Data</th>
+                            <th>Assunto</th>
+                            <th>Data Fechamento</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="chamados-finalizados"></tbody>
+                </table>
+            </div>
             <div class="modern-pagination" id="paginacao-chamados-finalizados">
                 <button id="btn-anterior-chamados-finalizado" class="btn btn-primary"
                     onclick="paginaAnteriorChamados('Finalizado')">

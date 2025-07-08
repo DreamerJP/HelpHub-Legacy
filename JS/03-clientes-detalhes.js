@@ -31,35 +31,45 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Montar Dados do Cliente
             let dadosHtml = `<h5 class='mb-3'>Informações Principais</h5><div class='row'><div class='col-md-6'>`;
-            dadosHtml += `<div class='mb-2'><strong>Razão Social/Nome:</strong> ${c.nome || ''}</div>`;
-            dadosHtml += `<div class='mb-2'><strong>Nome Fantasia:</strong> ${c.nome_fantasia || ''}</div>`;
-            dadosHtml += `<div class='mb-2'><strong>E-mail:</strong> ${c.email || ''}</div>`;
-            dadosHtml += `<div class='mb-2'><strong>Telefone:</strong> ${c.telefone || ''}</div>`;
-            dadosHtml += `<div class='mb-2'><strong>Ativo:</strong> ${c.ativo || ''}</div>`;
-            dadosHtml += `<div class='mb-2'><strong>Tipo Cliente:</strong> ${c.tipo_cliente || ''}</div>`;
+            const isPessoaFisica = (c.tipo_cliente && c.tipo_cliente.toLowerCase().includes('física'));
+            // Nome
+            dadosHtml += `<div class='mb-2'><strong>${isPessoaFisica ? 'Nome Completo' : 'Razão Social'}:</strong> ${c.nome || ''}</div>`;
+            // Nome Fantasia (apenas empresa)
+            if (!isPessoaFisica && c.nome_fantasia) dadosHtml += `<div class='mb-2'><strong>Nome Fantasia:</strong> ${c.nome_fantasia}</div>`;
+            // E-mail
+            if (c.email) dadosHtml += `<div class='mb-2'><strong>E-mail:</strong> ${c.email}</div>`;
+            // Telefone
+            if (c.telefone) dadosHtml += `<div class='mb-2'><strong>Telefone:</strong> ${c.telefone}</div>`;
+            // Ativo
+            if (c.ativo) dadosHtml += `<div class='mb-2'><strong>Ativo:</strong> ${c.ativo}</div>`;
+            // Tipo Cliente
+            if (c.tipo_cliente) dadosHtml += `<div class='mb-2'><strong>Tipo Cliente:</strong> ${c.tipo_cliente}</div>`;
             dadosHtml += `</div><div class='col-md-6'>`;
-            dadosHtml += `<div class='mb-2'><strong>CNPJ/CPF:</strong> ${c.cnpj_cpf || ''}</div>`;
-            dadosHtml += `<div class='mb-2'><strong>IE/RG:</strong> ${c.ie_rg || ''}</div>`;
-            dadosHtml += `<div class='mb-2'><strong>Contribuinte ICMS:</strong> ${c.contribuinte_icms || ''}</div>`;
-            dadosHtml += `<div class='mb-2'><strong>RG Órgão Emissor:</strong> ${c.rg_orgao_emissor || ''}</div>`;
-            dadosHtml += `<div class='mb-2'><strong>Inscrição Municipal:</strong> ${c.inscricao_municipal || ''}</div>`;
+            // CNPJ/CPF
+            if (c.cnpj_cpf) dadosHtml += `<div class='mb-2'><strong>${isPessoaFisica ? 'CPF' : 'CNPJ'}:</strong> ${c.cnpj_cpf}</div>`;
+            // IE/RG
+            if (c.ie_rg) dadosHtml += `<div class='mb-2'><strong>${isPessoaFisica ? 'RG' : 'IE'}:</strong> ${c.ie_rg}</div>`;
+            // Contribuinte ICMS (apenas empresa)
+            if (!isPessoaFisica && c.contribuinte_icms) dadosHtml += `<div class='mb-2'><strong>Contribuinte ICMS:</strong> ${c.contribuinte_icms}</div>`;
+            // RG Órgão Emissor (apenas pessoa física)
+            if (isPessoaFisica && c.rg_orgao_emissor) dadosHtml += `<div class='mb-2'><strong>Órgão Emissor RG:</strong> ${c.rg_orgao_emissor}</div>`;
+            // Inscrição Municipal (apenas empresa)
+            if (!isPessoaFisica && c.inscricao_municipal) dadosHtml += `<div class='mb-2'><strong>Inscrição Municipal:</strong> ${c.inscricao_municipal}</div>`;
             dadosHtml += `</div></div>`;
 
             // Campos de pessoa física
-            let pfHtml = `<div id='campos-pf' style='display:none;'><h5 class='mt-4 mb-3'>Informações Pessoais</h5><div class='row'><div class='col-md-6'>`;
-            pfHtml += `<div class='mb-2'><strong>Nacionalidade:</strong> ${c.nacionalidade || ''}</div>`;
-            pfHtml += `<div class='mb-2'><strong>Naturalidade:</strong> ${c.naturalidade || ''}</div>`;
-            pfHtml += `<div class='mb-2'><strong>Estado Nascimento:</strong> ${c.estado_nascimento || ''}</div>`;
-            pfHtml += `<div class='mb-2'><strong>Data Nascimento:</strong> ${c.data_nascimento || ''}</div>`;
-            pfHtml += `<div class='mb-2'><strong>Sexo:</strong> ${c.sexo || ''}</div>`;
-            pfHtml += `<div class='mb-2'><strong>Profissão:</strong> ${c.profissao || ''}</div>`;
-            pfHtml += `<div class='mb-2'><strong>Estado Civil:</strong> ${c.estado_civil || ''}</div>`;
-            pfHtml += `</div></div></div>`;
-
-            // Mostrar/ocultar campos PF/PJ
-            const isCNPJ = c.cnpj_cpf && c.cnpj_cpf.replace(/\D/g, '').length === 14;
-            if (!isCNPJ) dadosHtml += pfHtml;
-
+            if (isPessoaFisica && (c.nacionalidade || c.naturalidade || c.estado_nascimento || c.data_nascimento || c.sexo || c.profissao || c.estado_civil)) {
+                let pfHtml = `<div class='mt-4'><h5 class='mb-3'>Informações Pessoais</h5><div class='row'><div class='col-md-6'>`;
+                if (c.nacionalidade) pfHtml += `<div class='mb-2'><strong>Nacionalidade:</strong> ${c.nacionalidade}</div>`;
+                if (c.naturalidade) pfHtml += `<div class='mb-2'><strong>Naturalidade:</strong> ${c.naturalidade}</div>`;
+                if (c.estado_nascimento) pfHtml += `<div class='mb-2'><strong>Estado Nascimento:</strong> ${c.estado_nascimento}</div>`;
+                if (c.data_nascimento) pfHtml += `<div class='mb-2'><strong>Data Nascimento:</strong> ${c.data_nascimento}</div>`;
+                if (c.sexo) pfHtml += `<div class='mb-2'><strong>Sexo:</strong> ${c.sexo}</div>`;
+                if (c.profissao) pfHtml += `<div class='mb-2'><strong>Profissão:</strong> ${c.profissao}</div>`;
+                if (c.estado_civil) pfHtml += `<div class='mb-2'><strong>Estado Civil:</strong> ${c.estado_civil}</div>`;
+                pfHtml += `</div></div></div>`;
+                dadosHtml += pfHtml;
+            }
             document.getElementById('dados-cliente-content').innerHTML = dadosHtml;
 
             // Montar Endereço

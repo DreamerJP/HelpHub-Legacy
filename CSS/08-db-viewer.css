@@ -69,20 +69,6 @@ h2 {
     min-height: 40px;
 }
 
-@media (max-width: 600px) {
-    .container {
-        padding: 0 5px;
-    }
-
-    h2 {
-        font-size: 1.3rem;
-    }
-
-    .card-header {
-        font-size: 1rem;
-    }
-}
-
 .btn-db-roxo {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #fff !important;

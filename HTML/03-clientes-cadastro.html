@@ -36,10 +36,17 @@
                         <form id="novo-cliente-form">
                             <!-- Campos existentes do cliente -->
                             <div class="mb-3">
-                                <label for="nome" class="form-label">Razão Social/Nome:</label>
-                                <input type="text" id="nome" class="form-control" required>
+                                <label for="tipo_cliente" class="form-label">Tipo Cliente:</label>
+                                <select id="tipo_cliente" class="form-select">
+                                    <option value="Comercial">Comercial</option>
+                                    <option value="Pessoa Física">Pessoa Física</option>
+                                </select>
                             </div>
                             <div class="mb-3">
+                                <label for="nome" class="form-label" id="label-nome">Razão Social/Nome:</label>
+                                <input type="text" id="nome" class="form-control" placeholder="">
+                            </div>
+                            <div class="mb-3 empresa-campo">
                                 <label for="nome_fantasia" class="form-label">Nome Fantasia:</label>
                                 <input type="text" id="nome_fantasia" class="form-control">
                             </div>
@@ -60,21 +67,14 @@
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label for="tipo_cliente" class="form-label">Tipo Cliente:</label>
-                                <select id="tipo_cliente" class="form-select">
-                                    <option value="Comercial">Comercial</option>
-                                    <option value="Pessoa Física">Pessoa Física</option>
-                                </select>
+                                <label for="cnpj_cpf" class="form-label" id="label-cnpj-cpf">CNPJ/CPF:</label>
+                                <input type="text" id="cnpj_cpf" class="form-control" placeholder="">
                             </div>
-                            <div class="mb-3">
-                                <label for="cnpj_cpf" class="form-label">CNPJ/CPF:</label>
-                                <input type="text" id="cnpj_cpf" class="form-control">
+                            <div class="mb-3" id="campo-ie-rg">
+                                <label for="ie_rg" class="form-label" id="label-ie-rg">IE/RG:</label>
+                                <input type="text" id="ie_rg" class="form-control" placeholder="">
                             </div>
-                            <div class="mb-3">
-                                <label for="ie_rg" class="form-label">IE/RG:</label>
-                                <input type="text" id="ie_rg" class="form-control">
-                            </div>
-                            <div class="mb-3">
+                            <div class="mb-3 empresa-campo">
                                 <label for="contribuinte_icms" class="form-label">Contribuinte ICMS:</label>
                                 <select id="contribuinte_icms" class="form-select">
                                     <option value="Sim">Sim</option>
@@ -82,50 +82,50 @@
                                     <option value="Isento">Isento</option>
                                 </select>
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 pessoa-campo">
+                                <label for="estado_civil" class="form-label">Estado Civil:</label>
+                                <input type="text" id="estado_civil" class="form-control">
+                            </div>
+                            <div class="mb-3 pessoa-campo">
+                                <label for="profissao" class="form-label">Profissão:</label>
+                                <input type="text" id="profissao" class="form-control">
+                            </div>
+                            <div class="mb-3 pessoa-campo">
                                 <label for="rg_orgao_emissor" class="form-label">RG Órgão Emissor:</label>
                                 <input type="text" id="rg_orgao_emissor" class="form-control">
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 pessoa-campo">
                                 <label for="nacionalidade" class="form-label">Nacionalidade:</label>
                                 <input type="text" id="nacionalidade" class="form-control">
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 pessoa-campo">
                                 <label for="naturalidade" class="form-label">Naturalidade:</label>
                                 <input type="text" id="naturalidade" class="form-control">
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 pessoa-campo">
                                 <label for="estado_nascimento" class="form-label">Estado de Nascimento:</label>
                                 <input type="text" id="estado_nascimento" class="form-control">
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 pessoa-campo">
                                 <label for="data_nascimento" class="form-label">Data de Nascimento:</label>
                                 <input type="date" id="data_nascimento" class="form-control">
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-3 pessoa-campo">
                                 <label for="sexo" class="form-label">Sexo:</label>
                                 <select id="sexo" class="form-select">
                                     <option value="Feminino">Feminino</option>
                                     <option value="Masculino">Masculino</option>
                                 </select>
                             </div>
-                            <div class="mb-3">
-                                <label for="profissao" class="form-label">Profissão:</label>
-                                <input type="text" id="profissao" class="form-control">
-                            </div>
-                            <div class="mb-3">
-                                <label for="estado_civil" class="form-label">Estado Civil:</label>
-                                <input type="text" id="estado_civil" class="form-control">
-                            </div>
-                            <div class="mb-3">
+                            <div class="mb-3 empresa-campo">
                                 <label for="inscricao_municipal" class="form-label">Inscrição Municipal:</label>
                                 <input type="text" id="inscricao_municipal" class="form-control">
                             </div>
-                            <div class="d-flex justify-content-end mt-4 gap-2">
+                            <div class="d-flex justify-content-end mt-4 gap-2 mb-4">
                                 <button type="submit" class="btn btn-primary me-2"><i class="bi bi-save"></i>
                                     Salvar</button>
-                                <a href="/p/clientes" class="btn btn-primary"><i
-                                        class="bi bi-arrow-left"></i> Voltar</a>
+                                <a href="/p/clientes" class="btn btn-primary"><i class="bi bi-arrow-left"></i>
+                                    Voltar</a>
                             </div>
                         </form>
                     </div>
@@ -133,7 +133,14 @@
                         <form id="novo-endereco-form">
                             <div class="mb-3">
                                 <label for="cep" class="form-label">CEP:</label>
-                                <input type="text" id="cep" class="form-control" placeholder="Digite o CEP">
+                                <div class="input-group mb-3">
+                                    <input type="text" id="cep" class="form-control">
+                                    <button type="button" id="buscar-endereco-btn" class="btn btn-gradient btn-sm">
+                                        <span id="buscar-endereco-icone" class="bi bi-search"></span>
+                                        <span id="buscar-endereco-spinner"
+                                            class="spinner-border spinner-border-sm d-none"></span>
+                                    </button>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label for="rua" class="form-label">Rua:</label>
@@ -163,6 +170,10 @@
                                 <label for="pais" class="form-label">País:</label>
                                 <input type="text" id="pais" class="form-control">
                             </div>
+                            <div class="d-flex justify-content-end mt-4 gap-2 mb-4">
+                                <button type="button" id="btn-salvar-endereco" class="btn btn-primary me-2"><i
+                                        class="bi bi-save"></i> Salvar</button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -174,6 +185,7 @@
     <script src="../js/03-clientes.js"></script>
     <script src="/js/13-autenticador.js"></script>
     <script src="/js/11-navbar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

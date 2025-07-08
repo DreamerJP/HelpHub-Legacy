@@ -379,34 +379,40 @@ window.mostrarDetalhesCliente = async function (id) {
         showLoading();
         const resp = await fetch(`/clientes/${id}`);
         if (!resp.ok) throw new Error('Erro ao buscar cliente');
-        const cliente = await resp.json();
+        const c = await resp.json();
         const modalBody = document.getElementById('modal-detalhe-cliente-body');
         const btnCadastro = document.getElementById('btn-acessar-cadastro-cliente');
-        if (!cliente || cliente.erro) {
+        if (!c || c.erro) {
             modalBody.innerHTML = '<div class="text-danger">Não foi possível carregar os dados do cliente.</div>';
             if (btnCadastro) btnCadastro.style.display = 'none';
         } else {
-            modalBody.innerHTML = `
-                <div class="row mb-2">
-                    <div class="col-md-6"><strong>Nome:</strong> ${cliente.nome || '-'}</div>
-                    <div class="col-md-6"><strong>Email:</strong> ${cliente.email || '-'}</div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-md-6"><strong>Telefone:</strong> ${cliente.telefone || '-'}</div>
-                    <div class="col-md-6"><strong>Empresa:</strong> ${cliente.empresa || '-'}</div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-md-6"><strong>Endereço:</strong> ${cliente.endereco || '-'}</div>
-                    <div class="col-md-6"><strong>Cidade:</strong> ${cliente.cidade || '-'}</div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-md-6"><strong>ID:</strong> ${cliente.id || '-'}</div>
-                </div>
-            `;
+            const isPessoaFisica = (c.tipo_cliente && c.tipo_cliente.toLowerCase().includes('física'));
+            let html = '<div class="row mb-2">';
+            html += `<div class="col-md-6"><strong>${isPessoaFisica ? 'Nome Completo' : 'Razão Social'}:</strong> ${c.nome || '-'}</div>`;
+            html += `<div class="col-md-6"><strong>Email:</strong> ${c.email || '-'}</div>`;
+            html += '</div><div class="row mb-2">';
+            html += `<div class="col-md-6"><strong>Telefone:</strong> ${c.telefone || '-'}</div>`;
+            if (!isPessoaFisica && c.nome_fantasia) html += `<div class="col-md-6"><strong>Nome Fantasia:</strong> ${c.nome_fantasia}</div>`;
+            html += '</div><div class="row mb-2">';
+            html += `<div class="col-md-6"><strong>${isPessoaFisica ? 'CPF' : 'CNPJ'}:</strong> ${c.cnpj_cpf || '-'}</div>`;
+            html += `<div class="col-md-6"><strong>${isPessoaFisica ? 'RG' : 'IE'}:</strong> ${c.ie_rg || '-'}</div>`;
+            html += '</div><div class="row mb-2">';
+            if (!isPessoaFisica && c.contribuinte_icms) html += `<div class="col-md-6"><strong>Contribuinte ICMS:</strong> ${c.contribuinte_icms}</div>`;
+            if (isPessoaFisica && c.rg_orgao_emissor) html += `<div class="col-md-6"><strong>Órgão Emissor RG:</strong> ${c.rg_orgao_emissor}</div>`;
+            if (!isPessoaFisica && c.inscricao_municipal) html += `<div class="col-md-6"><strong>Inscrição Municipal:</strong> ${c.inscricao_municipal}</div>`;
+            html += '</div>';
+            // Endereço
+            html += '<div class="row mb-2">';
+            html += `<div class="col-md-6"><strong>Cidade:</strong> ${c.cidade || '-'}</div>`;
+            html += `<div class="col-md-6"><strong>Endereço:</strong> ${c.rua ? c.rua + (c.numero ? ', ' + c.numero : '') : '-'}</div>`;
+            html += '</div>';
+            // ID
+            html += `<div class="row mb-2"><div class="col-md-6"><strong>ID:</strong> ${c.id || '-'}</div></div>`;
+            modalBody.innerHTML = html;
             if (btnCadastro) {
                 btnCadastro.style.display = '';
                 btnCadastro.onclick = function () {
-                    window.location.href = `/p/clientes-detalhes?id=${cliente.id}`;
+                    window.location.href = `/p/clientes-detalhes?id=${c.id}`;
                 };
             }
         }

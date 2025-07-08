@@ -1,55 +1,29 @@
-Principais mudanças desta versão:
+# Release Notes - HelpHub
+## Principais mudanças desta versão:
 
-- Refatoração completa do Frontend:
-  - Todo o frontend do sistema foi refeito do zero, visando melhor separação de responsabilidades.
-  - HTML, CSS e JavaScript agora estão organizados em arquivos separados.
-  - Fim de arquivos grandes e misturados (ex: CSS e scripts dentro do HTML).
-  - Código mais limpo, organizado e fácil de manter.
-  - Facilita futuras manutenções e adição de novas funcionalidades.
+## [v3.2]
 
-Estas modificações trazem as seguintes melhorias:
 
-_____________________________________________________________________________
+---
 
-🔒 SISTEMA DE SEGURANÇA APRIMORADO (v3.0)
+## Release Note
 
-✅ IMPLEMENTADO:
-- Detecção automática de troca de banco de dados
-- Invalidação de sessão quando arquivo database.db é substituído
-- Verificação periódica de integridade da sessão (30 segundos)
-- Proteção contra acesso não autorizado após troca de banco
-- Validação de existência do usuário no banco de dados
-- Logs de segurança para auditoria de tentativas de acesso
+**Versão Atual**
 
-✅ CORRIGIDO:
-- VULNERABILIDADE CRÍTICA: Usuário podia trocar database.db e continuar logado
-- Acesso não autorizado a dados de outros bancos
-- Sessões persistentes após troca de arquivo do banco
-- Falta de validação de integridade do banco de dados
+- Melhorias gerais na experiência do usuário.
+- Ajustes visuais e de layout em diversas telas do sistema.
+- Otimizações em formulários para maior praticidade e clareza.
+- Correções pontuais para garantir maior estabilidade e funcionamento adequado das funcionalidades existentes.
 
-✅ MELHORIAS:
-- Sistema inteligente que não desloga durante operações normais (CRUD)
-- Verificação baseada na estrutura do banco, não no conteúdo
-- Alertas automáticos no frontend quando sessão é invalidada
-- Logs detalhados para auditoria de segurança
+---
 
-✅ ROTAS ADICIONADAS:
-- /auth/check-session: Verificação de validade da sessão
-- Validação automática em todas as requisições protegidas
-
-✅ REDIRECIONAMENTO AUTOMÁTICO:
-- Redirecionamento automático para login quando sessão é invalidada
-- Interceptor global para tratar erros 401 automaticamente
-- Alertas informativos antes do redirecionamento
-- Tratamento diferenciado para requisições AJAX e páginas HTML
-
-✅ ARQUIVOS NOVOS:
-- 13-autenticador.js: Interceptor global para tratamento de erros de autenticação.
-- Novos itens de ajuda e informações sobre cada funcionalidade do site.
-- Recursos anteriores mantidos, e compatibilidade com database mantida.
 _____________________________________________________________________________
 
 Ainda falta fazer:
+
+- Implementar sistema de cadastro de cliente
+
+- Testar cadastro dos clientes, importação e exportação.
 
 - Sistema de departamentos.
 

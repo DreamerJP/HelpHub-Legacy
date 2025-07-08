@@ -22,23 +22,27 @@
         <div class="modern-toolbar">
             <input type="text" id="pesquisa-cliente" class="form-control modern-search"
                 placeholder="Buscar clientes...">
+            <button id="btn-novo-cliente" class="btn btn-success" onclick="carregarNovoClientePage()">
+                Novo Cliente
+            </button>
             <button id="btn-editar-cliente" class="btn btn-primary" disabled>Editar</button>
             <button id="btn-detalhes-cliente" class="btn btn-primary" disabled>Detalhes</button>
-            <button id="btn-notas-cliente" class="btn btn-info" disabled>Notas</button>
             <button id="btn-excluir-cliente" class="btn btn-danger" disabled>Excluir</button>
         </div>
         <div id="alert-clientes" class="alert" style="display:none;"></div>
-        <table class="modern-table">
-            <thead>
-                <tr>
-                    <th data-field="id">ID / Nome</th>
-                    <th data-field="nome_fantasia">Nome Fantasia</th>
-                    <th data-field="email">Email</th>
-                    <th data-field="telefone">Telefone</th>
-                </tr>
-            </thead>
-            <tbody id="clientes"></tbody>
-        </table>
+        <div class="table-responsive-mobile">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th data-field="id">ID / Nome</th>
+                        <th data-field="nome_fantasia">Nome Fantasia</th>
+                        <th data-field="email">Email</th>
+                        <th data-field="telefone">Telefone</th>
+                    </tr>
+                </thead>
+                <tbody id="clientes"></tbody>
+            </table>
+        </div>
         <div class="modern-pagination" id="paginacao-clientes">
             <button id="btn-pagina-anterior" class="btn btn-primary"><i class="bi bi-chevron-left"></i>
                 Anterior</button>

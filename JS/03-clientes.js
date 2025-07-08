@@ -35,6 +35,84 @@ document.addEventListener('DOMContentLoaded', function () {
     if (document.getElementById('editar-cliente-form')) {
         configurarFormularioCliente();
     }
+
+    // Lógica para alternar campos de acordo com o tipo de cliente
+    const tipoClienteSelect = document.getElementById('tipo_cliente');
+    function alternarCamposTipoCliente() {
+        const tipo = tipoClienteSelect.value;
+        const camposEmpresa = document.querySelectorAll('.empresa-campo');
+        const camposPessoa = document.querySelectorAll('.pessoa-campo');
+        const labelIeRg = document.getElementById('label-ie-rg');
+        const inputIeRg = document.getElementById('ie_rg');
+        const labelCnpjCpf = document.getElementById('label-cnpj-cpf');
+        const inputCnpjCpf = document.getElementById('cnpj_cpf');
+        const labelNome = document.getElementById('label-nome');
+        const inputNome = document.getElementById('nome');
+
+        if (tipo === 'Comercial') {
+            camposEmpresa.forEach(el => el.classList.remove('d-none'));
+            camposPessoa.forEach(el => el.classList.add('d-none'));
+            // Ajusta label e placeholder para empresa
+            if (labelIeRg) labelIeRg.textContent = 'IE (Inscrição Estadual):';
+            if (inputIeRg) inputIeRg.placeholder = '';
+            if (labelCnpjCpf) labelCnpjCpf.textContent = 'CNPJ:';
+            if (inputCnpjCpf) inputCnpjCpf.placeholder = '';
+            if (labelNome) labelNome.textContent = 'Razão Social:';
+            if (inputNome) inputNome.placeholder = '';
+        } else {
+            camposEmpresa.forEach(el => el.classList.add('d-none'));
+            camposPessoa.forEach(el => el.classList.remove('d-none'));
+            // Ajusta label e placeholder para pessoa física
+            if (labelIeRg) labelIeRg.textContent = 'RG (Registro Geral):';
+            if (inputIeRg) inputIeRg.placeholder = '';
+            if (labelCnpjCpf) labelCnpjCpf.textContent = 'CPF:';
+            if (inputCnpjCpf) inputCnpjCpf.placeholder = '';
+            if (labelNome) labelNome.textContent = 'Nome Completo:';
+            if (inputNome) inputNome.placeholder = '';
+        }
+    }
+    if (tipoClienteSelect) {
+        tipoClienteSelect.addEventListener('change', alternarCamposTipoCliente);
+        alternarCamposTipoCliente(); // Executa ao carregar a página
+    }
+
+    const formEditarEndereco = document.getElementById('editar-endereco-form');
+    if (formEditarEndereco) {
+        formEditarEndereco.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            if (!id) return exibirMensagem('ID do cliente não encontrado', 'erro');
+            const endereco = {
+                cep: document.getElementById('cep').value,
+                rua: document.getElementById('rua').value,
+                numero: document.getElementById('numero').value,
+                complemento: document.getElementById('complemento').value,
+                bairro: document.getElementById('bairro').value,
+                cidade: document.getElementById('cidade').value,
+                estado: document.getElementById('estado').value,
+                pais: document.getElementById('pais').value
+            };
+            try {
+                showLoading();
+                const resposta = await fetch(`/clientes/${id}/endereco`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(endereco)
+                });
+                if (resposta.ok) {
+                    exibirMensagem('Endereço atualizado com sucesso!');
+                } else {
+                    const erro = await resposta.json();
+                    exibirMensagem(`Erro: ${erro.erro}`, 'erro');
+                }
+            } catch (erro) {
+                exibirMensagem('Erro ao atualizar endereço', 'erro');
+            } finally {
+                hideLoading();
+            }
+        });
+    }
 });
 
 // Função para carregar a página de clientes
@@ -460,8 +538,68 @@ function configurarFormularioCliente() {
         formCadastro.addEventListener('submit', async function (e) {
             e.preventDefault();
             if (!validarCamposCliente('novo-cliente-form')) return;
-            // ... já implementado ...
+
+            // Coletar dados do formulário
+            const novoCliente = {
+                nome: document.getElementById('nome').value,
+                nome_fantasia: document.getElementById('nome_fantasia').value,
+                email: document.getElementById('email').value,
+                telefone: document.getElementById('telefone').value,
+                ativo: document.getElementById('ativo').value,
+                tipo_cliente: document.getElementById('tipo_cliente').value,
+                cnpj_cpf: document.getElementById('cnpj_cpf').value,
+                ie_rg: document.getElementById('ie_rg').value,
+                contribuinte_icms: document.getElementById('contribuinte_icms').value,
+                rg_orgao_emissor: document.getElementById('rg_orgao_emissor').value,
+                nacionalidade: document.getElementById('nacionalidade').value,
+                naturalidade: document.getElementById('naturalidade').value,
+                estado_nascimento: document.getElementById('estado_nascimento').value,
+                data_nascimento: document.getElementById('data_nascimento').value,
+                sexo: document.getElementById('sexo').value,
+                profissao: document.getElementById('profissao').value,
+                estado_civil: document.getElementById('estado_civil').value,
+                inscricao_municipal: document.getElementById('inscricao_municipal').value,
+                cep: document.getElementById('cep').value,
+                rua: document.getElementById('rua').value,
+                numero: document.getElementById('numero').value,
+                complemento: document.getElementById('complemento').value,
+                bairro: document.getElementById('bairro').value,
+                cidade: document.getElementById('cidade').value,
+                estado: document.getElementById('estado').value,
+                pais: document.getElementById('pais').value
+            };
+
+            try {
+                showLoading();
+                const resposta = await fetch('/clientes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(novoCliente)
+                });
+
+                if (resposta.ok) {
+                    const resultado = await resposta.json();
+                    exibirMensagem('Cliente cadastrado com sucesso!');
+                    setTimeout(() => {
+                        window.location.href = '/p/clientes';
+                    }, 1200);
+                } else {
+                    const erro = await resposta.json();
+                    exibirMensagem(`Erro: ${erro.erro}`, 'erro');
+                }
+            } catch (erro) {
+                exibirMensagem('Erro ao cadastrar cliente', 'erro');
+            } finally {
+                hideLoading();
+            }
         });
+        // Adiciona evento ao botão Salvar da aba Endereço
+        const btnSalvarEndereco = document.getElementById('btn-salvar-endereco');
+        if (btnSalvarEndereco) {
+            btnSalvarEndereco.addEventListener('click', function () {
+                formCadastro.requestSubmit();
+            });
+        }
     }
     if (formEdicao) {
         formEdicao.addEventListener('submit', async function (e) {

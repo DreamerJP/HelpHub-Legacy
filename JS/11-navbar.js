@@ -1,8 +1,8 @@
 // Script para inserir a navbar em todas as páginas automaticamente
-// Exceto páginas de login (01-login.html)
+// Exceto páginas de login (01-login.html, /login, /p/login)
 (function () {
-  // Não inserir na página de login
-  if (window.location.pathname.includes('01-login.html') || window.location.pathname === '/login') return;
+  const loginPaths = ['/login', '/p/login', '/01-login.html'];
+  if (loginPaths.some(path => window.location.pathname === path || window.location.pathname.endsWith(path))) return;
 
   // Carrega a navbar
   fetch('/html/11-navbar.html')
@@ -37,25 +37,25 @@
       setupUserInfo();
       setupMobileMenu();
       setupDropdowns();
-      setupSessionValidation();
-
+      if (window.setupSessionValidation) window.setupSessionValidation();
       // Exibir link de logs apenas para admin
-      fetch('/auth/check-role').then(r => r.json()).then(data => {
-        console.log('Permissão detectada:', data.role);
-        if (data.role === 'admin') {
+      if (window.isUserAdmin) {
+        window.isUserAdmin().then(isAdmin => {
           const linkLogs = document.getElementById('link-logs');
           if (linkLogs) {
-            linkLogs.style.display = '';
-            console.log('Link de logs exibido para admin.');
+            linkLogs.style.display = isAdmin ? '' : 'none';
+            if (isAdmin) {
+              console.log('Link de logs exibido para admin.');
+            } else {
+              console.log('Usuário não é admin, link de logs oculto.');
+            }
           } else {
             console.warn('Elemento link-logs não encontrado no DOM.');
           }
-        } else {
-          console.log('Usuário não é admin, link de logs oculto.');
-        }
-      }).catch(e => {
-        console.error('Erro ao verificar permissão para logs:', e);
-      });
+        }).catch(e => {
+          console.error('Erro ao verificar permissão para logs:', e);
+        });
+      }
     });
   }
 
@@ -82,21 +82,6 @@
         });
     }, 30000); // 30 segundos
   }
-
-  // Função global para tratar erros de autenticação
-  window.handleAuthError = function (response) {
-    if (response.status === 401) {
-      response.json().then(data => {
-        console.warn('Erro de autenticação:', data.error);
-        alert('Sua sessão foi invalidada. Você será redirecionado para a tela de login.');
-        window.location.href = data.redirect || '/login';
-      }).catch(() => {
-        window.location.href = '/login';
-      });
-      return true; // Indica que o erro foi tratado
-    }
-    return false; // Indica que o erro não foi tratado
-  };
 
   // Destaca o link ativo baseado na página atual
   function setupActiveLink() {
@@ -143,17 +128,59 @@
     }
   }
 
+  // Função para configurar dropdowns em mobile
+  function setupMobileDropdowns() {
+    const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+
+    dropdownToggles.forEach(toggle => {
+      toggle.addEventListener('click', function (e) {
+        if (window.innerWidth < 992) {
+          e.preventDefault(); // Impede o Bootstrap de agir
+          e.stopPropagation(); // Impede que o collapse seja fechado
+          // Verifica se o dropdown está aberto
+          const dropdownMenu = this.nextElementSibling;
+          const isOpen = dropdownMenu.classList.contains('show');
+          // Fecha todos os outros dropdowns primeiro
+          document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+            if (menu !== dropdownMenu) {
+              menu.classList.remove('show');
+              menu.previousElementSibling.classList.remove('show');
+            }
+          });
+          // Alterna o dropdown atual
+          if (isOpen) {
+            dropdownMenu.classList.remove('show');
+            this.classList.remove('show');
+          } else {
+            dropdownMenu.classList.add('show');
+            this.classList.add('show');
+          }
+        }
+      });
+      // Remove o atributo data-bs-toggle em mobile e restaura em desktop
+      function updateToggleAttr() {
+        if (window.innerWidth < 992) {
+          toggle.removeAttribute('data-bs-toggle');
+        } else {
+          toggle.setAttribute('data-bs-toggle', 'dropdown');
+        }
+      }
+      updateToggleAttr();
+      window.addEventListener('resize', updateToggleAttr);
+    });
+  }
+
   // Configuração do menu mobile
   function setupMobileMenu() {
     const navbarToggler = document.querySelector('.navbar-toggler');
     const navbarCollapse = document.querySelector('.navbar-collapse');
 
     if (navbarToggler && navbarCollapse) {
-      // Fecha o menu ao clicar em um link (mobile)
-      const navLinks = navbarCollapse.querySelectorAll('.nav-link');
+      // Fecha o menu apenas em links que NÃO são dropdowns
+      const navLinks = navbarCollapse.querySelectorAll('.nav-link:not(.dropdown-toggle)');
       navLinks.forEach(link => {
         link.addEventListener('click', () => {
-          if (window.innerWidth < 992) { // Bootstrap lg breakpoint
+          if (window.innerWidth < 992) {
             const bsCollapse = new bootstrap.Collapse(navbarCollapse, {
               toggle: false
             });
@@ -161,6 +188,8 @@
           }
         });
       });
+      // Configurar dropdowns específicos para mobile
+      setupMobileDropdowns();
     }
   }
 
@@ -225,16 +254,19 @@
         }
       });
     }
-
-    // Ctrl+K para foco na busca
-    if (e.ctrlKey && e.key === 'k') {
-      e.preventDefault();
-      const searchInput = document.getElementById('searchInput');
-      if (searchInput) {
-        searchInput.focus();
-      }
-    }
   });
+
+  // Função adicional para lidar com mudanças de tamanho de tela
+  function handleDropdownResize() {
+    // Fecha todos os dropdowns quando muda para desktop
+    if (window.innerWidth >= 992) {
+      document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+        menu.classList.remove('show');
+        menu.previousElementSibling.classList.remove('show');
+      });
+    }
+  }
+  window.addEventListener('resize', handleDropdownResize);
 
   // Exposição de funções globais para uso em outras partes do sistema
   window.HelpHubNavbar = {

@@ -1,9 +1,8 @@
 // Interceptor global para tratar erros de autenticação e gerenciar logout por inatividade
 (function () {
     'use strict';
-
-    // Não executa na tela de login
-    if (window.location.pathname.includes('01-login.html') || window.location.pathname === '/p/login') return;
+    const loginPaths = ['/login', '/p/login', '/01-login.html'];
+    if (loginPaths.some(path => window.location.pathname === path || window.location.pathname.endsWith(path))) return;
 
     // Configurações de timeout (PADRÃO)
     const SESSION_TIMEOUT = 8 * 60 * 60 * 1000; // 8 horas em millisegundos
@@ -299,4 +298,53 @@
     }
 
     console.log('Sistema de autenticação e logout por inatividade carregado');
-})(); 
+})();
+
+// === Função para validar sessão periodicamente (migrada da navbar) ===
+window.setupSessionValidation = function () {
+    setInterval(() => {
+        fetch('/auth/check-session')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Sessão inválida');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data.valid) {
+                    throw new Error(data.error || 'Sessão inválida');
+                }
+            })
+            .catch(error => {
+                console.warn('Sessão invalidada:', error.message);
+                alert('Sua sessão foi invalidada devido a mudanças no banco de dados. Você será redirecionado para a tela de login.');
+                window.location.href = '/login';
+            });
+    }, 30000);
+};
+
+// === Função global para tratar erros de autenticação (migrada da navbar) ===
+window.handleAuthError = function (response) {
+    if (response.status === 401) {
+        response.json().then(data => {
+            console.warn('Erro de autenticação:', data.error);
+            alert('Sua sessão foi invalidada. Você será redirecionado para a tela de login.');
+            window.location.href = data.redirect || '/login';
+        }).catch(() => {
+            window.location.href = '/login';
+        });
+        return true;
+    }
+    return false;
+};
+
+// === Função global para checar se o usuário é admin ===
+window.isUserAdmin = async function () {
+    try {
+        const res = await fetch('/auth/check-role');
+        const data = await res.json();
+        return data.role === 'admin';
+    } catch {
+        return false;
+    }
+}; 
