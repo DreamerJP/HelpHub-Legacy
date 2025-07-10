@@ -23,8 +23,10 @@ A funcionalidade de chamados do **HelpHub** permite o cadastro, consulta, finali
 ### Listagem de Chamados
 
 - Tabela para chamados abertos e finalizados
+- Coluna "Departamento" presente na listagem
 - Paginação
 - Pesquisa em tempo real (cliente, protocolo, assunto)
+- Filtro visual customizado de departamentos (dropdown com checkboxes) para filtrar chamados abertos e finalizados
 - Seleção e ações (Visualizar, Finalizar, Excluir, Reabrir)
 - Ordenação por colunas
 
@@ -32,15 +34,21 @@ A funcionalidade de chamados do **HelpHub** permite o cadastro, consulta, finali
 
 - Formulário completo para abertura de chamado
 - Busca dinâmica de cliente (autocomplete)
+- Seleção obrigatória do departamento responsável
 - Validação de campos obrigatórios
 - Mensagens de feedback
+- Visual padronizado com o formulário de clientes
 
 ### Ações sobre Chamados
 
-- Visualizar detalhes
+- Visualizar detalhes (incluindo edição do departamento)
 - Finalizar chamado (com confirmação)
 - Excluir chamado (com confirmação)
 - Reabrir chamado finalizado (com confirmação)
+
+### Ordem de Serviço
+
+- Exibe corretamente os campos "Solicitante" e "Departamento" nos detalhes
 
 ---
 

@@ -12,6 +12,7 @@ A funcionalidade de Ordem de Serviço do HelpHub permite visualizar, imprimir e 
 - Impressão direta do documento
 - Exportação em PDF e imagem (PNG)
 - Exibição de dados completos: chamado, cliente, agendamento, histórico e relatório técnico
+- Exibição dos campos "Solicitante" e "Departamento" nos detalhes do chamado na ordem de serviço impressa/exibida
 
 ---
 

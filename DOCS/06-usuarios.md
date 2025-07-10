@@ -72,3 +72,16 @@ A funcionalidade de administração do **HelpHub** permite o gerenciamento compl
 ---
 
 Em caso de dúvidas, contate o administrador do sistema ou envie um e-mail para dreamerJPMG@gmail.com.
+
+---
+
+## Departamentos e Vínculos
+
+O sistema permite organizar usuários em **departamentos**. Cada usuário pode pertencer a um ou mais departamentos, facilitando a segmentação e o controle de permissões.
+
+- Para vincular um usuário a departamentos, utilize o modal de edição/criação de usuário e marque os departamentos desejados.
+- A tabela de usuários exibe a quais departamentos cada usuário pertence.
+- É possível filtrar a lista de usuários por departamento usando o filtro acima da tabela.
+- Os departamentos são gerenciados na aba "Departamentos" da mesma interface administrativa, onde é possível **criar, editar, excluir** departamentos e visualizar o **número de usuários** em cada um.
+
+---

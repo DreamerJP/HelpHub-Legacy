@@ -1,32 +1,66 @@
 # Release Notes - HelpHub
-## Principais mudanças desta versão:
 
-## [v3.2]
-
+## [v3.3] — Principais mudanças
 
 ---
 
-## Release Note
+### **Novidades**
+- **Departamentos:**  
+  - Nova aba “Departamentos” com gerenciamento completo (criar, editar, excluir, contar usuários).
+  - Novas tabelas: `departamentos` e `usuario_departamento`.
+  - Rotas de API para CRUD de departamentos e vínculos.
+  - Usuários agora exibem e permitem edição de seus departamentos vinculados.
+  - Filtro de usuários por departamento.
+  - Importação/exportação de departamentos e vínculos suportada.
+  - Documentação atualizada para os novos recursos.
 
-**Versão Atual**
+- **Chamados:**  
+  - Novo chamado agora exige seleção do departamento responsável.
+  - Campo “Departamento” exibido e editável nos detalhes do chamado.
+  - Coluna “Departamento” adicionada na listagem de chamados.
+  - Detalhes do chamado e ordem de serviço exibem corretamente o solicitante e o departamento.
+  - Edição do departamento diretamente nos detalhes do chamado.
+  - Filtro visual customizado de departamentos (dropdown com checkboxes) adicionado aos chamados abertos e finalizados.
 
-- Melhorias gerais na experiência do usuário.
-- Ajustes visuais e de layout em diversas telas do sistema.
-- Otimizações em formulários para maior praticidade e clareza.
-- Correções pontuais para garantir maior estabilidade e funcionamento adequado das funcionalidades existentes.
+- **Estatísticas:**  
+  - Adicionado filtro por departamento nas estatísticas de chamados (gráficos, totais e últimos chamados).
+
+- **Central de Ajuda (HelpHub):**  
+  - Busca fuzzy: tolera erros de digitação e encontra termos aproximados em títulos e conteúdos.
+  - Snippets destacados: mostra trechos do conteúdo com o termo buscado em destaque.
+  - Debounce na busca: evita buscas excessivas durante a digitação.
+  - Sidebar colapsável e menu hamburger para mobile.
+  - Gestos touch e botão fixo de acesso ao menu em mobile.
+  - Experiência mobile aprimorada e melhorias de usabilidade/acessibilidade.
 
 ---
+
+### **Melhorias**
+- Visual dos formulários de chamado padronizado com o de clientes.
+- Visual e foco dos campos de chamado padronizados (azul).
+- Ordem de exibição das tabelas no Visualizador do Banco de Dados ajustada para refletir a ordem correta de importação, com numeração.
+- Exportação de tabelas agora inclui numeração no nome do arquivo, facilitando a ordenação no Windows.
+- Importação de CSV aprimorada: agora utiliza PapaParse, suportando campos multiline e HTML corretamente.
+- Script PapaParse adicionado ao HTML do visualizador de banco de dados.
+- Código de importação de CSV simplificado e mais robusto.
+- Cards de estatísticas agora são resetados corretamente ao trocar filtros, evitando exibição de dados inconsistentes.
+- Tratamento aprimorado para dados vazios e mensagens amigáveis quando não há chamados para o filtro selecionado.
+- Experiência mobile e navegação mais intuitiva.
+
+---
+
+### **Correções**
+- Rotas de chamados ajustadas para retornar o nome do departamento e o solicitante em todos os endpoints relevantes.
+- Correção no mapeamento dos campos para garantir exibição correta na ordem de serviço.
+- Correções na aplicação do filtro para garantir que os dados exibidos correspondam ao departamento selecionado.
+
+---
+
 
 _____________________________________________________________________________
-
-Ainda falta fazer:
-
-- Implementar sistema de cadastro de cliente
-
-- Testar cadastro dos clientes, importação e exportação.
-
-- Sistema de departamentos.
+### **Ainda falta fazer**
 
 - Regras de SLA.
+- Relatórios de chamados por departamento/atendente/data.
 
-- Relatorios de chamados por departamento/atendente/data.
+

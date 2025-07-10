@@ -37,7 +37,7 @@ A funcionalidade de agenda do **HelpHub** permite o gerenciamento visual de agen
 ### Detalhes e Edição
 
 - Modal de detalhes do agendamento
-- Visualização de todos os dados do agendamento
+- Visualização de todos os dados do agendamento, incluindo o **departamento do chamado relacionado**
 - Campo para relatório da visita
 - Botão para exclusão do agendamento
 

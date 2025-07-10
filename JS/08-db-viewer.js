@@ -89,9 +89,13 @@ async function carregarTabelas() {
         const res = await fetch('/admin/database/tables');
         if (!res.ok) throw new Error('Falha ao buscar tabelas');
         const data = await res.json();
-        // Ordem recomendada de importação
+        // Ordem correta de importação com numeração
         const ordemImportacao = [
+            'departamentos',
+            'usuarios',
+            'configuracoes',
             'clientes',
+            'usuario_departamento',
             'notas_clientes',
             'chamados',
             'chamados_andamentos',
@@ -101,8 +105,11 @@ async function carregarTabelas() {
         const tabelasRecomendadas = ordemImportacao.filter(t => data.includes(t));
         const tabelasRestantes = data.filter(t => !ordemImportacao.includes(t)).sort();
         const select = document.getElementById('table-select');
+        // Adiciona numeração na frente das tabelas recomendadas
         select.innerHTML = '<option value="">Selecione uma tabela</option>' +
-            [...tabelasRecomendadas, ...tabelasRestantes].map(t => `<option value="${t}">${t}</option>`).join('');
+            [...tabelasRecomendadas.map((t, i) => `<option value="${t}">${i + 1}. ${t}</option>`),
+            ...tabelasRestantes.map(t => `<option value="${t}">${t}</option>`) // sem numeração para extras
+            ].join('');
     } catch (e) {
         exibirMensagem('Erro ao carregar tabelas: ' + e.message, 'erro');
     } finally {
@@ -281,29 +288,20 @@ function processSelectedFile() {
 }
 
 function processCsvFile(file, previewTable, processImportBtn) {
-    const delimiterInput = document.getElementById('delimiter');
-    const hasHeaderSelect = document.getElementById('hasHeader');
-    const delimiter = delimiterInput.value || ',';
-    const hasHeader = hasHeaderSelect.value === 'true';
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        try {
-            const csv = e.target.result;
-            const result = processCSV(csv, delimiter, hasHeader);
-            importData = result.data;
-            importColumns = result.columns;
+    Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: function (results) {
+            importColumns = results.meta.fields;
+            importData = results.data;
             renderPreviewTable(previewTable, importColumns, importData);
             processImportBtn.disabled = false;
-        } catch (error) {
+        },
+        error: function (error) {
             previewTable.innerHTML = `<thead><tr><th>Erro ao processar o arquivo</th></tr></thead><tbody><tr><td>${escapeHtml(error.message)}</td></tr></tbody>`;
             processImportBtn.disabled = true;
         }
-    };
-    reader.onerror = function () {
-        previewTable.innerHTML = '<thead><tr><th>Erro ao ler o arquivo</th></tr></thead>';
-        processImportBtn.disabled = true;
-    };
-    reader.readAsText(file);
+    });
 }
 
 function processXlsxFile(file, previewTable, processImportBtn) {
@@ -353,56 +351,6 @@ function renderPreviewTable(previewTable, columns, data) {
     });
     previewHTML += '</tbody>';
     previewTable.innerHTML = previewHTML;
-}
-
-function processCSV(csv, delimiter = ',', hasHeader = true) {
-    const lines = csv.split(/\r\n|\n|\r/).filter(line => line.trim());
-    if (lines.length === 0) throw new Error('O arquivo CSV está vazio');
-    const headerLine = lines[0];
-    const headers = headerLine.split(delimiter).map(h => h.trim().replace(/^"(.*)"$/, '$1'));
-    const dataStartIndex = hasHeader ? 1 : 0;
-    const data = [];
-    for (let i = dataStartIndex; i < lines.length; i++) {
-        const fields = parseCSVLine(lines[i], delimiter);
-        const rowData = {};
-        const columnsToUse = hasHeader ? headers : fields.map((_, idx) => `column${idx + 1}`);
-        for (let j = 0; j < columnsToUse.length; j++) {
-            if (j < fields.length) {
-                rowData[columnsToUse[j]] = fields[j];
-            } else {
-                rowData[columnsToUse[j]] = '';
-            }
-        }
-        data.push(rowData);
-    }
-    return {
-        columns: hasHeader ? headers : data[0] ? Object.keys(data[0]) : [],
-        data: data
-    };
-}
-
-function parseCSVLine(line, delimiter) {
-    const fields = [];
-    let inQuotes = false;
-    let currentField = '';
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"') {
-            if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
-                currentField += '"';
-                i++;
-            } else {
-                inQuotes = !inQuotes;
-            }
-        } else if (char === delimiter && !inQuotes) {
-            fields.push(currentField);
-            currentField = '';
-        } else {
-            currentField += char;
-        }
-    }
-    fields.push(currentField);
-    return fields;
 }
 
 async function processImport() {

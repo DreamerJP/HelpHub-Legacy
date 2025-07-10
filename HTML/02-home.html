@@ -30,13 +30,13 @@
                     <div class="card search-card">
                         <div class="card-body">
                             <h5><i class="bi bi-search"></i> Buscar Cliente</h5>
-                            <div class="input-group mb-3">
-                                <input type="text" id="busca-cliente" class="form-control"
-                                    placeholder="Pesquisar por nome, ID ou e-mail...">
-                                <span class="input-group-text bg-transparent border-0" id="clear-search"
-                                    style="cursor: pointer; margin-left: -40px; z-index: 100;">
-                                    <i class="bi bi-x-circle-fill text-secondary"></i>
-                                </span>
+                            <!-- Campo de busca de clientes: apenas ajuste mínimo para botão X dentro do input -->
+                            <div style="position:relative;">
+                                <input id="busca-cliente" type="text" class="form-control mb-2"
+                                    placeholder="Buscar cliente..." style="padding-right:2.2rem;">
+                                <button id="clear-search" type="button"
+                                    style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:transparent; border:none; color:#888; font-size:1.3rem; padding:0; z-index:2; display:none;"><i
+                                        class="bi bi-x-circle"></i></button>
                             </div>
                             <div id="resultado-busca"></div>
                         </div>
@@ -61,12 +61,16 @@
                     <div class="card home-card statistics-card">
                         <div class="card-body">
                             <h5><i class="bi bi-graph-up"></i> Estatísticas de Chamados</h5>
-                            <div class="period-selector">
+                            <div class="period-selector d-flex gap-2">
                                 <select id="periodo-estatisticas" class="form-select form-select-sm">
                                     <option value="total">Todo o período</option>
                                     <option value="mensal">Mensal (mês atual)</option>
                                     <option value="semanal">Semanal (semana atual)</option>
                                     <option value="diario">Diário (hoje)</option>
+                                </select>
+                                <select id="departamento-estatisticas" class="form-select form-select-sm">
+                                    <option value="">Todos os departamentos</option>
+                                    <!-- Opções serão preenchidas via JS -->
                                 </select>
                             </div>
                             <div class="chart-container">

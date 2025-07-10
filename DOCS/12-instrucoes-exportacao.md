@@ -33,6 +33,14 @@ O HelpHub oferece funcionalidades de exportação para ordens de serviço e dado
 
 ---
 
+## Exportação Numerada e Campos Complexos
+
+- Os arquivos exportados agora incluem numeração no nome, facilitando a ordenação e a reimportação correta.
+- Campos exportados podem conter múltiplas linhas e HTML (ex: notas de clientes).
+- Recomenda-se seguir a ordem numerada dos arquivos ao importar novamente para evitar erros de integridade.
+
+---
+
 ## Database Viewer (Administradores)
 
 ### Acesso
@@ -54,6 +62,9 @@ O HelpHub oferece funcionalidades de exportação para ordens de serviço e dado
 - **Codificação**: UTF-8 (padrão)
 - **Cabeçalhos**: Incluir nomes das colunas
 - **Pré-visualização**: Conferir formatação antes da exportação
+
+### Para exportar departamentos ou vínculos, selecione as tabelas `departamentos` ou `usuario_departamento` no Database Viewer.
+### Ao exportar vínculos, lembre-se de que os IDs devem existir nas tabelas de usuários e departamentos correspondentes.
 
 ---
 

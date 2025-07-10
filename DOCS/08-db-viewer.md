@@ -24,6 +24,9 @@ O Database Viewer permite que administradores visualizem, filtrem, exportem e im
 - Importação de dados (CSV/Excel)
 - Mensagens de sucesso e erro
 - Permissões: apenas administradores podem acessar e operar
+- As tabelas são exibidas na ordem recomendada de importação, com numeração, facilitando a importação correta dos dados.
+- Ao exportar tabelas, o nome do arquivo inclui a numeração para facilitar a ordenação no Windows.
+- A importação de CSV suporta campos com múltiplas linhas e HTML (ex: notas de clientes), graças ao uso do PapaParse.
 
 ---
 

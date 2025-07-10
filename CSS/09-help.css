@@ -124,6 +124,69 @@ html {
     min-height: 40px;
 }
 
+#sidebar-toggle-btn {
+    display: block;
+    position: fixed;
+    left: 10px;
+    top: 10px;
+    z-index: 1051;
+    background: none;
+    border: none;
+    font-size: 2em;
+    cursor: pointer;
+}
+
+#sidebar-hint {
+    display: none !important;
+}
+
+#sidebar-fab-container {
+    display: none;
+    position: fixed;
+    left: 12px;
+    bottom: 80px;
+    z-index: 1060;
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+}
+
+#sidebar-fab-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    font-size: 2em;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    transition: opacity 0.2s;
+    opacity: 0.95;
+}
+
+#sidebar-fab-label {
+    background: #007bff;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.9em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+    transition: opacity 0.3s, transform 0.3s;
+    opacity: 0.95;
+    position: relative;
+    pointer-events: none;
+    display: block;
+    margin-right: 4px;
+}
+
+#sidebar-fab-label.hide {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
 @media (max-width: 900px) {
     .help-main-layout {
         flex-direction: column;
@@ -147,5 +210,79 @@ html {
     .content-scrollable {
         border-radius: 0 0 8px 8px;
         padding: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        width: 260px;
+        background: #fff;
+        z-index: 1050;
+        transform: translateX(-100%);
+        transition: transform 0.3s;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .help-main-layout {
+        flex-direction: column;
+    }
+
+    #sidebar-toggle-btn {
+        display: block;
+    }
+
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1049;
+    }
+
+    .sidebar.open~.sidebar-overlay {
+        display: block;
+    }
+
+    #sidebar-toggle-btn {
+        display: block;
+        position: fixed;
+        left: 10px;
+        top: 10px;
+        z-index: 1051;
+        background: none;
+        border: none;
+        font-size: 2em;
+        cursor: pointer;
+    }
+
+    #sidebar-hint {
+        display: none !important;
+    }
+
+    #sidebar-fab-container {
+        display: flex;
+    }
+
+    .sidebar.open~#sidebar-fab-container {
+        display: none !important;
+    }
+
+    #sidebar-fab-label {
+        display: block;
+    }
+
+    .sidebar.open~#sidebar-fab-label {
+        display: none !important;
     }
 }

@@ -15,38 +15,83 @@
 <body>
     <div class="container mt-4">
         <h2 class="mb-4"><i class="bi bi-person-badge"></i> Gerenciamento de Usuários</h2>
-        <!-- Campo de busca -->
-        <div class="mb-3">
-            <input type="text" id="busca-usuario" class="form-control" placeholder="Buscar usuário ou tipo...">
+        <!-- Abas de navegação -->
+        <ul class="nav nav-tabs mb-4" id="adminTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="tab-usuarios" href="#"
+                    onclick="mostrarAba('usuarios'); return false;">Usuários</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-departamentos" href="#"
+                    onclick="mostrarAba('departamentos'); return false;">Departamentos</a>
+            </li>
+        </ul>
+        <!-- Conteúdo das abas -->
+        <div id="aba-usuarios">
+            <div class="mb-3" id="filtro-departamento-container">
+                <select id="filtro-departamento" class="form-select" style="max-width: 300px;">
+                    <!-- Opções renderizadas via JS -->
+                </select>
+            </div>
+            <!-- Toolbar moderna -->
+            <div class="modern-toolbar mb-3">
+                <button id="btn-novo-usuario" class="btn btn-editar" onclick="abrirModalNovoUsuario()"
+                    title="Adicionar novo usuário">
+                    <i class="bi bi-plus-lg"></i> Novo Usuário
+                </button>
+                <button id="btn-editar-usuario" class="btn btn-detalhes" onclick="editarUsuarioSelecionado()" disabled
+                    title="Editar usuário selecionado">
+                    <i class="bi bi-pencil"></i> Editar
+                </button>
+                <button id="btn-excluir-usuario" class="btn btn-excluir" onclick="excluirUsuarioSelecionado()" disabled
+                    title="Excluir usuário selecionado">
+                    <i class="bi bi-trash"></i> Excluir
+                </button>
+            </div>
+            <!-- Tabela moderna -->
+            <table class="modern-table table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Tipo</th>
+                        <th>Data de Criação</th>
+                        <th>Departamentos</th>
+                    </tr>
+                </thead>
+                <tbody id="usuarios-list">
+                    <!-- Dados serão renderizados aqui pelo JS -->
+                </tbody>
+            </table>
         </div>
-        <!-- Toolbar moderna -->
-        <div class="modern-toolbar mb-3">
-            <button id="btn-novo-usuario" class="btn btn-editar" onclick="abrirModalNovoUsuario()"
-                title="Adicionar novo usuário">
-                <i class="bi bi-plus-lg"></i> Novo Usuário
-            </button>
-            <button id="btn-editar-usuario" class="btn btn-detalhes" onclick="editarUsuarioSelecionado()" disabled
-                title="Editar usuário selecionado">
-                <i class="bi bi-pencil"></i> Editar
-            </button>
-            <button id="btn-excluir-usuario" class="btn btn-excluir" onclick="excluirUsuarioSelecionado()" disabled
-                title="Excluir usuário selecionado">
-                <i class="bi bi-trash"></i> Excluir
-            </button>
+        <div id="aba-departamentos" style="display:none;">
+            <div class="modern-toolbar mb-3">
+                <button id="btn-novo-departamento" class="btn btn-editar" onclick="abrirModalNovoDepartamento()">
+                    <i class="bi bi-plus-lg"></i> Novo Departamento
+                </button>
+                <button id="btn-editar-departamento" class="btn btn-detalhes" onclick="editarDepartamentoSelecionado()"
+                    disabled>
+                    <i class="bi bi-pencil"></i> Editar
+                </button>
+                <button id="btn-excluir-departamento" class="btn btn-excluir" onclick="excluirDepartamentoSelecionado()"
+                    disabled>
+                    <i class="bi bi-trash"></i> Excluir
+                </button>
+            </div>
+            <table class="modern-table table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Descrição</th>
+                        <th>Nº de Usuários</th>
+                    </tr>
+                </thead>
+                <tbody id="departamentos-list">
+                    <!-- Departamentos renderizados via JS -->
+                </tbody>
+            </table>
         </div>
-        <!-- Tabela moderna -->
-        <table class="modern-table table table-striped">
-            <thead>
-                <tr>
-                    <th>Username</th>
-                    <th>Tipo</th>
-                    <th>Data de Criação</th>
-                </tr>
-            </thead>
-            <tbody id="usuarios-list">
-                <!-- Dados serão renderizados aqui pelo JS -->
-            </tbody>
-        </table>
     </div>
 
     <!-- Toasts de feedback -->
@@ -88,11 +133,43 @@
                                 <option value="admin">Admin</option>
                             </select>
                         </div>
+                        <div class="mb-3" id="departamentos-checkboxes">
+                            <!-- Checkboxes de departamentos serão renderizados via JS -->
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-detalhes" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" onclick="salvarUsuario()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Novo/Editar Departamento -->
+    <div class="modal fade" id="departamentoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Novo Departamento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="departamento-form">
+                        <input type="hidden" id="departamento-id">
+                        <div class="mb-3">
+                            <label for="departamento-nome" class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="departamento-nome" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="departamento-descricao" class="form-label">Descrição</label>
+                            <input type="text" class="form-control" id="departamento-descricao">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-detalhes" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-editar" onclick="salvarDepartamento()">Salvar</button>
                 </div>
             </div>
         </div>

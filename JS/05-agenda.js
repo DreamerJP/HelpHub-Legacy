@@ -112,7 +112,6 @@ function getOrCreateTooltip(element, content) {
 function abrirModalAgendamento(startStr, endStr) {
     document.getElementById('agendamentoForm').reset();
     document.getElementById('observacoes_agendamento').value = '';
-    // Limpar seleção de chamado
     chamadoSelecionadoId = null;
     const selecionado = document.getElementById('chamado-selecionado');
     if (selecionado) {
@@ -123,22 +122,14 @@ function abrirModalAgendamento(startStr, endStr) {
     if (buscaInput) buscaInput.value = '';
     const lista = document.getElementById('lista-chamados');
     if (lista) lista.innerHTML = '';
-    // Preenchimento automático dos horários
-    const now = new Date();
-    let nextHour = new Date(now);
-    if (now.getMinutes() > 30) {
-        nextHour.setHours(now.getHours() + 2, 0, 0, 0);
-    } else {
-        nextHour.setHours(now.getHours() + 1, 0, 0, 0);
-    }
-    const endHour = new Date(nextHour);
-    endHour.setHours(nextHour.getHours() + 1);
-    function toDatetimeLocal(dt) {
+    // Preenchimento dos horários com base na seleção do calendário
+    function toDatetimeLocal(dtStr) {
+        const dt = new Date(dtStr);
         const pad = n => n.toString().padStart(2, '0');
-        return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:00`;
+        return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
     }
-    document.getElementById('data_agendamento').value = toDatetimeLocal(nextHour);
-    document.getElementById('data_final_agendamento').value = toDatetimeLocal(endHour);
+    document.getElementById('data_agendamento').value = toDatetimeLocal(startStr);
+    document.getElementById('data_final_agendamento').value = toDatetimeLocal(endStr);
     configurarBuscaChamadosAgendamento();
     document.getElementById('salvarAgendamento').onclick = salvarAgendamento;
     // Garantir que ao fechar/cancelar o modal, a seleção seja limpa
@@ -262,7 +253,8 @@ async function carregarAgendamentos(successCallback, failureCallback) {
                 cliente_telefone: agendamento.cliente_telefone,
                 chamado_status: agendamento.chamado_status,
                 protocolo: agendamento.protocolo,
-                chamado_id: agendamento.chamado_id
+                chamado_id: agendamento.chamado_id,
+                departamento_nome: agendamento.departamento_nome
             }
         }));
         successCallback(eventos);
@@ -278,6 +270,7 @@ function abrirModalDetalhesAgendamento(event) {
         <div class="mb-3">
             <strong>Cliente:</strong> ${event.extendedProps.cliente_nome || ''}<br>
             <strong>Assunto:</strong> ${event.extendedProps.assunto || 'N/A'}<br>
+            <strong>Departamento:</strong> ${event.extendedProps.departamento_nome || '-'}<br>
             <strong>Endereço:</strong> ${event.extendedProps.endereco || 'N/A'}<br>
             <strong>Telefone:</strong> ${event.extendedProps.cliente_telefone || 'N/A'}<br>
             <strong>Data Inicial:</strong> ${formatarData(event.start)}<br>

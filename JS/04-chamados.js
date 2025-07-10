@@ -30,6 +30,8 @@ window.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('chamados-list')) {
         carregarChamados('Aberto');
         configurarPesquisaChamados('aberto');
+        carregarDepartamentosDropdown();
+        configurarFiltroDepartamentoCheckbox();
     }
     if (document.getElementById('chamados-finalizados')) {
         carregarChamados('Finalizado');
@@ -100,12 +102,14 @@ function renderizarChamadosAbertos(chamados, totalPaginas, paginaAtual) {
         const protocolo = chamado[6] ? chamado[6].replace(/\D/g, '') : 'N/A';
         const clienteId = chamado[1] || 'N/A';
         const clienteNome = chamado[10] || 'Cliente removido';
+        const departamentoNome = chamado[11] && chamado[11] !== 'null' ? chamado[11] : '-';
         const dataAbertura = chamado[4];
         const assunto = chamado[7] || '';
         return `<tr data-id="${chamado[0]}" style="cursor:pointer;">
                     <td>${protocolo}</td>
                     <td>#${clienteId}</td>
                     <td>${clienteNome}</td>
+                    <td>${departamentoNome}</td>
                     <td>${dataAbertura}</td>
                     <td>${assunto}</td>
                     <td><span class="status-badge status-${chamado[3].toLowerCase()}">${chamado[3]}</span></td>
@@ -146,6 +150,7 @@ function renderizarChamadosFinalizados(chamados, totalPaginas, paginaAtual) {
         const protocolo = chamado[6] ? chamado[6].replace(/\D/g, '') : 'N/A';
         const clienteId = chamado[1] || 'N/A';
         const clienteNome = chamado[10] || 'Cliente removido';
+        const departamentoNome = chamado[11] && chamado[11] !== 'null' ? chamado[11] : '-';
         const dataAbertura = chamado[4];
         const dataFechamento = chamado[5] || '';
         const assunto = chamado[7] || '';
@@ -153,6 +158,7 @@ function renderizarChamadosFinalizados(chamados, totalPaginas, paginaAtual) {
                     <td>${protocolo}</td>
                     <td>#${clienteId}</td>
                     <td>${clienteNome}</td>
+                    <td>${departamentoNome}</td>
                     <td>${dataAbertura}</td>
                     <td>${assunto}</td>
                     <td>${dataFechamento}</td>
@@ -285,34 +291,61 @@ function mostrarModalChamado(chamado) {
             </div>
         </div>`;
     // Preencher campos principais
-    const campos = [
-        { label: 'Descrição', value: chamado.descricao, id: 'campo-descricao', editable: true, tipo: 'textarea' },
-        { label: 'Protocolo', value: chamado.protocolo },
-        { label: 'Status', value: chamado.status },
-        { label: 'Cliente', value: chamado.cliente_nome },
-        { label: 'Assunto', value: chamado.assunto, id: 'campo-assunto', editable: true },
-        { label: 'Telefone', value: chamado.telefone, id: 'campo-telefone', editable: true },
-        { label: 'Solicitante', value: chamado.solicitante, id: 'campo-solicitante', editable: true },
-        { label: 'Data de Abertura', value: chamado.data_abertura },
-        { label: 'Data de Fechamento', value: chamado.data_fechamento || '-' }
-    ];
-    document.getElementById('detalhe-chamado-campos').innerHTML = `
-        <div class="row">
-            ${campos.map((c, idx) => {
-        if (c.id === 'campo-descricao') {
-            if (c.editable && chamado.status === 'Aberto') {
-                return `<div class="col-12 mb-2"><strong>${c.label}:</strong> <textarea class="form-control form-control-sm" id="${c.id}" rows="4" style="resize:vertical;">${c.value || ''}</textarea></div>`;
-            } else {
-                return `<div class="col-12 mb-2"><strong>${c.label}:</strong> <div class="form-control-plaintext" style="min-height:3em;">${c.value || '-'}</div></div>`;
+    // Carregar departamentos para o dropdown
+    let departamentosDisponiveis = [];
+    async function getDepartamentos() {
+        try {
+            const resp = await fetch('/departamentos');
+            if (resp.ok) {
+                departamentosDisponiveis = await resp.json();
             }
-        } else if (c.editable && chamado.status === 'Aberto') {
-            return `<div class="col-md-6 mb-2"><strong>${c.label}:</strong> <input type="text" class="form-control form-control-sm" id="${c.id}" value="${c.value || ''}"></div>`;
-        } else {
-            return `<div class="col-md-6 mb-2"><strong>${c.label}:</strong> <span>${c.value || '-'}</span></div>`;
+        } catch (e) { departamentosDisponiveis = []; }
+    }
+    // Função para montar os campos do modal
+    async function renderCampos() {
+        await getDepartamentos();
+        const isAberto = chamado.status === 'Aberto';
+        // Ordem dos campos: ... Data de Abertura, Departamento, ...
+        const campos = [
+            { label: 'Descrição', value: chamado.descricao, id: 'campo-descricao', editable: true, tipo: 'textarea' },
+            { label: 'Protocolo', value: chamado.protocolo },
+            { label: 'Status', value: chamado.status },
+            { label: 'Cliente', value: chamado.cliente_nome },
+            { label: 'Data de Abertura', value: chamado.data_abertura },
+            { label: 'Departamento', value: chamado.departamento_nome, id: 'campo-departamento', editable: isAberto, tipo: 'select', departamento_id: chamado.departamento_id },
+            { label: 'Assunto', value: chamado.assunto, id: 'campo-assunto', editable: true },
+            { label: 'Telefone', value: chamado.telefone, id: 'campo-telefone', editable: true },
+            { label: 'Solicitante', value: chamado.solicitante, id: 'campo-solicitante', editable: true },
+            { label: 'Data de Fechamento', value: chamado.data_fechamento || '-' }
+        ];
+        document.getElementById('detalhe-chamado-campos').innerHTML = `
+            <div class="row">
+                ${campos.map((c, idx) => {
+            if (c.id === 'campo-descricao') {
+                if (c.editable && isAberto) {
+                    return `<div class="col-12 mb-2"><strong>${c.label}:</strong> <textarea class="form-control form-control-sm" id="${c.id}" rows="4" style="resize:vertical;">${c.value || ''}</textarea></div>`;
+                } else {
+                    return `<div class="col-12 mb-2"><strong>${c.label}:</strong> <div class="form-control-plaintext" style="min-height:3em;">${c.value || '-'}</div></div>`;
+                }
+            } else if (c.tipo === 'select' && c.editable) {
+                // Dropdown de departamentos
+                return `<div class="col-md-6 mb-2"><strong>${c.label}:</strong> <select class="form-select form-select-sm" id="${c.id}">${departamentosDisponiveis.map(dep => `<option value="${dep.id}" ${dep.id == c.departamento_id ? 'selected' : ''}>${dep.nome}</option>`).join('')}</select></div>`;
+            } else if (c.editable && isAberto) {
+                return `<div class="col-md-6 mb-2"><strong>${c.label}:</strong> <input type="text" class="form-control form-control-sm" id="${c.id}" value="${c.value || ''}"></div>`;
+            } else {
+                return `<div class="col-md-6 mb-2"><strong>${c.label}:</strong> <span>${c.value || '-'}</span></div>`;
+            }
+        }).join('')}
+            </div>
+        `;
+    }
+    renderCampos().then(() => {
+        const selectDep = document.getElementById('campo-departamento');
+        if (selectDep && chamado.departamento_id != null && chamado.departamento_id !== undefined) {
+            selectDep.value = String(chamado.departamento_id);
         }
-    }).join('')}
-        </div>
-    `;
+        // (debug removido)
+    });
     // Preencher histórico/andamentos
     const andamentos = chamado.andamentos || [];
     const ul = document.getElementById('detalhe-chamado-andamentos');
@@ -372,6 +405,7 @@ function mostrarModalChamado(chamado) {
                 const descricao = document.getElementById('campo-descricao').value;
                 const telefone = document.getElementById('campo-telefone').value;
                 const solicitante = document.getElementById('campo-solicitante').value;
+                const departamento_id = document.getElementById('campo-departamento')?.value;
                 if (!assunto || assunto.length > 70) {
                     exibirMensagem('Assunto é obrigatório e deve ter até 70 caracteres.', 'erro');
                     return;
@@ -381,7 +415,7 @@ function mostrarModalChamado(chamado) {
                     const resposta = await fetch(`/chamados/${chamado.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ assunto, descricao, telefone, solicitante })
+                        body: JSON.stringify({ assunto, descricao, telefone, solicitante, departamento_id: departamento_id ? parseInt(departamento_id) : null })
                     });
                     const data = await resposta.json();
                     if (resposta.ok) {
@@ -692,8 +726,26 @@ function configurarBuscaClienteChamado() {
     });
 }
 
-// Cadastro de novo chamado com feedback e limpeza
+async function carregarDepartamentosNoFormulario() {
+    const select = document.getElementById('departamento_id');
+    if (!select) return;
+    select.innerHTML = '<option value="">Selecione...</option>';
+    try {
+        const resp = await fetch('/departamentos');
+        if (resp.ok) {
+            const deps = await resp.json();
+            deps.forEach(dep => {
+                const opt = document.createElement('option');
+                opt.value = dep.id;
+                opt.textContent = dep.nome;
+                select.appendChild(opt);
+            });
+        }
+    } catch (e) { }
+}
+
 function configurarFormularioChamado() {
+    carregarDepartamentosNoFormulario();
     document.getElementById('chamado-form').onsubmit = async (event) => {
         event.preventDefault();
         const assunto = document.getElementById('assunto').value;
@@ -701,11 +753,16 @@ function configurarFormularioChamado() {
         const telefone = document.getElementById('telefone_chamado').value;
         const descricao = document.getElementById('descricao').value;
         const solicitante = document.getElementById('solicitante').value;
+        const departamento_id = document.getElementById('departamento_id').value;
         if (!cliente_id) {
             exibirMensagem('Selecione um cliente', 'erro');
             return;
         }
-        const dadosChamado = { assunto, cliente_id: parseInt(cliente_id), telefone, descricao, solicitante };
+        if (!departamento_id) {
+            exibirMensagem('Selecione um departamento', 'erro');
+            return;
+        }
+        const dadosChamado = { assunto, cliente_id: parseInt(cliente_id), telefone, descricao, solicitante, departamento_id: parseInt(departamento_id) };
         showLoading();
         try {
             const resposta = await fetch('/chamados', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dadosChamado) });
@@ -758,4 +815,145 @@ function abrirOrdemServico(chamadoId) {
         return;
     }
     window.open(`/p/ordem-servico?chamado=${chamadoId}`, '_blank');
-} 
+}
+
+// Carregar departamentos no filtro
+async function carregarDepartamentosFiltro() {
+    const select = document.getElementById('filtro-departamento');
+    if (!select) return;
+    select.innerHTML = '';
+    try {
+        const resp = await fetch('/departamentos');
+        if (resp.ok) {
+            const departamentos = await resp.json();
+            departamentos.forEach(dep => {
+                const opt = document.createElement('option');
+                opt.value = dep.id;
+                opt.textContent = dep.nome;
+                select.appendChild(opt);
+            });
+        }
+    } catch (e) { }
+}
+
+// Filtro de departamentos selecionados
+function getDepartamentosSelecionados() {
+    const select = document.getElementById('filtro-departamento');
+    return Array.from(select.selectedOptions).map(opt => parseInt(opt.value));
+}
+
+// Filtrar chamados por departamento
+function filtrarChamadosPorDepartamento(chamados) {
+    const selecionados = getDepartamentosSelecionados();
+    if (!selecionados.length) return chamados;
+    return chamados.filter(ch => ch[12] && selecionados.includes(ch[11] || ch[12]));
+}
+
+// Atualizar listagem ao mudar filtro
+const filtroDep = document.getElementById('filtro-departamento');
+if (filtroDep) {
+    filtroDep.addEventListener('change', () => {
+        carregarChamados('Aberto');
+        carregarChamados('Finalizado');
+    });
+}
+
+// Carregar departamentos no dropdown customizado
+async function carregarDepartamentosDropdown() {
+    const ul = document.getElementById('lista-checkbox-departamentos');
+    if (!ul) return;
+    ul.innerHTML = '';
+    try {
+        const resp = await fetch('/departamentos');
+        if (resp.ok) {
+            const departamentos = await resp.json();
+            departamentos.forEach(dep => {
+                const li = document.createElement('li');
+                li.className = 'form-check';
+                li.innerHTML = `<input class="form-check-input filtro-dep-checkbox" type="checkbox" value="${dep.id}" id="dep-check-${dep.id}">
+                    <label class="form-check-label ms-1" for="dep-check-${dep.id}">${dep.nome}</label>`;
+                ul.appendChild(li);
+            });
+        }
+    } catch (e) { }
+}
+
+// Obter IDs dos departamentos selecionados
+function getDepartamentosSelecionadosCheckbox() {
+    return Array.from(document.querySelectorAll('.filtro-dep-checkbox:checked')).map(cb => parseInt(cb.value));
+}
+
+// Filtrar chamados por departamentos selecionados
+function filtrarChamadosPorDepartamentoCheckbox(chamados) {
+    const selecionados = getDepartamentosSelecionadosCheckbox();
+    if (!selecionados.length) return chamados;
+    return chamados.filter(ch => selecionados.includes(ch[12])); // ch[12] = departamento_id
+}
+
+// Atualizar listagem ao mudar filtro
+function configurarFiltroDepartamentoCheckbox() {
+    document.getElementById('lista-checkbox-departamentos').addEventListener('change', () => {
+        carregarChamados('Aberto');
+        carregarChamados('Finalizado');
+    });
+}
+
+// Modificar renderização para aplicar filtro
+// Remover duplicidade: só declarar se ainda não existe
+if (typeof renderizarChamadosAbertosOriginal === 'undefined') {
+    const renderizarChamadosAbertosOriginal = renderizarChamadosAbertos;
+    renderizarChamadosAbertos = function (chamados, totalPaginas, paginaAtual) {
+        chamados = filtrarChamadosPorDepartamentoCheckbox(chamados);
+        renderizarChamadosAbertosOriginal(chamados, totalPaginas, paginaAtual);
+    };
+}
+
+// --- Filtro de departamentos para chamados abertos ---
+// Remover duplicidade: só declarar se ainda não existe
+if (typeof renderizarChamadosAbertosOriginal === 'undefined') {
+    const renderizarChamadosAbertosOriginal = renderizarChamadosAbertos;
+    renderizarChamadosAbertos = function (chamados, totalPaginas, paginaAtual) {
+        chamados = filtrarChamadosPorDepartamentoCheckbox(chamados);
+        renderizarChamadosAbertosOriginal(chamados, totalPaginas, paginaAtual);
+    };
+}
+
+// --- Filtro de departamentos para chamados finalizados ---
+async function carregarDepartamentosDropdownFinalizados() {
+    const ul = document.getElementById('lista-checkbox-departamentos-finalizados');
+    if (!ul) return;
+    ul.innerHTML = '';
+    try {
+        const resp = await fetch('/departamentos');
+        if (resp.ok) {
+            const departamentos = await resp.json();
+            departamentos.forEach(dep => {
+                const li = document.createElement('li');
+                li.className = 'form-check';
+                li.innerHTML = `<input class="form-check-input filtro-dep-checkbox-finalizados" type="checkbox" value="${dep.id}" id="dep-check-finalizados-${dep.id}">
+                    <label class="form-check-label ms-1" for="dep-check-finalizados-${dep.id}">${dep.nome}</label>`;
+                ul.appendChild(li);
+            });
+        }
+    } catch (e) { }
+}
+function getDepartamentosSelecionadosCheckboxFinalizados() {
+    return Array.from(document.querySelectorAll('.filtro-dep-checkbox-finalizados:checked')).map(cb => parseInt(cb.value));
+}
+function filtrarChamadosPorDepartamentoCheckboxFinalizados(chamados) {
+    const selecionados = getDepartamentosSelecionadosCheckboxFinalizados();
+    if (!selecionados.length) return chamados;
+    return chamados.filter(ch => selecionados.includes(ch[12])); // ch[12] = departamento_id
+}
+function configurarFiltroDepartamentoCheckboxFinalizados() {
+    document.getElementById('lista-checkbox-departamentos-finalizados').addEventListener('change', () => {
+        carregarChamados('Finalizado');
+    });
+}
+const renderizarChamadosFinalizadosOriginal = window.renderizarChamadosFinalizados;
+window.renderizarChamadosFinalizados = function (chamados, totalPaginas, paginaAtual) {
+    chamados = filtrarChamadosPorDepartamentoCheckboxFinalizados(chamados);
+    renderizarChamadosFinalizadosOriginal(chamados, totalPaginas, paginaAtual);
+};
+carregarDepartamentosDropdownFinalizados();
+configurarFiltroDepartamentoCheckboxFinalizados(); 

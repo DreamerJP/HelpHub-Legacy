@@ -44,6 +44,17 @@
                 <button id="btn-excluir" class="btn btn-danger" onclick="excluirChamado(selectedChamadoId)" disabled>
                     <i class="bi bi-trash"></i> Excluir
                 </button>
+                <div class="dropdown d-inline-block" id="dropdown-filtro-departamento">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButtonDep"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-funnel"></i> Departamentos
+                    </button>
+                    <ul class="dropdown-menu p-2" aria-labelledby="dropdownMenuButtonDep"
+                        style="min-width: 220px; max-height: 300px; overflow-y: auto;"
+                        id="lista-checkbox-departamentos">
+                        <!-- Itens de departamentos com checkbox serão inseridos via JS -->
+                    </ul>
+                </div>
             </div>
             <div class="table-responsive-mobile">
                 <table class="modern-table">
@@ -52,6 +63,7 @@
                             <th>Protocolo</th>
                             <th>ID</th>
                             <th>Cliente</th>
+                            <th>Departamento</th>
                             <th onclick="sortChamados('data')">Data</th>
                             <th>Assunto</th>
                             <th>Status</th>
@@ -94,6 +106,17 @@
                     disabled>
                     <i class="bi bi-trash"></i> Excluir
                 </button>
+                <div class="dropdown d-inline-block" id="dropdown-filtro-departamento-finalizados">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                        id="dropdownMenuButtonDepFinalizados" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-funnel"></i> Departamentos
+                    </button>
+                    <ul class="dropdown-menu p-2" aria-labelledby="dropdownMenuButtonDepFinalizados"
+                        style="min-width: 220px; max-height: 300px; overflow-y: auto;"
+                        id="lista-checkbox-departamentos-finalizados">
+                        <!-- Itens de departamentos com checkbox serão inseridos via JS -->
+                    </ul>
+                </div>
             </div>
             <div class="table-responsive-mobile">
                 <table class="modern-table">
@@ -102,6 +125,7 @@
                             <th>Protocolo</th>
                             <th>ID</th>
                             <th>Cliente</th>
+                            <th>Departamento</th>
                             <th onclick="sortChamados('data')">Data</th>
                             <th>Assunto</th>
                             <th>Data Fechamento</th>

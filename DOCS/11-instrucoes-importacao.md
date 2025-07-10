@@ -54,15 +54,35 @@ Ferramenta recomendada: [editcsvonline.com](https://editcsvonline.com/)
 - Obrigatórios: `username`, `password`
 - Opcionais: id, role
 
+### Departamentos
+- Obrigatório: `nome`
+- Opcionais: id, descricao
+
+### Vínculos Usuário-Departamento
+- Obrigatórios: `usuario_id`, `departamento_id`
+
 ---
 
 ## Ordem de Importação Recomendada
+
+A ordem de importação das tabelas agora é numerada e deve ser seguida para evitar erros de integridade. Os arquivos exportados já vêm numerados para facilitar a ordem correta.
+
+Exemplo de campo multiline (notas com quebras de linha e HTML):
+```
+id,cliente_id,notas
+1,2,"<p>Cliente importante.<br />\n<strong>Supervisor Ricardo.</strong></p>"
+```
+
+O sistema suporta importação robusta de campos complexos, inclusive multiline e HTML, graças ao uso do PapaParse.
 
 1. clientes
 2. notas_clientes
 3. chamados
 4. chamados_andamentos
 5. agendamentos
+6. usuarios
+7. departamentos
+8. usuario_departamento (vínculos)
 
 Tabelas flexíveis: usuarios, configuracoes
 
@@ -97,6 +117,21 @@ cliente_id,descricao,status
 ```
 username,password,role
 admin,senha123,admin
+```
+
+**Departamentos**
+```
+id,nome,descricao
+1,TI,Tecnologia da Informação
+2,Financeiro,Gestão Financeira
+```
+
+**Vínculos Usuário-Departamento**
+```
+usuario_id,departamento_id
+1,1
+1,2
+2,1
 ```
 
 ---

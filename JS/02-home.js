@@ -12,7 +12,6 @@ function carregarHome() {
     carregarEstatisticas('total');
     configurarDropdownPeriodo();
     configurarBuscaClientes();
-    configurarCampoBuscaCliente();
 }
 
 /**
@@ -22,52 +21,53 @@ function carregarHome() {
 async function carregarEstatisticas(periodo = 'total') {
     try {
         showLoading();
-        const response = await fetch(`/estatisticas?periodo=${periodo}`);
+        let departamentoId = document.getElementById('departamento-estatisticas')?.value;
+        if (!departamentoId || isNaN(Number(departamentoId)) || Number(departamentoId) <= 0) {
+            departamentoId = '';
+        }
+        let url = `/estatisticas?periodo=${periodo}`;
+        if (departamentoId) url += `&departamento_id=${departamentoId}`;
+        const response = await fetch(url);
         const dados = await response.json();
-
-        if (dados) {
-            // Atualiza os contadores
-            document.getElementById('total-abertos').textContent = dados.chamados_abertos || 0;
-            document.getElementById('total-fechados').textContent = dados.chamados_fechados || 0;
-
-            // Atualiza o gráfico
-            inicializarGrafico(dados);
-
-            // Atualiza as estatísticas gerais
-            const estatisticasGerais = document.getElementById('estatisticas-gerais');
-            if (estatisticasGerais) {
-                estatisticasGerais.innerHTML = `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Total de Clientes
-                        <span class="badge bg-primary rounded-pill">${dados.total_clientes}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Chamados Abertos
-                        <span class="badge bg-warning rounded-pill">${dados.chamados_abertos}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Chamados Fechados
-                        <span class="badge bg-success rounded-pill">${dados.chamados_fechados}</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Média Diária de Chamados
-                        <span class="badge bg-info rounded-pill">${dados.media_diaria_chamados}</span>
-                    </li>
-                `;
-            }
-
-            // Exibe os últimos chamados
-            const ultimosChamadosContainer = document.getElementById('ultimos-chamados-lista');
-            if (ultimosChamadosContainer) {
-                if (dados.ultimos_chamados && dados.ultimos_chamados.length > 0) {
-                    renderizarUltimosChamados(dados.ultimos_chamados);
-                } else {
-                    ultimosChamadosContainer.innerHTML = '<div class="text-center text-muted">Nenhum chamado registrado</div>';
-                }
+        if (dados.error) throw new Error(dados.error);
+        // Atualiza os contadores
+        document.getElementById('total-abertos').textContent = dados.chamados_abertos || 0;
+        document.getElementById('total-fechados').textContent = dados.chamados_fechados || 0;
+        // Atualiza o gráfico
+        inicializarGrafico(dados);
+        // Atualiza as estatísticas gerais
+        const estatisticasGerais = document.getElementById('estatisticas-gerais');
+        if (estatisticasGerais) {
+            estatisticasGerais.innerHTML = `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Total de Clientes
+                    <span class="badge bg-primary rounded-pill">${dados.total_clientes ?? 0}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Chamados Abertos
+                    <span class="badge bg-warning rounded-pill">${dados.chamados_abertos ?? 0}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Chamados Fechados
+                    <span class="badge bg-success rounded-pill">${dados.chamados_fechados ?? 0}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Média Diária de Chamados
+                    <span class="badge bg-info rounded-pill">${dados.media_diaria_chamados ?? 0}</span>
+                </li>
+            `;
+        }
+        // Exibe os últimos chamados
+        const ultimosChamadosContainer = document.getElementById('ultimos-chamados-lista');
+        if (ultimosChamadosContainer) {
+            if (dados.ultimos_chamados && dados.ultimos_chamados.length > 0) {
+                renderizarUltimosChamados(dados.ultimos_chamados);
+            } else {
+                ultimosChamadosContainer.innerHTML = '<div class="text-center text-muted">Nenhum chamado registrado</div>';
             }
         }
     } catch (error) {
-        console.error('Erro ao carregar estatísticas:', error);
+        resetarCardsEstatisticas();
     } finally {
         hideLoading();
     }
@@ -176,10 +176,12 @@ function configurarBuscaClientes() {
  */
 async function buscarClientesAjax(termo) {
     try {
-        const response = await fetch(`/buscar-clientes?termo=${encodeURIComponent(termo)}`);
+        const response = await fetch(`/clientes/buscar?termo=${encodeURIComponent(termo)}`);
         const clientes = await response.json();
-
         const resultadoBusca = document.getElementById('resultado-busca');
+        if (!resultadoBusca) {
+            return;
+        }
         resultadoBusca.innerHTML = '';
 
         if (clientes.length > 0) {
@@ -195,11 +197,8 @@ async function buscarClientesAjax(termo) {
                         <div>
                             <strong>${cliente.nome}</strong>
                             <br>
-                            <small class="text-muted">ID: ${cliente.id}</small>
+                            <small class="text-muted">ID: ${cliente.id}${cliente.email ? ' | ' + cliente.email : ''}</small>
                         </div>
-                        <button class="btn btn-sm btn-primary" onclick="novoChamadoCliente(${cliente.id})">
-                            <i class="bi bi-plus-circle"></i> Novo Chamado
-                        </button>
                     </div>
                 `;
                 item.addEventListener('click', function (e) {
@@ -214,62 +213,7 @@ async function buscarClientesAjax(termo) {
             resultadoBusca.innerHTML = '<div class="text-muted p-2">Nenhum cliente encontrado</div>';
         }
     } catch (error) {
-        console.error('Erro na busca de clientes:', error);
     }
-}
-
-/**
- * Configura os eventos do campo de busca de clientes na home (autocomplete, limpar, atalho para detalhes)
- */
-function configurarCampoBuscaCliente() {
-    const searchInput = document.getElementById('busca-cliente');
-    const clearButton = document.getElementById('clear-search');
-    const resultadoBusca = document.getElementById('resultado-busca');
-
-    if (!searchInput || !clearButton || !resultadoBusca) return;
-
-    // Remove event listeners anteriores para evitar duplicação
-    const newClearButton = clearButton.cloneNode(true);
-    clearButton.parentNode.replaceChild(newClearButton, clearButton);
-
-    // Configura novo event listener para o input
-    searchInput.addEventListener('input', async function () {
-        newClearButton.style.display = this.value ? 'block' : 'none';
-        if (!this.value || this.value.trim().length < 3) {
-            resultadoBusca.innerHTML = '';
-            return;
-        }
-        try {
-            showLoading();
-            const res = await fetch(`/clientes/buscar?termo=${encodeURIComponent(this.value)}`);
-            if (!res.ok) throw new Error('Erro ao buscar clientes');
-            const clientes = await res.json();
-            if (!Array.isArray(clientes) || clientes.length === 0) {
-                resultadoBusca.innerHTML = '<div class="text-muted small p-2">Nenhum cliente encontrado</div>';
-                return;
-            }
-            resultadoBusca.innerHTML = clientes.map(c => `
-                <div class="list-group-item list-group-item-action" style="cursor:pointer" onclick="mostrarDetalhesCliente(${c.id})">
-                    <strong>#${c.id}</strong> - ${c.nome} <span class="text-muted">${c.email || ''}</span>
-                </div>
-            `).join('');
-        } catch (e) {
-            resultadoBusca.innerHTML = '<div class="text-danger small p-2">Erro ao buscar clientes</div>';
-        } finally {
-            hideLoading();
-        }
-    });
-
-    // Configura novo event listener para o botão limpar
-    newClearButton.addEventListener('click', function () {
-        searchInput.value = '';
-        searchInput.focus();
-        resultadoBusca.innerHTML = '';
-        this.style.display = 'none';
-    });
-
-    // Define estado inicial do botão
-    newClearButton.style.display = searchInput.value ? 'block' : 'none';
 }
 
 /**
@@ -334,14 +278,81 @@ function hideLoading() {
     if (loading) loading.style.display = 'none';
 }
 
-// ===== INICIALIZAÇÃO QUANDO A PÁGINA CARREGA =====
+// ====== NOVO: Carregar departamentos para o filtro ======
+async function carregarDepartamentosEstatisticas() {
+    try {
+        const select = document.getElementById('departamento-estatisticas');
+        if (!select) return;
+        select.innerHTML = '<option value="">Todos os departamentos</option>';
+        const resp = await fetch('/departamentos');
+        if (!resp.ok) throw new Error('Erro ao buscar departamentos');
+        const deps = await resp.json();
+        deps.forEach(dep => {
+            const opt = document.createElement('option');
+            opt.value = dep.id;
+            opt.textContent = dep.nome;
+            select.appendChild(opt);
+        });
+        // Após carregar departamentos, carregar estatísticas
+        carregarEstatisticas(document.getElementById('periodo-estatisticas')?.value || 'total');
+    } catch (e) {
+        // Silencioso, mas pode exibir erro se quiser
+        resetarCardsEstatisticas();
+    }
+}
 
+// ====== NOVO: Resetar cards de estatísticas ======
+function resetarCardsEstatisticas() {
+    document.getElementById('total-abertos').textContent = '0';
+    document.getElementById('total-fechados').textContent = '0';
+    const estatisticasGerais = document.getElementById('estatisticas-gerais');
+    if (estatisticasGerais) estatisticasGerais.innerHTML = '';
+    const ultimosChamadosContainer = document.getElementById('ultimos-chamados-lista');
+    if (ultimosChamadosContainer) ultimosChamadosContainer.innerHTML = '<div class="text-center text-muted">Nenhum chamado registrado</div>';
+    if (graficoChamados) {
+        graficoChamados.destroy();
+        graficoChamados = null;
+    }
+}
+
+// ====== Alterar carregarEstatisticas para considerar departamento e tratar dados vazios ======
 document.addEventListener('DOMContentLoaded', function () {
-    // Carrega a página home
-    carregarHome();
-
-    // Inicia atualização automática
-    startAutoRefresh();
+    carregarDepartamentosEstatisticas();
+    const depSelect = document.getElementById('departamento-estatisticas');
+    if (depSelect) {
+        depSelect.addEventListener('change', function () {
+            const periodo = document.getElementById('periodo-estatisticas')?.value || 'total';
+            carregarEstatisticas(periodo);
+        });
+    }
+    const periodoSelect = document.getElementById('periodo-estatisticas');
+    if (periodoSelect) {
+        periodoSelect.addEventListener('change', function () {
+            carregarEstatisticas(this.value);
+        });
+    }
+    configurarBuscaClientes(); // Adicionado para configurar a busca de clientes ao carregar a página
+    // --- BUSCA DE CLIENTES HOME ---
+    const searchInput = document.getElementById('busca-cliente');
+    const clearBtn = document.getElementById('clear-search');
+    const resultadoBusca = document.getElementById('resultado-busca');
+    if (searchInput && clearBtn && resultadoBusca) {
+        searchInput.addEventListener('input', function () {
+            clearBtn.style.display = this.value ? 'block' : 'none';
+            const termo = this.value.trim();
+            if (termo.length >= 3) {
+                buscarClientesAjax(termo);
+            } else {
+                resultadoBusca.innerHTML = '';
+            }
+        });
+        clearBtn.addEventListener('click', function () {
+            searchInput.value = '';
+            resultadoBusca.innerHTML = '';
+            clearBtn.style.display = 'none';
+            searchInput.focus();
+        });
+    }
 });
 
 // Atualiza estatísticas quando a página fica visível
@@ -455,6 +466,9 @@ function mostrarModalChamado(chamado) {
                     <div class="row mb-2">
                         <div class="col-md-6"><strong>Cliente:</strong> ${chamado.cliente_nome || '-'}</div>
                         <div class="col-md-6"><strong>Assunto:</strong> ${chamado.assunto || '-'}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-6"><strong>Departamento:</strong> ${chamado.departamento_nome || '-'}</div>
                     </div>
                     <div class="row mb-2">
                         <div class="col-md-6"><strong>Descrição:</strong> ${chamado.descricao || '-'}</div>
