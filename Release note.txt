@@ -62,5 +62,5 @@ _____________________________________________________________________________
 
 - Regras de SLA.
 - Relatórios de chamados por departamento/atendente/data.
-
+- Tema escuro
 
