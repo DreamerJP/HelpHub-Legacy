@@ -1,6 +1,6 @@
 # Release Notes - HelpHub
 
-## [v3.3] — Principais mudanças
+## [v3.4] — Principais mudanças
 
 ---
 
@@ -25,6 +25,23 @@
 - **Estatísticas:**  
   - Adicionado filtro por departamento nas estatísticas de chamados (gráficos, totais e últimos chamados).
 
+- **Controle de Brilho (Tema Escuro):**  
+  - Novo controle deslizante na navbar para ajustar o brilho da página (0% a 70%).
+  - Efeito "apagar a luz" com overlay que escurece toda a tela proporcionalmente.
+  - Persistência automática da configuração do usuário no navegador.
+  - Limite máximo seguro de 70% para evitar tela completamente preta.
+  - Interface intuitiva com ícones de sol e lua, valor atual em destaque.
+  - Indicador visual vermelho quando o brilho está muito alto (≥50%).
+  - Compatibilidade total com todas as páginas do sistema.
+
+- **Inversão de Cores:**  
+  - Novo botão de paleta na navbar para inverter todas as cores da página.
+  - Efeito visual completo que transforma branco em preto, azul em laranja, etc.
+  - Correção automática para imagens e logos que ficam invertidas duas vezes.
+  - Persistência da configuração no navegador.
+  - Exclusão mútua com controle de brilho (ativar um desativa o outro automaticamente).
+  - Útil para usuários com necessidades especiais de contraste.
+
 - **Central de Ajuda (HelpHub):**  
   - Busca fuzzy: tolera erros de digitação e encontra termos aproximados em títulos e conteúdos.
   - Snippets destacados: mostra trechos do conteúdo com o termo buscado em destaque.
@@ -46,6 +63,9 @@
 - Cards de estatísticas agora são resetados corretamente ao trocar filtros, evitando exibição de dados inconsistentes.
 - Tratamento aprimorado para dados vazios e mensagens amigáveis quando não há chamados para o filtro selecionado.
 - Experiência mobile e navegação mais intuitiva.
+- Controle de brilho integrado à navbar para personalização visual do usuário.
+- Botão de inversão de cores para acessibilidade e preferências visuais.
+- Sistemas de personalização visual mutuamente exclusivos para evitar conflitos.
 
 ---
 
@@ -62,5 +82,4 @@ _____________________________________________________________________________
 
 - Regras de SLA.
 - Relatórios de chamados por departamento/atendente/data.
-- Tema escuro
 

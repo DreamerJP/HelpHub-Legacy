@@ -354,6 +354,161 @@
 }
 
 /* ===============================================
+  BRIGHTNESS CONTROL / CONTROLE DE BRILHO
+   =============================================== */
+
+:root {
+  --theme-intensity: 0; /* Valor padrão: 0% (totalmente claro) */
+}
+
+/* Overlay que controla o brilho da página */
+.dark-mode::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, var(--theme-intensity));
+  pointer-events: none;
+  z-index: 9998;
+  transition: background-color 0.3s ease;
+}
+
+/* Alinhamento do controle de brilho na navbar */
+#theme-toggle {
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition-fast);
+  position: relative;
+  top: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0.25rem 0 0.75rem;
+}
+
+#theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--navbar-text-hover) !important;
+}
+
+/* ===============================================
+  COLOR INVERT / INVERSÃO DE CORES
+   =============================================== */
+
+.color-invert {
+  filter: invert(100%) hue-rotate(180deg);
+}
+
+.color-invert img,
+.color-invert .navbar-logo {
+  filter: invert(100%);
+}
+
+#invert-toggle {
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition-fast);
+  position: relative;
+  top: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0.25rem;
+}
+
+#invert-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--navbar-text-hover) !important;
+}
+
+#invert-toggle.color-invert-active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Dropdown personalizado para controles do tema */
+.theme-dropdown {
+  min-width: 200px;
+  padding: 0;
+}
+
+.theme-dropdown .text-muted {
+  color: #6c757d !important;
+}
+
+.theme-dropdown small {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.theme-dropdown .text-light {
+  color: #f8f9fa !important;
+}
+
+#intensity-value {
+  color: #0d6efd !important;
+  font-weight: 600;
+}
+
+/* Indicador visual quando está muito escuro */
+.theme-intensity-high #intensity-value {
+  color: #dc3545 !important; /* Vermelho quando muito escuro */
+}
+
+.theme-dropdown .form-range {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+}
+
+.theme-dropdown .form-range::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+  background: #0d6efd;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+.theme-dropdown .form-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #0d6efd;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+/* Botão de toggle do tema */
+#theme-toggle {
+  color: var(--navbar-text) !important;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition-fast);
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--navbar-text-hover) !important;
+}
+
+#theme-toggle i {
+  font-size: 1rem;
+  width: 16px;
+  text-align: center;
+}
+
+#theme-toggle.dark-mode-active i::before {
+  content: "\f185"; /* fas fa-sun */
+}
+
+/* ===============================================
   PRINT STYLES
    =============================================== */
 

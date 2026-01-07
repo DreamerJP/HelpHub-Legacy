@@ -37,6 +37,8 @@
       setupUserInfo();
       setupMobileMenu();
       setupDropdowns();
+      setupColorInvert();
+      setupThemeToggle();
       if (window.setupSessionValidation) window.setupSessionValidation();
       // Exibir link de logs apenas para admin
       if (window.isUserAdmin) {
@@ -267,6 +269,115 @@
     }
   }
   window.addEventListener('resize', handleDropdownResize);
+
+  // Configuração do inversor de cores
+  function setupColorInvert() {
+    const invertToggle = document.getElementById('invert-toggle');
+
+    if (!invertToggle) {
+      console.warn('Botão de inversão de cores não encontrado');
+      return;
+    }
+
+    // Carrega a configuração salva
+    const isInverted = localStorage.getItem('colorInvert') === 'true';
+    if (isInverted) {
+      document.documentElement.classList.add('color-invert');
+      invertToggle.classList.add('color-invert-active');
+    }
+
+    // Evento de click
+    invertToggle.addEventListener('click', function() {
+      const html = document.documentElement;
+      const isCurrentlyInverted = html.classList.contains('color-invert');
+
+      if (isCurrentlyInverted) {
+        html.classList.remove('color-invert');
+        invertToggle.classList.remove('color-invert-active');
+        localStorage.setItem('colorInvert', 'false');
+      } else {
+        // Ativar inversão - desativar brilho automaticamente
+        html.classList.add('color-invert');
+        html.classList.remove('dark-mode');
+        invertToggle.classList.add('color-invert-active');
+        localStorage.setItem('colorInvert', 'true');
+        localStorage.setItem('themeIntensity', '0');
+        // Reset do slider se existir
+        const slider = document.getElementById('theme-intensity');
+        const value = document.getElementById('intensity-value');
+        if (slider) slider.value = 0;
+        if (value) value.textContent = '0%';
+      }
+    });
+  }
+
+  // Configuração do controle de brilho
+  function setupThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const intensitySlider = document.getElementById('theme-intensity');
+    const intensityValue = document.getElementById('intensity-value');
+
+    if (!themeToggle || !intensitySlider || !intensityValue) {
+      console.warn('Elementos do controle de tema não encontrados');
+      return;
+    }
+
+    if (localStorage.getItem('darkMode') !== null) {
+      localStorage.removeItem('darkMode');
+    }
+
+    let savedIntensity = Math.min(parseInt(localStorage.getItem('themeIntensity')) || 0, 70);
+
+    // Aplica a intensidade inicial
+    applyThemeIntensity(savedIntensity);
+
+    // Configura o slider
+    intensitySlider.value = savedIntensity;
+    intensitySlider.max = 70; // Máximo seguro: 70%
+    updateIntensityDisplay(savedIntensity);
+
+    // Evento para mudanças no slider
+    intensitySlider.addEventListener('input', function() {
+      const value = parseInt(this.value);
+      applyThemeIntensity(value);
+      updateIntensityDisplay(value);
+      localStorage.setItem('themeIntensity', value);
+
+      // Se brilho > 0, desativar inversão de cores automaticamente
+      if (value > 0) {
+        const invertToggle = document.getElementById('invert-toggle');
+        document.documentElement.classList.remove('color-invert');
+        if (invertToggle) {
+          invertToggle.classList.remove('color-invert-active');
+        }
+        localStorage.setItem('colorInvert', 'false');
+      }
+    });
+
+    function applyThemeIntensity(value) {
+      const opacity = value / 100; // 0 = 0%, 100 = 100%
+
+      if (value === 0) {
+        // Remove completamente o overlay quando em 0%
+        document.documentElement.classList.remove('dark-mode');
+      } else {
+        document.documentElement.classList.add('dark-mode');
+      }
+
+      document.documentElement.style.setProperty('--theme-intensity', opacity);
+    }
+
+    function updateIntensityDisplay(value) {
+      intensityValue.textContent = value + '%';
+
+      const dropdown = intensitySlider.closest('.theme-dropdown');
+      if (value >= 50) {
+        dropdown.classList.add('theme-intensity-high');
+      } else {
+        dropdown.classList.remove('theme-intensity-high');
+      }
+    }
+  }
 
   // Exposição de funções globais para uso em outras partes do sistema
   window.HelpHubNavbar = {
