@@ -1,5 +1,10 @@
 # HelpHub
 
+> [!CAUTION]
+> **PROJETO LEGADO:** Este repositório foi substituído por uma nova versão (HelpHub 4.0) e será mantido apenas para arquivamento e consulta de histórico.
+> O novo **HelpHub v4.0** está disponível em seu novo endereço:
+> 👉 **[github.com/DreamerJP/HelpHub](https://github.com/DreamerJP/HelpHub)**
+
 ---
 
 ## Estrutura de Pastas
