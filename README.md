@@ -1,4 +1,4 @@
-# HelpHub
+# HelpHub Legacy
 
 > [!CAUTION]
 > **PROJETO LEGADO:** Este repositório contém a versão antiga do sistema e será mantido apenas para histórico.
