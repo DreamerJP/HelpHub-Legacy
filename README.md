@@ -1,8 +1,12 @@
 # HelpHub
 
 > [!CAUTION]
-> **PROJETO LEGADO:** Este repositório foi substituído por uma nova versão (HelpHub 4.0) e será mantido apenas para arquivamento e consulta de histórico.
-> O novo **HelpHub v4.0** está disponível em seu novo endereço:
+> **PROJETO LEGADO:** Este repositório contém a versão antiga do sistema e será mantido apenas para histórico.
+>
+> **Por que mudar de repositório?**
+> O HelpHub foi totalmente **reconstruído do zero**. A nova versão (v4.0) utiliza uma arquitetura completamente diferente, design moderno, segurança reforçada e performance otimizada, o que o torna um projeto novo e incompatível com a estrutura deste código antigo.
+>
+> O novo **HelpHub v4.0** está disponível em:
 > 👉 **[github.com/DreamerJP/HelpHub](https://github.com/DreamerJP/HelpHub)**
 
 ---
